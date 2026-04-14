@@ -1,0 +1,688 @@
+{
+  "markers": [
+    {
+      "key": "wbc",
+      "displayName": "White Blood Cells (WBC)",
+      "whatItMeasures": "Cells in your blood that help fight infections and heal injuries.",
+      "whyTested": "Commonly checked to understand immune system activity.",
+      "belowContext": "Lower levels may be influenced by various factors. Your clinician can help determine what's appropriate for you.",
+      "aboveContext": "Higher levels may be influenced by various factors including recent illness or stress. Your clinician can provide context.",
+      "relatedMarkers": ["RBC", "Hemoglobin", "Hematocrit", "Platelets", "Neutrophils", "Lymphocytes"]
+    },
+    {
+      "key": "rbc",
+      "displayName": "Red Blood Cells (RBC)",
+      "whatItMeasures": "Cells that carry oxygen throughout your body.",
+      "whyTested": "Commonly checked to understand oxygen transport capacity.",
+      "belowContext": "Lower levels may be associated with various factors. Often reviewed alongside iron markers.",
+      "aboveContext": "Higher levels may be associated with various factors. Your clinician can provide context.",
+      "relatedMarkers": ["WBC", "Hemoglobin", "Hematocrit", "Platelets", "MCV", "MCH", "MCHC"]
+    },
+    {
+      "key": "hemoglobin",
+      "displayName": "Hemoglobin",
+      "whatItMeasures": "The protein in red blood cells that carries oxygen.",
+      "whyTested": "Commonly checked to understand how well oxygen is transported in the blood.",
+      "belowContext": "Lower levels may be associated with various nutritional factors. Often discussed alongside iron status.",
+      "aboveContext": "Higher levels may be associated with various factors. Your clinician can provide context.",
+      "relatedMarkers": ["RBC", "Hematocrit", "MCV", "MCH", "MCHC", "Iron", "Ferritin"]
+    },
+    {
+      "key": "hematocrit",
+      "displayName": "Hematocrit",
+      "whatItMeasures": "The percentage of your blood made up of red blood cells.",
+      "whyTested": "Commonly checked alongside hemoglobin to understand blood composition.",
+      "belowContext": "Lower levels may be associated with various factors. Often reviewed with hemoglobin.",
+      "aboveContext": "Higher levels may be associated with various factors. Often reviewed with hemoglobin.",
+      "relatedMarkers": ["RBC", "Hemoglobin", "MCV", "MCH", "MCHC"]
+    },
+    {
+      "key": "mcv",
+      "displayName": "Mean Corpuscular Volume (MCV)",
+      "whatItMeasures": "The average size of your red blood cells.",
+      "whyTested": "Commonly checked to provide context about red blood cell characteristics.",
+      "belowContext": "Smaller cells may be associated with various nutritional factors. Often discussed with iron status.",
+      "aboveContext": "Larger cells may be associated with various nutritional factors. Often discussed with B12 and folate.",
+      "relatedMarkers": ["RBC", "Hemoglobin", "MCH", "MCHC", "Iron", "B12", "Folate"]
+    },
+    {
+      "key": "mch",
+      "displayName": "Mean Corpuscular Hemoglobin (MCH)",
+      "whatItMeasures": "The average amount of hemoglobin in each red blood cell.",
+      "whyTested": "Commonly checked alongside MCV to understand red blood cell characteristics.",
+      "belowContext": "Lower levels may be associated with various nutritional factors.",
+      "aboveContext": "Higher levels may be associated with various nutritional factors.",
+      "relatedMarkers": ["RBC", "Hemoglobin", "MCV", "MCHC"]
+    },
+    {
+      "key": "mchc",
+      "displayName": "Mean Corpuscular Hemoglobin Concentration (MCHC)",
+      "whatItMeasures": "The average concentration of hemoglobin in red blood cells.",
+      "whyTested": "Commonly checked alongside other red blood cell markers.",
+      "belowContext": "Lower levels may be associated with various factors.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["RBC", "Hemoglobin", "MCV", "MCH"]
+    },
+    {
+      "key": "rdw",
+      "displayName": "Red Cell Distribution Width (RDW)",
+      "whatItMeasures": "A measure of variation in red blood cell size.",
+      "whyTested": "Commonly checked to provide additional context about red blood cells.",
+      "belowContext": "Lower variation may indicate more uniform cell sizes.",
+      "aboveContext": "Higher variation may be associated with various nutritional factors. Often discussed with iron, B12, and folate.",
+      "relatedMarkers": ["RBC", "Hemoglobin", "MCV", "Iron", "B12", "Folate"]
+    },
+    {
+      "key": "platelets",
+      "displayName": "Platelets",
+      "whatItMeasures": "Cells that help your blood clot and stop bleeding.",
+      "whyTested": "Commonly checked to understand blood clotting function.",
+      "belowContext": "Lower levels may be associated with various factors. Your clinician can provide context.",
+      "aboveContext": "Higher levels may be associated with various factors. Your clinician can provide context.",
+      "relatedMarkers": ["WBC", "RBC", "Hemoglobin", "PT", "PTT"]
+    },
+    {
+      "key": "neutrophils",
+      "displayName": "Neutrophils",
+      "whatItMeasures": "A type of white blood cell that fights bacterial infections.",
+      "whyTested": "Commonly checked as part of understanding immune function.",
+      "belowContext": "Lower levels may be associated with various factors. Your clinician can provide context.",
+      "aboveContext": "Higher levels may be associated with recent infection or stress.",
+      "relatedMarkers": ["WBC", "Lymphocytes", "Monocytes", "Eosinophils", "Basophils"]
+    },
+    {
+      "key": "lymphocytes",
+      "displayName": "Lymphocytes",
+      "whatItMeasures": "White blood cells that help fight viral infections.",
+      "whyTested": "Commonly checked as part of understanding immune function.",
+      "belowContext": "Lower levels may be associated with various factors.",
+      "aboveContext": "Higher levels may be associated with recent viral illness.",
+      "relatedMarkers": ["WBC", "Neutrophils", "Monocytes"]
+    },
+    {
+      "key": "monocytes",
+      "displayName": "Monocytes",
+      "whatItMeasures": "White blood cells that help clean up infections and damaged cells.",
+      "whyTested": "Commonly checked as part of the white blood cell differential.",
+      "belowContext": "Lower levels are sometimes seen.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["WBC", "Neutrophils", "Lymphocytes"]
+    },
+    {
+      "key": "eosinophils",
+      "displayName": "Eosinophils",
+      "whatItMeasures": "White blood cells involved in allergic responses and fighting parasites.",
+      "whyTested": "Commonly checked as part of the white blood cell differential.",
+      "belowContext": "Lower levels are common and often not concerning.",
+      "aboveContext": "Higher levels may be associated with allergies or other factors.",
+      "relatedMarkers": ["WBC", "Neutrophils", "Lymphocytes"]
+    },
+    {
+      "key": "basophils",
+      "displayName": "Basophils",
+      "whatItMeasures": "White blood cells involved in allergic and inflammatory responses.",
+      "whyTested": "Commonly checked as part of the white blood cell differential.",
+      "belowContext": "Lower levels are common.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["WBC", "Eosinophils"]
+    },
+    {
+      "key": "glucose",
+      "displayName": "Glucose (Fasting)",
+      "whatItMeasures": "Blood sugar level after not eating for 8-12 hours.",
+      "whyTested": "Commonly checked to understand how the body manages blood sugar.",
+      "belowContext": "Lower levels may be associated with timing of meals or other factors.",
+      "aboveContext": "Higher levels may be associated with dietary patterns and lifestyle factors. Often reviewed over time.",
+      "relatedMarkers": ["Hemoglobin A1c", "Insulin"]
+    },
+    {
+      "key": "hemoglobin_a1c",
+      "displayName": "Hemoglobin A1c",
+      "whatItMeasures": "Average blood sugar level over the past 2-3 months.",
+      "whyTested": "Provides a longer-term view of blood sugar patterns.",
+      "belowContext": "Lower levels generally reflect lower average blood sugar.",
+      "aboveContext": "Higher levels may be associated with dietary and lifestyle patterns over time.",
+      "relatedMarkers": ["Glucose", "Insulin"]
+    },
+    {
+      "key": "insulin",
+      "displayName": "Insulin (Fasting)",
+      "whatItMeasures": "A hormone that helps move sugar from blood into cells.",
+      "whyTested": "Sometimes checked to provide context about blood sugar management.",
+      "belowContext": "Lower levels may be associated with various factors.",
+      "aboveContext": "Higher levels may be associated with dietary and lifestyle patterns.",
+      "relatedMarkers": ["Glucose", "Hemoglobin A1c"]
+    },
+    {
+      "key": "bun",
+      "displayName": "Blood Urea Nitrogen (BUN)",
+      "whatItMeasures": "A waste product filtered by the kidneys.",
+      "whyTested": "Commonly checked to understand kidney function patterns.",
+      "belowContext": "Lower levels may be associated with various nutritional factors.",
+      "aboveContext": "Higher levels may be associated with hydration status or protein intake.",
+      "relatedMarkers": ["Creatinine", "eGFR", "Sodium", "Potassium"]
+    },
+    {
+      "key": "creatinine",
+      "displayName": "Creatinine",
+      "whatItMeasures": "A waste product from muscle filtered by the kidneys.",
+      "whyTested": "Commonly checked to understand kidney function patterns.",
+      "belowContext": "Lower levels may be associated with muscle mass or other factors.",
+      "aboveContext": "Higher levels may be associated with various factors. Often reviewed with BUN and eGFR.",
+      "relatedMarkers": ["BUN", "eGFR", "Sodium", "Potassium"]
+    },
+    {
+      "key": "egfr",
+      "displayName": "Estimated Glomerular Filtration Rate (eGFR)",
+      "whatItMeasures": "An estimate of how well the kidneys are filtering.",
+      "whyTested": "Calculated from creatinine to understand kidney function.",
+      "belowContext": "Lower values may be associated with various factors affecting kidney function.",
+      "aboveContext": "Higher values generally indicate better filtering function.",
+      "relatedMarkers": ["BUN", "Creatinine", "Sodium", "Potassium"]
+    },
+    {
+      "key": "sodium",
+      "displayName": "Sodium",
+      "whatItMeasures": "An important mineral for fluid balance and nerve function.",
+      "whyTested": "Commonly checked as part of electrolyte balance.",
+      "belowContext": "Lower levels may be associated with hydration patterns or other factors.",
+      "aboveContext": "Higher levels may be associated with hydration status or dietary sodium intake.",
+      "relatedMarkers": ["Potassium", "Chloride", "CO2", "BUN", "Creatinine"]
+    },
+    {
+      "key": "potassium",
+      "displayName": "Potassium",
+      "whatItMeasures": "An important mineral for heart rhythm and muscle function.",
+      "whyTested": "Commonly checked as part of electrolyte balance.",
+      "belowContext": "Lower levels may be associated with dietary intake or other factors.",
+      "aboveContext": "Higher levels may be associated with dietary intake or other factors.",
+      "relatedMarkers": ["Sodium", "Chloride", "CO2", "BUN", "Creatinine"]
+    },
+    {
+      "key": "chloride",
+      "displayName": "Chloride",
+      "whatItMeasures": "An electrolyte that helps maintain fluid balance.",
+      "whyTested": "Commonly checked alongside other electrolytes.",
+      "belowContext": "Lower levels may be associated with various factors.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["Sodium", "Potassium", "CO2"]
+    },
+    {
+      "key": "co2",
+      "displayName": "Carbon Dioxide (CO2 / Bicarbonate)",
+      "whatItMeasures": "A measure related to acid-base balance in the body.",
+      "whyTested": "Commonly checked as part of electrolyte and metabolic panels.",
+      "belowContext": "Lower levels may be associated with various metabolic factors.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["Sodium", "Potassium", "Chloride"]
+    },
+    {
+      "key": "calcium",
+      "displayName": "Calcium",
+      "whatItMeasures": "A mineral important for bones, muscles, and nerves.",
+      "whyTested": "Commonly checked to understand calcium status.",
+      "belowContext": "Lower levels may be associated with dietary intake or vitamin D status.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["Vitamin D", "Albumin", "PTH"]
+    },
+    {
+      "key": "total_protein",
+      "displayName": "Total Protein",
+      "whatItMeasures": "The total amount of protein in your blood.",
+      "whyTested": "Commonly checked to understand overall protein status.",
+      "belowContext": "Lower levels may be associated with dietary protein intake.",
+      "aboveContext": "Higher levels may be associated with hydration status or other factors.",
+      "relatedMarkers": ["Albumin", "Globulin"]
+    },
+    {
+      "key": "albumin",
+      "displayName": "Albumin",
+      "whatItMeasures": "The main protein made by the liver.",
+      "whyTested": "Commonly checked to understand protein status and liver function.",
+      "belowContext": "Lower levels may be associated with dietary protein intake or other factors.",
+      "aboveContext": "Higher levels may be associated with hydration status.",
+      "relatedMarkers": ["Total Protein", "Globulin", "ALT", "AST"]
+    },
+    {
+      "key": "globulin",
+      "displayName": "Globulin",
+      "whatItMeasures": "Proteins in blood including antibodies and other important proteins.",
+      "whyTested": "Calculated from total protein and albumin.",
+      "belowContext": "Lower levels may be associated with various factors.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["Total Protein", "Albumin"]
+    },
+    {
+      "key": "bilirubin_total",
+      "displayName": "Bilirubin (Total)",
+      "whatItMeasures": "A substance produced when red blood cells break down.",
+      "whyTested": "Commonly checked to understand liver function and red blood cell turnover.",
+      "belowContext": "Lower levels are common.",
+      "aboveContext": "Higher levels may be associated with various factors. Often reviewed with liver enzymes.",
+      "relatedMarkers": ["ALT", "AST", "ALP", "Albumin"]
+    },
+    {
+      "key": "alt",
+      "displayName": "ALT (Alanine Aminotransferase)",
+      "whatItMeasures": "An enzyme found mainly in the liver.",
+      "whyTested": "Commonly checked to understand liver function patterns.",
+      "belowContext": "Lower levels are common.",
+      "aboveContext": "Higher levels may be associated with various lifestyle factors. Often reviewed with other liver markers.",
+      "relatedMarkers": ["AST", "ALP", "Bilirubin", "Albumin"]
+    },
+    {
+      "key": "ast",
+      "displayName": "AST (Aspartate Aminotransferase)",
+      "whatItMeasures": "An enzyme found in liver, heart, and muscle tissue.",
+      "whyTested": "Commonly checked to understand liver and muscle function patterns.",
+      "belowContext": "Lower levels are common.",
+      "aboveContext": "Higher levels may be associated with various factors. Often reviewed with ALT.",
+      "relatedMarkers": ["ALT", "ALP", "Bilirubin", "CK"]
+    },
+    {
+      "key": "alp",
+      "displayName": "Alkaline Phosphatase (ALP)",
+      "whatItMeasures": "An enzyme found in liver and bone.",
+      "whyTested": "Commonly checked to understand liver and bone function patterns.",
+      "belowContext": "Lower levels are sometimes seen.",
+      "aboveContext": "Higher levels may be associated with bone growth or other factors.",
+      "relatedMarkers": ["ALT", "AST", "Bilirubin", "Calcium", "Vitamin D"]
+    },
+    {
+      "key": "total_cholesterol",
+      "displayName": "Total Cholesterol",
+      "whatItMeasures": "The total amount of cholesterol in your blood.",
+      "whyTested": "Commonly checked as part of understanding lipid patterns.",
+      "belowContext": "Lower levels are sometimes seen.",
+      "aboveContext": "Higher levels may be associated with dietary and lifestyle patterns. Often reviewed with HDL, LDL, and triglycerides.",
+      "relatedMarkers": ["LDL", "HDL", "Triglycerides", "Non-HDL"]
+    },
+    {
+      "key": "ldl",
+      "displayName": "LDL Cholesterol",
+      "whatItMeasures": "One type of cholesterol often discussed in wellness contexts.",
+      "whyTested": "Commonly checked as part of lipid patterns.",
+      "belowContext": "Lower levels are sometimes discussed in wellness contexts.",
+      "aboveContext": "Higher levels may be associated with dietary and lifestyle patterns.",
+      "relatedMarkers": ["Total Cholesterol", "HDL", "Triglycerides", "ApoB"]
+    },
+    {
+      "key": "hdl",
+      "displayName": "HDL Cholesterol",
+      "whatItMeasures": "One type of cholesterol often discussed in wellness contexts.",
+      "whyTested": "Commonly checked as part of lipid patterns.",
+      "belowContext": "Lower levels may be associated with lifestyle patterns.",
+      "aboveContext": "Higher levels are sometimes discussed in wellness contexts.",
+      "relatedMarkers": ["Total Cholesterol", "LDL", "Triglycerides"]
+    },
+    {
+      "key": "triglycerides",
+      "displayName": "Triglycerides",
+      "whatItMeasures": "A type of fat in the blood that provides energy.",
+      "whyTested": "Commonly reviewed as part of lipid patterns.",
+      "belowContext": "Lower levels are common.",
+      "aboveContext": "Higher levels may be associated with dietary patterns, especially refined carbohydrates and alcohol. Fasting status before the test matters.",
+      "relatedMarkers": ["Total Cholesterol", "LDL", "HDL", "Glucose"]
+    },
+    {
+      "key": "vldl",
+      "displayName": "VLDL Cholesterol",
+      "whatItMeasures": "A type of cholesterol that carries triglycerides.",
+      "whyTested": "Usually calculated from triglycerides.",
+      "belowContext": "Lower levels are common.",
+      "aboveContext": "Higher levels may be associated with triglyceride patterns.",
+      "relatedMarkers": ["Triglycerides", "LDL", "HDL"]
+    },
+    {
+      "key": "non_hdl",
+      "displayName": "Non-HDL Cholesterol",
+      "whatItMeasures": "Total cholesterol minus HDL cholesterol.",
+      "whyTested": "Calculated to provide additional lipid context.",
+      "belowContext": "Lower levels are sometimes discussed.",
+      "aboveContext": "Higher levels may be associated with dietary and lifestyle patterns.",
+      "relatedMarkers": ["Total Cholesterol", "LDL", "HDL", "Triglycerides"]
+    },
+    {
+      "key": "apob",
+      "displayName": "Apolipoprotein B (ApoB)",
+      "whatItMeasures": "A protein component of certain cholesterol particles.",
+      "whyTested": "Sometimes checked to provide additional lipid context.",
+      "belowContext": "Lower levels are sometimes discussed.",
+      "aboveContext": "Higher levels may be associated with dietary and lifestyle patterns.",
+      "relatedMarkers": ["LDL", "Non-HDL", "Triglycerides"]
+    },
+    {
+      "key": "lpa",
+      "displayName": "Lipoprotein(a) [Lp(a)]",
+      "whatItMeasures": "A type of cholesterol particle largely influenced by genetics.",
+      "whyTested": "Sometimes checked as part of advanced lipid evaluation.",
+      "belowContext": "Lower levels are common.",
+      "aboveContext": "Higher levels are often genetically influenced.",
+      "relatedMarkers": ["LDL", "ApoB"]
+    },
+    {
+      "key": "tsh",
+      "displayName": "TSH (Thyroid Stimulating Hormone)",
+      "whatItMeasures": "A hormone that signals the thyroid gland.",
+      "whyTested": "Commonly checked to understand thyroid function patterns.",
+      "belowContext": "Lower levels may be associated with various factors affecting thyroid activity.",
+      "aboveContext": "Higher levels may be associated with various factors affecting thyroid activity.",
+      "relatedMarkers": ["Free T4", "Free T3"]
+    },
+    {
+      "key": "free_t4",
+      "displayName": "Free T4 (Free Thyroxine)",
+      "whatItMeasures": "The active form of a major thyroid hormone in the blood.",
+      "whyTested": "Often checked to provide additional thyroid context when TSH is abnormal.",
+      "belowContext": "Lower levels may be associated with various thyroid-related factors.",
+      "aboveContext": "Higher levels may be associated with various thyroid-related factors.",
+      "relatedMarkers": ["TSH", "Free T3"]
+    },
+    {
+      "key": "free_t3",
+      "displayName": "Free T3 (Free Triiodothyronine)",
+      "whatItMeasures": "The active form of another thyroid hormone.",
+      "whyTested": "Sometimes checked to provide comprehensive thyroid context.",
+      "belowContext": "Lower levels may be associated with various factors.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["TSH", "Free T4", "Reverse T3"]
+    },
+    {
+      "key": "reverse_t3",
+      "displayName": "Reverse T3",
+      "whatItMeasures": "An inactive form of thyroid hormone.",
+      "whyTested": "Sometimes checked in specialized thyroid evaluations.",
+      "belowContext": "Lower levels are sometimes seen.",
+      "aboveContext": "Higher levels may be associated with stress or calorie restriction.",
+      "relatedMarkers": ["TSH", "Free T4", "Free T3"]
+    },
+    {
+      "key": "iron",
+      "displayName": "Serum Iron",
+      "whatItMeasures": "The amount of iron currently in your blood.",
+      "whyTested": "Commonly checked to understand iron status.",
+      "belowContext": "Lower levels may be associated with dietary iron intake.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["Ferritin", "TIBC", "Transferrin Saturation"]
+    },
+    {
+      "key": "ferritin",
+      "displayName": "Ferritin",
+      "whatItMeasures": "A protein that stores iron in your body.",
+      "whyTested": "Commonly checked to understand iron storage status.",
+      "belowContext": "Lower levels may be associated with iron intake over time.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["Iron", "TIBC", "Transferrin Saturation", "Hemoglobin"]
+    },
+    {
+      "key": "tibc",
+      "displayName": "Total Iron Binding Capacity (TIBC)",
+      "whatItMeasures": "A measure of the blood's capacity to carry iron.",
+      "whyTested": "Commonly checked alongside iron and ferritin.",
+      "belowContext": "Lower levels may be associated with various factors.",
+      "aboveContext": "Higher levels may be associated with iron status.",
+      "relatedMarkers": ["Iron", "Ferritin", "Transferrin Saturation"]
+    },
+    {
+      "key": "transferrin_saturation",
+      "displayName": "Transferrin Saturation",
+      "whatItMeasures": "The percentage of iron-binding sites that are filled.",
+      "whyTested": "Calculated from iron and TIBC to understand iron availability.",
+      "belowContext": "Lower percentages may be associated with iron availability.",
+      "aboveContext": "Higher percentages may be associated with various factors.",
+      "relatedMarkers": ["Iron", "Ferritin", "TIBC"]
+    },
+    {
+      "key": "vitamin_d",
+      "displayName": "Vitamin D (25-OH)",
+      "whatItMeasures": "The main form of vitamin D in the blood.",
+      "whyTested": "Commonly checked to understand vitamin D status.",
+      "belowContext": "Lower levels are common and may be associated with limited sun exposure or dietary intake.",
+      "aboveContext": "Higher levels are sometimes seen with supplementation.",
+      "relatedMarkers": ["Calcium", "PTH", "ALP"]
+    },
+    {
+      "key": "vitamin_b12",
+      "displayName": "Vitamin B12",
+      "whatItMeasures": "A vitamin important for nerves and blood cells.",
+      "whyTested": "Commonly checked to understand B12 status.",
+      "belowContext": "Lower levels may be associated with dietary intake, especially in vegetarians and vegans.",
+      "aboveContext": "Higher levels are sometimes seen with supplementation.",
+      "relatedMarkers": ["Folate", "MCV", "Homocysteine"]
+    },
+    {
+      "key": "folate",
+      "displayName": "Folate (Folic Acid)",
+      "whatItMeasures": "A B vitamin important for cell growth and blood cells.",
+      "whyTested": "Commonly checked alongside B12.",
+      "belowContext": "Lower levels may be associated with dietary intake.",
+      "aboveContext": "Higher levels are sometimes seen with supplementation.",
+      "relatedMarkers": ["Vitamin B12", "MCV", "Homocysteine"]
+    },
+    {
+      "key": "crp",
+      "displayName": "C-Reactive Protein (CRP)",
+      "whatItMeasures": "A protein that rises in response to inflammation.",
+      "whyTested": "Commonly checked to understand inflammatory patterns.",
+      "belowContext": "Lower levels generally indicate less inflammation.",
+      "aboveContext": "Higher levels may be associated with recent illness, injury, or various lifestyle factors.",
+      "relatedMarkers": ["hs-CRP", "ESR"]
+    },
+    {
+      "key": "hscrp",
+      "displayName": "High-Sensitivity CRP (hs-CRP)",
+      "whatItMeasures": "A more sensitive measure of inflammation.",
+      "whyTested": "Sometimes used to understand subtle inflammatory patterns.",
+      "belowContext": "Lower levels generally indicate less inflammation.",
+      "aboveContext": "Higher levels may be associated with various lifestyle and dietary factors.",
+      "relatedMarkers": ["CRP"]
+    },
+    {
+      "key": "esr",
+      "displayName": "Erythrocyte Sedimentation Rate (ESR)",
+      "whatItMeasures": "A measure of how quickly red blood cells settle.",
+      "whyTested": "Sometimes checked to understand inflammatory patterns.",
+      "belowContext": "Lower levels are common.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["CRP"]
+    },
+    {
+      "key": "testosterone_total",
+      "displayName": "Testosterone (Total)",
+      "whatItMeasures": "The main male hormone, also present in smaller amounts in females.",
+      "whyTested": "Sometimes checked to understand hormone patterns.",
+      "belowContext": "Lower levels may be associated with various lifestyle and age-related factors.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["Free Testosterone", "SHBG"]
+    },
+    {
+      "key": "testosterone_free",
+      "displayName": "Testosterone (Free)",
+      "whatItMeasures": "The active, unbound form of testosterone.",
+      "whyTested": "Sometimes checked to provide additional hormone context.",
+      "belowContext": "Lower levels may be associated with various factors.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["Total Testosterone", "SHBG"]
+    },
+    {
+      "key": "estradiol",
+      "displayName": "Estradiol",
+      "whatItMeasures": "The main estrogen hormone.",
+      "whyTested": "Sometimes checked to understand hormone patterns.",
+      "belowContext": "Lower levels may be associated with various age-related and lifestyle factors.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["FSH", "LH", "Progesterone"]
+    },
+    {
+      "key": "cortisol",
+      "displayName": "Cortisol",
+      "whatItMeasures": "A hormone related to stress response.",
+      "whyTested": "Sometimes checked to understand stress hormone patterns.",
+      "belowContext": "Lower levels may be associated with various factors.",
+      "aboveContext": "Higher levels may be associated with stress, sleep patterns, or testing time of day.",
+      "relatedMarkers": ["ACTH", "DHEA"]
+    },
+    {
+      "key": "dhea",
+      "displayName": "DHEA-Sulfate (DHEA-S)",
+      "whatItMeasures": "A hormone that can be converted to other hormones.",
+      "whyTested": "Sometimes checked as part of hormone evaluations.",
+      "belowContext": "Lower levels may be associated with age or stress patterns.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["Cortisol", "Testosterone"]
+    },
+    {
+      "key": "homocysteine",
+      "displayName": "Homocysteine",
+      "whatItMeasures": "An amino acid in the blood.",
+      "whyTested": "Sometimes checked as part of cardiovascular or nutritional evaluations.",
+      "belowContext": "Lower levels are generally common.",
+      "aboveContext": "Higher levels may be associated with B vitamin status or other factors.",
+      "relatedMarkers": ["B12", "Folate"]
+    },
+    {
+      "key": "uric_acid",
+      "displayName": "Uric Acid",
+      "whatItMeasures": "A substance produced when the body breaks down purines.",
+      "whyTested": "Commonly checked as part of metabolic panels.",
+      "belowContext": "Lower levels are sometimes seen.",
+      "aboveContext": "Higher levels may be associated with dietary purine intake or other factors.",
+      "relatedMarkers": ["BUN", "Creatinine"]
+    },
+    {
+      "key": "pt",
+      "displayName": "Prothrombin Time (PT)",
+      "whatItMeasures": "A measure of how long blood takes to clot.",
+      "whyTested": "Commonly checked to understand clotting function.",
+      "belowContext": "Faster clotting may be associated with various factors.",
+      "aboveContext": "Slower clotting may be associated with various factors.",
+      "relatedMarkers": ["PTT", "INR", "Platelets"]
+    },
+    {
+      "key": "ptt",
+      "displayName": "Partial Thromboplastin Time (PTT)",
+      "whatItMeasures": "Another measure of blood clotting time.",
+      "whyTested": "Commonly checked to understand clotting function.",
+      "belowContext": "Faster clotting may be associated with various factors.",
+      "aboveContext": "Slower clotting may be associated with various factors.",
+      "relatedMarkers": ["PT", "INR", "Platelets"]
+    },
+    {
+      "key": "inr",
+      "displayName": "INR (International Normalized Ratio)",
+      "whatItMeasures": "A standardized way of reporting PT results.",
+      "whyTested": "Used to monitor certain situations requiring specific clotting times.",
+      "belowContext": "Lower values indicate faster clotting.",
+      "aboveContext": "Higher values indicate slower clotting.",
+      "relatedMarkers": ["PT", "PTT"]
+    },
+    {
+      "key": "ck",
+      "displayName": "Creatine Kinase (CK)",
+      "whatItMeasures": "An enzyme found in muscles and heart.",
+      "whyTested": "Sometimes checked after muscle injury or intense exercise.",
+      "belowContext": "Lower levels are common.",
+      "aboveContext": "Higher levels may be associated with recent intense exercise or muscle stress.",
+      "relatedMarkers": ["AST", "Myoglobin"]
+    },
+    {
+      "key": "troponin",
+      "displayName": "Troponin",
+      "whatItMeasures": "A protein found in heart muscle.",
+      "whyTested": "Checked in specific clinical contexts related to heart muscle.",
+      "belowContext": "Lower levels are typical.",
+      "aboveContext": "Higher levels may indicate heart muscle stress.",
+      "relatedMarkers": ["CK-MB", "BNP"]
+    },
+    {
+      "key": "bnp",
+      "displayName": "BNP (B-type Natriuretic Peptide)",
+      "whatItMeasures": "A protein released by the heart.",
+      "whyTested": "Sometimes checked in specific clinical contexts.",
+      "belowContext": "Lower levels are typical.",
+      "aboveContext": "Higher levels may be associated with various cardiac factors.",
+      "relatedMarkers": ["Troponin"]
+    },
+    {
+      "key": "pth",
+      "displayName": "Parathyroid Hormone (PTH)",
+      "whatItMeasures": "A hormone that regulates calcium and phosphorus.",
+      "whyTested": "Sometimes checked when calcium or vitamin D are abnormal.",
+      "belowContext": "Lower levels may be associated with various factors.",
+      "aboveContext": "Higher levels may be associated with calcium or vitamin D status.",
+      "relatedMarkers": ["Calcium", "Vitamin D", "Phosphorus"]
+    },
+    {
+      "key": "magnesium",
+      "displayName": "Magnesium",
+      "whatItMeasures": "A mineral important for muscles, nerves, and bones.",
+      "whyTested": "Sometimes checked as part of metabolic evaluations.",
+      "belowContext": "Lower levels may be associated with dietary intake.",
+      "aboveContext": "Higher levels are less common.",
+      "relatedMarkers": ["Calcium", "Potassium"]
+    },
+    {
+      "key": "phosphorus",
+      "displayName": "Phosphorus",
+      "whatItMeasures": "A mineral important for bones and energy.",
+      "whyTested": "Sometimes checked alongside calcium.",
+      "belowContext": "Lower levels may be associated with dietary intake or other factors.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["Calcium", "Vitamin D", "PTH"]
+    },
+    {
+      "key": "zinc",
+      "displayName": "Zinc",
+      "whatItMeasures": "A mineral important for immune function and healing.",
+      "whyTested": "Sometimes checked in nutritional evaluations.",
+      "belowContext": "Lower levels may be associated with dietary intake.",
+      "aboveContext": "Higher levels are sometimes seen with supplementation.",
+      "relatedMarkers": ["Copper"]
+    },
+    {
+      "key": "copper",
+      "displayName": "Copper",
+      "whatItMeasures": "A mineral involved in various body processes.",
+      "whyTested": "Sometimes checked alongside zinc.",
+      "belowContext": "Lower levels may be associated with dietary intake.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["Zinc", "Ceruloplasmin"]
+    },
+    {
+      "key": "lipase",
+      "displayName": "Lipase",
+      "whatItMeasures": "An enzyme that helps digest fats.",
+      "whyTested": "Sometimes checked in digestive evaluations.",
+      "belowContext": "Lower levels are sometimes seen.",
+      "aboveContext": "Higher levels may be associated with various digestive factors.",
+      "relatedMarkers": ["Amylase"]
+    },
+    {
+      "key": "amylase",
+      "displayName": "Amylase",
+      "whatItMeasures": "An enzyme that helps digest carbohydrates.",
+      "whyTested": "Sometimes checked in digestive evaluations.",
+      "belowContext": "Lower levels are sometimes seen.",
+      "aboveContext": "Higher levels may be associated with various factors.",
+      "relatedMarkers": ["Lipase"]
+    },
+    {
+      "key": "ggt",
+      "displayName": "Gamma-Glutamyl Transferase (GGT)",
+      "whatItMeasures": "An enzyme found in the liver and bile ducts.",
+      "whyTested": "Sometimes checked alongside other liver enzymes.",
+      "belowContext": "Lower levels are common.",
+      "aboveContext": "Higher levels may be associated with various lifestyle factors.",
+      "relatedMarkers": ["ALT", "AST", "ALP", "Bilirubin"]
+    },
+    {
+      "key": "ldh",
+      "displayName": "Lactate Dehydrogenase (LDH)",
+      "whatItMeasures": "An enzyme found in many body tissues.",
+      "whyTested": "Sometimes checked when tissue damage is suspected.",
+      "belowContext": "Lower levels are common.",
+      "aboveContext": "Higher levels may be associated with tissue stress or recent intense exercise.",
+      "relatedMarkers": ["AST", "ALT", "CK"]
+    }
+  ]
+}

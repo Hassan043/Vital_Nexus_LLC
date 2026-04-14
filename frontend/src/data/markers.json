@@ -1,0 +1,233 @@
+{
+  "schemaVersion": "1.0",
+  "markers": [
+    {
+      "key": "vitamin_d_25oh",
+      "displayName": "Vitamin D (25-OH)",
+      "category": "Vitamins & Minerals",
+      "defaultUnit": "ng/mL"
+    },
+    {
+      "key": "ferritin",
+      "displayName": "Ferritin",
+      "category": "Iron",
+      "defaultUnit": "ng/mL"
+    },
+    {
+      "key": "vitamin_b12",
+      "displayName": "Vitamin B12",
+      "category": "Vitamins & Minerals",
+      "defaultUnit": "pg/mL"
+    },
+    {
+      "key": "magnesium",
+      "displayName": "Magnesium",
+      "category": "Vitamins & Minerals",
+      "defaultUnit": "mg/dL"
+    },
+    {
+      "key": "hemoglobin_a1c",
+      "displayName": "Hemoglobin A1c",
+      "category": "Metabolic",
+      "defaultUnit": "%"
+    },
+    {
+      "key": "total_cholesterol",
+      "displayName": "Total Cholesterol",
+      "category": "Lipids",
+      "defaultUnit": "mg/dL"
+    },
+    {
+      "key": "ldl_cholesterol",
+      "displayName": "LDL Cholesterol",
+      "category": "Lipids",
+      "defaultUnit": "mg/dL"
+    },
+    {
+      "key": "hdl_cholesterol",
+      "displayName": "HDL Cholesterol",
+      "category": "Lipids",
+      "defaultUnit": "mg/dL"
+    },
+    {
+      "key": "triglycerides",
+      "displayName": "Triglycerides",
+      "category": "Lipids",
+      "defaultUnit": "mg/dL"
+    },
+    {
+      "key": "wbc",
+      "displayName": "White Blood Cell Count (WBC)",
+      "category": "CBC",
+      "defaultUnit": "K/µL"
+    },
+    {
+      "key": "rbc",
+      "displayName": "Red Blood Cell Count (RBC)",
+      "category": "CBC",
+      "defaultUnit": "M/µL"
+    },
+    {
+      "key": "hemoglobin",
+      "displayName": "Hemoglobin",
+      "category": "CBC",
+      "defaultUnit": "g/dL"
+    },
+    {
+      "key": "hematocrit",
+      "displayName": "Hematocrit",
+      "category": "CBC",
+      "defaultUnit": "%"
+    },
+    {
+      "key": "platelets",
+      "displayName": "Platelets",
+      "category": "CBC",
+      "defaultUnit": "K/µL"
+    },
+    {
+      "key": "glucose_fasting",
+      "displayName": "Glucose (Fasting)",
+      "category": "Metabolic",
+      "defaultUnit": "mg/dL"
+    },
+    {
+      "key": "sodium",
+      "displayName": "Sodium",
+      "category": "Metabolic",
+      "defaultUnit": "mEq/L"
+    },
+    {
+      "key": "potassium",
+      "displayName": "Potassium",
+      "category": "Metabolic",
+      "defaultUnit": "mEq/L"
+    },
+    {
+      "key": "chloride",
+      "displayName": "Chloride",
+      "category": "Metabolic",
+      "defaultUnit": "mEq/L"
+    },
+    {
+      "key": "co2_bicarbonate",
+      "displayName": "CO2 (Bicarbonate)",
+      "category": "Metabolic",
+      "defaultUnit": "mEq/L"
+    },
+    {
+      "key": "bun",
+      "displayName": "Blood Urea Nitrogen (BUN)",
+      "category": "Metabolic",
+      "defaultUnit": "mg/dL"
+    },
+    {
+      "key": "creatinine",
+      "displayName": "Creatinine",
+      "category": "Metabolic",
+      "defaultUnit": "mg/dL"
+    },
+    {
+      "key": "calcium",
+      "displayName": "Calcium",
+      "category": "Metabolic",
+      "defaultUnit": "mg/dL"
+    },
+    {
+      "key": "alt",
+      "displayName": "ALT (Alanine Aminotransferase)",
+      "category": "Liver",
+      "defaultUnit": "U/L"
+    },
+    {
+      "key": "ast",
+      "displayName": "AST (Aspartate Aminotransferase)",
+      "category": "Liver",
+      "defaultUnit": "U/L"
+    },
+    {
+      "key": "alp",
+      "displayName": "ALP (Alkaline Phosphatase)",
+      "category": "Liver",
+      "defaultUnit": "U/L"
+    },
+    {
+      "key": "bilirubin_total",
+      "displayName": "Bilirubin (Total)",
+      "category": "Liver",
+      "defaultUnit": "mg/dL"
+    },
+    {
+      "key": "total_protein",
+      "displayName": "Total Protein",
+      "category": "Liver",
+      "defaultUnit": "g/dL"
+    },
+    {
+      "key": "albumin",
+      "displayName": "Albumin",
+      "category": "Liver",
+      "defaultUnit": "g/dL"
+    },
+    {
+      "key": "globulin",
+      "displayName": "Globulin",
+      "category": "Liver",
+      "defaultUnit": "g/dL"
+    },
+    {
+      "key": "tsh",
+      "displayName": "TSH (Thyroid Stimulating Hormone)",
+      "category": "Thyroid",
+      "defaultUnit": "mIU/L"
+    },
+    {
+      "key": "free_t4",
+      "displayName": "Free T4 (Thyroxine)",
+      "category": "Thyroid",
+      "defaultUnit": "ng/dL"
+    },
+    {
+      "key": "free_t3",
+      "displayName": "Free T3 (Triiodothyronine)",
+      "category": "Thyroid",
+      "defaultUnit": "pg/mL"
+    },
+    {
+      "key": "crp",
+      "displayName": "CRP (C-Reactive Protein)",
+      "category": "Inflammation",
+      "defaultUnit": "mg/L"
+    },
+    {
+      "key": "hs_crp",
+      "displayName": "hs-CRP (High-Sensitivity CRP)",
+      "category": "Inflammation",
+      "defaultUnit": "mg/L"
+    },
+    {
+      "key": "serum_iron",
+      "displayName": "Serum Iron",
+      "category": "Iron",
+      "defaultUnit": "µg/dL"
+    },
+    {
+      "key": "tibc",
+      "displayName": "TIBC (Total Iron Binding Capacity)",
+      "category": "Iron",
+      "defaultUnit": "µg/dL"
+    },
+    {
+      "key": "transferrin_saturation",
+      "displayName": "Transferrin Saturation",
+      "category": "Iron",
+      "defaultUnit": "%"
+    },
+    {
+      "key": "fasting_insulin",
+      "displayName": "Fasting Insulin",
+      "category": "Metabolic",
+      "defaultUnit": "µIU/mL"
+    }
+  ]
+}

@@ -1,0 +1,2971 @@
+{
+  "schemaVersion": "1.0",
+  "globalDisclaimers": {
+    "short": "Educational use only. Not medical advice.",
+    "long": "This application is for educational wellness guidance only and does not provide medical advice, diagnosis, or treatment. Always consult a qualified clinician or veterinarian for medical decisions. Reference ranges vary by laboratory, age, and individual factors. Never stop or change medications without professional guidance."
+  },
+  "markers": [
+    {
+      "key": "vitamin_d_25oh",
+      "displayName": "Vitamin D (25-OH)",
+      "category": "Vitamins & Minerals",
+      "specimen": "Blood",
+      "commonPanels": ["Vitamin Panel", "Wellness Panel"],
+      "defaultUnit": "ng/mL",
+      "altUnits": ["nmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 30-100 ng/mL but individual needs vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Vitamin D is like sunshine for your bones! It helps your body use calcium to keep your bones strong and healthy. It also helps your immune system (the part of your body that fights germs).",
+        "whyItMatters": "Vitamin D levels can be influenced by sun exposure, diet, and overall health. Low levels may be associated with bone weakness, immune challenges, and mood changes.",
+        "whatCanAffectIt": ["Sun exposure", "Diet", "Age", "Skin tone", "Geographic location", "Season", "Body weight"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": [],
+        "vegetables": ["Mushrooms exposed to UV light"],
+        "proteins": ["Fatty fish (salmon, mackerel, sardines)", "Egg yolks", "Cheese"],
+        "other": ["Fortified milk", "Fortified orange juice", "Fortified cereals"]
+      },
+      "lifestyleTips": [
+        "Get 10-15 minutes of sunlight most days when possible",
+        "Consider a morning walk outside",
+        "Open blinds to let natural light in",
+        "Maintain a healthy weight",
+        "Stay physically active"
+      ],
+      "askYourDoctorQuestions": [
+        "What vitamin D level should I aim for based on my health?",
+        "Do I need a supplement based on my level?",
+        "How often should I retest this?",
+        "Are there any medications I take that affect vitamin D?",
+        "Should I adjust my sun exposure habits?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy vitamin D range for my pet's species and age?",
+        "Is my pet's diet providing adequate vitamin D?",
+        "Should I adjust my pet's food or treats?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "ferritin",
+      "displayName": "Ferritin",
+      "category": "Iron",
+      "specimen": "Blood",
+      "commonPanels": ["Iron Panel", "Anemia Panel"],
+      "defaultUnit": "ng/mL",
+      "altUnits": ["µg/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab and sex; prefer user-provided ranges. Commonly 30-200 ng/mL but individual needs vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Ferritin is like a storage tank for iron in your body. Iron helps carry oxygen in your blood to all your muscles and organs. Think of it like fuel for your energy.",
+        "whyItMatters": "Ferritin levels reflect iron stores and can be influenced by diet, blood loss, and overall health. Low levels may be associated with fatigue and weakness.",
+        "whatCanAffectIt": ["Dietary iron intake", "Blood loss", "Menstruation", "Inflammation", "Chronic disease", "Pregnancy"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Dried apricots", "Prunes", "Raisins"],
+        "vegetables": ["Spinach", "Kale", "Swiss chard", "Broccoli"],
+        "proteins": ["Red meat (beef, lamb)", "Poultry (chicken, turkey)", "Beans and lentils", "Pumpkin seeds"],
+        "other": ["Fortified cereals", "Quinoa", "Tofu"]
+      },
+      "lifestyleTips": [
+        "Pair iron-rich foods with vitamin C (like orange juice) to help absorption",
+        "Avoid drinking tea or coffee with iron-rich meals",
+        "Cook in cast iron pans",
+        "Get enough sleep to support healthy blood production",
+        "Stay hydrated"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be causing my ferritin level?",
+        "Do I need further iron studies?",
+        "Should I adjust my diet?",
+        "Are there any underlying conditions to explore?",
+        "How often should I retest?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy ferritin range for my pet?",
+        "Is my pet's diet providing adequate iron?",
+        "Could this indicate any health concerns for my pet?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "vitamin_b12",
+      "displayName": "Vitamin B12",
+      "category": "Vitamins & Minerals",
+      "specimen": "Blood",
+      "commonPanels": ["Vitamin Panel", "Anemia Panel"],
+      "defaultUnit": "pg/mL",
+      "altUnits": ["pmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 200-900 pg/mL but individual needs vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Vitamin B12 helps your brain and nerves work properly, and it helps make red blood cells that carry oxygen throughout your body. It's like fuel for your brain and energy.",
+        "whyItMatters": "B12 levels can be influenced by diet, digestion, and age. Low levels may be associated with fatigue, nerve problems, and memory challenges.",
+        "whatCanAffectIt": ["Diet (especially vegetarian/vegan)", "Age", "Digestive health", "Certain medications", "Alcohol consumption"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": [],
+        "vegetables": [],
+        "proteins": ["Meat (beef, pork, lamb)", "Fish (salmon, tuna, trout)", "Eggs", "Dairy products (milk, cheese, yogurt)", "Shellfish"],
+        "other": ["Fortified plant milk", "Nutritional yeast", "Fortified cereals"]
+      },
+      "lifestyleTips": [
+        "If vegetarian/vegan, consider fortified foods",
+        "Limit excessive alcohol which can interfere with B12",
+        "Manage stress which can deplete B vitamins",
+        "Maintain good digestive health",
+        "Stay physically active"
+      ],
+      "askYourDoctorQuestions": [
+        "Could my diet be affecting this level?",
+        "Do I have an absorption problem?",
+        "Should I consider dietary changes?",
+        "Are my medications affecting B12?",
+        "How often should I retest?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy B12 range for my pet?",
+        "Is my pet's diet providing adequate B12?",
+        "Could this indicate digestive issues in my pet?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "magnesium",
+      "displayName": "Magnesium",
+      "category": "Vitamins & Minerals",
+      "specimen": "Blood",
+      "commonPanels": ["Electrolyte Panel", "Metabolic Panel"],
+      "defaultUnit": "mg/dL",
+      "altUnits": ["mmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 1.7-2.2 mg/dL but individual needs vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Magnesium is a mineral that helps your muscles relax, your heart beat steadily, and your bones stay strong. It's also important for energy and helping you sleep well.",
+        "whyItMatters": "Magnesium levels can be influenced by diet, stress, and certain medications. Low levels may be associated with muscle cramps, fatigue, and sleep issues.",
+        "whatCanAffectIt": ["Diet", "Stress", "Caffeine and alcohol intake", "Certain medications", "Digestive health", "Physical activity"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Bananas", "Avocados", "Figs"],
+        "vegetables": ["Spinach", "Swiss chard", "Kale", "Broccoli"],
+        "proteins": ["Almonds", "Cashews", "Pumpkin seeds", "Black beans", "Edamame"],
+        "other": ["Dark chocolate (70%+ cacao)", "Whole grains", "Quinoa"]
+      },
+      "lifestyleTips": [
+        "Reduce caffeine and alcohol which can affect magnesium",
+        "Manage stress with relaxation techniques",
+        "Get regular exercise but don't overtrain",
+        "Maintain good sleep habits",
+        "Stay hydrated"
+      ],
+      "askYourDoctorQuestions": [
+        "Could my medications be affecting magnesium?",
+        "Should I adjust my diet?",
+        "Are there any interactions with my current medicines?",
+        "How often should I retest?",
+        "Could stress be a factor?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy magnesium range for my pet?",
+        "Is my pet's diet adequate?",
+        "Could this be related to my pet's activity level?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "hemoglobin_a1c",
+      "displayName": "Hemoglobin A1c",
+      "category": "Metabolic",
+      "specimen": "Blood",
+      "commonPanels": ["Diabetes Panel", "Metabolic Panel"],
+      "defaultUnit": "%",
+      "altUnits": ["mmol/mol"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly <5.7% but individual targets vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Not commonly measured in dogs; consult veterinarian."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Fructosamine is more commonly used in cats; consult veterinarian."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "HbA1c shows your average blood sugar level over the past 2-3 months. It's like a report card for how well your body has been managing sugar from the foods you eat.",
+        "whyItMatters": "HbA1c can be influenced by diet, physical activity, and overall health. Higher levels may be associated with increased blood sugar over time.",
+        "whatCanAffectIt": ["Carbohydrate intake", "Physical activity", "Weight", "Stress", "Sleep", "Overall diet quality"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Berries (lower sugar fruits)", "Apples with skin", "Pears"],
+        "vegetables": ["Non-starchy vegetables (broccoli, peppers, leafy greens)", "Cauliflower", "Zucchini"],
+        "proteins": ["Lean proteins (chicken, fish, tofu)", "Beans", "Lentils", "Nuts and seeds"],
+        "other": ["Whole grains instead of white bread/rice", "Cinnamon (may help regulate blood sugar)"]
+      },
+      "lifestyleTips": [
+        "Exercise regularly (even 30-minute walks help)",
+        "Limit sugary drinks and desserts",
+        "Eat smaller, more frequent meals if recommended by your provider",
+        "Get 7-9 hours of sleep nightly",
+        "Manage stress (high stress can raise blood sugar)",
+        "Stay hydrated with water"
+      ],
+      "askYourDoctorQuestions": [
+        "What is my individual target for HbA1c?",
+        "Should I monitor my blood sugar at home?",
+        "What lifestyle changes would you recommend?",
+        "How often should I retest?",
+        "Are there any risk factors I should address?"
+      ],
+      "askYourVetQuestions": [
+        "Is this test appropriate for my pet?",
+        "Should we use fructosamine instead for my cat?",
+        "What diet would you recommend?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "total_cholesterol",
+      "displayName": "Total Cholesterol",
+      "category": "Lipids",
+      "specimen": "Blood",
+      "commonPanels": ["Lipid Panel", "Metabolic Panel"],
+      "defaultUnit": "mg/dL",
+      "altUnits": ["mmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly <200 mg/dL but individual targets vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Cholesterol is a waxy substance in your blood. Your body needs some cholesterol, but too much can stick to your artery walls like gunk in a pipe.",
+        "whyItMatters": "Total cholesterol can be influenced by diet, exercise, genetics, and overall health. It's one measure of heart health that your doctor considers along with other factors.",
+        "whatCanAffectIt": ["Diet (saturated and trans fats)", "Exercise", "Weight", "Age", "Genetics", "Stress"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Apples", "Berries", "Citrus fruits", "Grapes"],
+        "vegetables": ["Leafy greens", "Broccoli", "Carrots", "Brussels sprouts"],
+        "proteins": ["Fatty fish (salmon, mackerel)", "Beans and legumes", "Nuts (almonds, walnuts)", "Lean poultry"],
+        "other": ["Oatmeal and oat bran", "Olive oil", "Avocado", "Whole grains"]
+      },
+      "lifestyleTips": [
+        "Exercise most days (aim for 30 minutes)",
+        "Limit saturated fats (red meat, butter, cheese)",
+        "Avoid trans fats (fried foods, packaged snacks)",
+        "Don't smoke",
+        "Maintain a healthy weight",
+        "Manage stress"
+      ],
+      "askYourDoctorQuestions": [
+        "What's my target cholesterol level based on my overall health?",
+        "What lifestyle changes would you recommend?",
+        "Should I get more detailed cholesterol testing?",
+        "How often should I retest?",
+        "Are there any risk factors I should address?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy cholesterol range for my pet?",
+        "Is my pet's diet appropriate?",
+        "Should we adjust my pet's food?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "ldl_cholesterol",
+      "displayName": "LDL Cholesterol",
+      "category": "Lipids",
+      "specimen": "Blood",
+      "commonPanels": ["Lipid Panel"],
+      "defaultUnit": "mg/dL",
+      "altUnits": ["mmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab and cardiovascular risk; prefer user-provided ranges. Commonly <100 mg/dL but individual targets vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Not commonly measured separately; consult veterinarian."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Not commonly measured separately; consult veterinarian."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "LDL is often called 'bad cholesterol' because too much can build up in your arteries and block blood flow to your heart and brain.",
+        "whyItMatters": "LDL cholesterol can be influenced by diet, exercise, and genetics. It's one measure of heart health that your doctor considers along with other factors.",
+        "whatCanAffectIt": ["Saturated fat intake", "Trans fat intake", "Exercise", "Weight", "Genetics", "Age"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Apples", "Berries", "Citrus fruits"],
+        "vegetables": ["Dark leafy greens", "Broccoli", "Brussels sprouts"],
+        "proteins": ["Fatty fish rich in omega-3s", "Nuts (especially almonds)", "Beans", "Soy products"],
+        "other": ["Soluble fiber foods (oats, beans)", "Plant sterols (fortified foods)", "Olive oil", "Whole grains"]
+      },
+      "lifestyleTips": [
+        "Limit red meat and full-fat dairy",
+        "Choose olive oil over butter",
+        "Increase fiber intake",
+        "Exercise regularly",
+        "Maintain a healthy weight",
+        "Don't smoke"
+      ],
+      "askYourDoctorQuestions": [
+        "What's my LDL goal based on my overall risk?",
+        "What lifestyle changes would you recommend?",
+        "How often should I recheck this?",
+        "Should I consider other heart health markers?",
+        "Are there any risk factors I should address?"
+      ],
+      "askYourVetQuestions": [
+        "Is this test appropriate for my pet?",
+        "What diet would you recommend for my pet?",
+        "Are there any concerns about my pet's heart health?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "hdl_cholesterol",
+      "displayName": "HDL Cholesterol",
+      "category": "Lipids",
+      "specimen": "Blood",
+      "commonPanels": ["Lipid Panel"],
+      "defaultUnit": "mg/dL",
+      "altUnits": ["mmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab and sex; prefer user-provided ranges. Commonly >40 mg/dL (men) or >50 mg/dL (women) but individual targets vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Not commonly measured separately; consult veterinarian."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Not commonly measured separately; consult veterinarian."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "HDL is called 'good cholesterol' because it acts like a cleanup crew, removing bad cholesterol from your arteries and taking it back to your liver.",
+        "whyItMatters": "HDL cholesterol can be influenced by exercise, diet, and lifestyle. Higher levels are generally associated with better heart health.",
+        "whatCanAffectIt": ["Exercise", "Smoking status", "Weight", "Alcohol intake", "Diet quality", "Genetics"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Purple grapes", "Berries", "Citrus fruits"],
+        "vegetables": ["Leafy greens", "Broccoli", "Brussels sprouts"],
+        "proteins": ["Fatty fish (salmon, mackerel, sardines)", "Nuts (especially almonds and walnuts)", "Flaxseeds"],
+        "other": ["Olive oil", "Avocados", "Whole grains"]
+      },
+      "lifestyleTips": [
+        "Exercise regularly (aerobic exercise can raise HDL)",
+        "Don't smoke (smoking lowers HDL)",
+        "Lose excess weight if recommended by your provider",
+        "Limit refined carbs and sugar",
+        "Moderate alcohol (if you drink) - excessive amounts lower HDL"
+      ],
+      "askYourDoctorQuestions": [
+        "Is my HDL level adequate for my health?",
+        "What can I do to support healthy HDL?",
+        "Should I consider lifestyle changes?",
+        "How often should I retest?",
+        "Are there other heart health markers to monitor?"
+      ],
+      "askYourVetQuestions": [
+        "Is this test appropriate for my pet?",
+        "What diet would you recommend for my pet?",
+        "Are there any concerns about my pet's health?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "triglycerides",
+      "displayName": "Triglycerides",
+      "category": "Lipids",
+      "specimen": "Blood",
+      "commonPanels": ["Lipid Panel", "Metabolic Panel"],
+      "defaultUnit": "mg/dL",
+      "altUnits": ["mmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly <150 mg/dL but individual targets vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Triglycerides are a type of fat in your blood that comes from extra calories your body doesn't use right away. Your body stores them for energy later.",
+        "whyItMatters": "Triglyceride levels can be influenced by diet, alcohol, weight, and activity. Higher levels may be associated with heart health concerns.",
+        "whatCanAffectIt": ["Sugar and refined carb intake", "Alcohol consumption", "Weight", "Exercise", "Dietary fat intake", "Overall calorie intake"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Berries", "Apples", "Pears"],
+        "vegetables": ["Non-starchy vegetables", "Leafy greens", "Broccoli"],
+        "proteins": ["Fatty fish high in omega-3s", "Lean proteins", "Beans and legumes"],
+        "other": ["Whole grains", "Olive oil", "Nuts in moderation"]
+      },
+      "lifestyleTips": [
+        "Limit sugar and refined carbs",
+        "Reduce alcohol (it can raise triglycerides)",
+        "Lose excess weight if recommended by your provider",
+        "Exercise regularly",
+        "Limit saturated fats",
+        "Avoid trans fats completely"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be influencing my triglyceride level?",
+        "What dietary changes would you recommend?",
+        "Should I consider lifestyle modifications?",
+        "How often should I retest?",
+        "Are there other heart health markers to monitor?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy triglyceride range for my pet?",
+        "Is my pet's diet appropriate?",
+        "Should we adjust my pet's food or treats?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "wbc",
+      "displayName": "White Blood Cell Count (WBC)",
+      "category": "CBC",
+      "specimen": "Blood",
+      "commonPanels": ["Complete Blood Count (CBC)"],
+      "defaultUnit": "K/µL",
+      "altUnits": ["10^9/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 4.5-11.0 K/µL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "White blood cells are like your body's security guards. They patrol your body looking for germs, viruses, and anything that doesn't belong, then work to protect you.",
+        "whyItMatters": "WBC count can be influenced by infections, stress, inflammation, and overall immune health. Changes may indicate your immune system is responding to something.",
+        "whatCanAffectIt": ["Infections", "Inflammation", "Stress", "Medications", "Immune health", "Recent illness"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Citrus fruits", "Berries", "Kiwi"],
+        "vegetables": ["Leafy greens", "Broccoli", "Bell peppers", "Garlic"],
+        "proteins": ["Lean meats", "Fish", "Eggs", "Yogurt with probiotics"],
+        "other": ["Whole grains", "Green tea", "Mushrooms"]
+      },
+      "lifestyleTips": [
+        "Get adequate sleep (7-9 hours)",
+        "Manage stress with relaxation techniques",
+        "Exercise regularly but don't overtrain",
+        "Stay hydrated",
+        "Practice good hygiene",
+        "Avoid smoking"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be causing this WBC level?",
+        "Should I have follow-up testing?",
+        "Are there any signs of infection or inflammation?",
+        "How often should I retest?",
+        "Are there lifestyle factors to address?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy WBC range for my pet?",
+        "Could this indicate infection or inflammation in my pet?",
+        "Should we do follow-up testing?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "rbc",
+      "displayName": "Red Blood Cell Count (RBC)",
+      "category": "CBC",
+      "specimen": "Blood",
+      "commonPanels": ["Complete Blood Count (CBC)"],
+      "defaultUnit": "M/µL",
+      "altUnits": ["10^12/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab and sex; prefer user-provided ranges. Commonly 4.5-5.9 M/µL (men), 4.1-5.1 M/µL (women) but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Red blood cells are like tiny delivery trucks that carry oxygen from your lungs to every part of your body. They also pick up carbon dioxide to take back to your lungs so you can breathe it out.",
+        "whyItMatters": "RBC count can be influenced by hydration, altitude, nutrition, and overall health. Changes may affect how oxygen is delivered throughout your body.",
+        "whatCanAffectIt": ["Iron intake", "Hydration status", "Altitude", "B12 and folate intake", "Overall nutrition", "Blood loss"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Dried apricots", "Prunes", "Raisins"],
+        "vegetables": ["Spinach", "Kale", "Broccoli", "Beets"],
+        "proteins": ["Red meat (in moderation)", "Poultry", "Fish", "Eggs", "Beans"],
+        "other": ["Fortified cereals", "Whole grains", "Iron-rich foods"]
+      },
+      "lifestyleTips": [
+        "Eat a balanced diet with adequate iron and B vitamins",
+        "Stay well hydrated",
+        "Get regular physical activity",
+        "Manage stress",
+        "Get adequate sleep",
+        "Avoid smoking"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my RBC count?",
+        "Should I have additional blood tests?",
+        "Are my diet and hydration adequate?",
+        "How often should I retest?",
+        "Are there any symptoms to watch for?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy RBC range for my pet?",
+        "Is my pet's diet providing adequate nutrition?",
+        "Should we do follow-up testing?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "hemoglobin",
+      "displayName": "Hemoglobin",
+      "category": "CBC",
+      "specimen": "Blood",
+      "commonPanels": ["Complete Blood Count (CBC)", "Anemia Panel"],
+      "defaultUnit": "g/dL",
+      "altUnits": ["g/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab and sex; prefer user-provided ranges. Commonly 13.5-17.5 g/dL (men), 12.0-15.5 g/dL (women) but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Hemoglobin is a special protein in your red blood cells that carries oxygen. It's like the cargo in the delivery truck, holding onto oxygen so it can be delivered throughout your body.",
+        "whyItMatters": "Hemoglobin levels can be influenced by iron, nutrition, hydration, and overall health. Changes may affect your energy and how well oxygen reaches your tissues.",
+        "whatCanAffectIt": ["Iron intake", "B12 and folate intake", "Hydration", "Altitude", "Blood loss", "Overall nutrition"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Dried fruits (apricots, prunes)", "Strawberries", "Watermelon"],
+        "vegetables": ["Spinach", "Kale", "Broccoli", "Beets"],
+        "proteins": ["Red meat (in moderation)", "Poultry", "Fish", "Eggs", "Lentils", "Beans"],
+        "other": ["Fortified cereals", "Pumpkin seeds", "Quinoa"]
+      },
+      "lifestyleTips": [
+        "Pair iron-rich foods with vitamin C for better absorption",
+        "Eat a varied, balanced diet",
+        "Stay well hydrated",
+        "Get regular exercise",
+        "Manage stress",
+        "Avoid excessive tea or coffee with iron-rich meals"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my hemoglobin level?",
+        "Should I have additional testing?",
+        "Is my diet providing adequate iron and B vitamins?",
+        "How often should I retest?",
+        "Are there any symptoms to watch for?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy hemoglobin range for my pet?",
+        "Is my pet's diet adequate?",
+        "Should we do follow-up testing?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "hematocrit",
+      "displayName": "Hematocrit",
+      "category": "CBC",
+      "specimen": "Blood",
+      "commonPanels": ["Complete Blood Count (CBC)"],
+      "defaultUnit": "%",
+      "altUnits": ["L/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab and sex; prefer user-provided ranges. Commonly 38-50% (men), 34-44% (women) but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Hematocrit tells you what percentage of your blood is made up of red blood cells. It's like measuring how much of a juice box is actual juice versus water.",
+        "whyItMatters": "Hematocrit can be influenced by hydration, nutrition, and overall health. It helps show the proportion of your blood that carries oxygen.",
+        "whatCanAffectIt": ["Hydration status", "Iron and nutrient intake", "Altitude", "Blood loss", "Overall health"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Dried fruits", "Berries", "Citrus fruits"],
+        "vegetables": ["Leafy greens", "Broccoli", "Beets"],
+        "proteins": ["Lean meats", "Poultry", "Fish", "Eggs", "Beans"],
+        "other": ["Iron-rich foods", "Whole grains", "Fortified cereals"]
+      },
+      "lifestyleTips": [
+        "Stay well hydrated throughout the day",
+        "Eat a balanced diet with adequate iron",
+        "Get regular exercise",
+        "Manage stress",
+        "Get adequate sleep",
+        "Avoid smoking"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my hematocrit?",
+        "Is my hydration adequate?",
+        "Should I have additional testing?",
+        "How often should I retest?",
+        "Are there lifestyle factors to address?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy hematocrit range for my pet?",
+        "Is my pet well hydrated?",
+        "Should we do follow-up testing?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "platelets",
+      "displayName": "Platelets",
+      "category": "CBC",
+      "specimen": "Blood",
+      "commonPanels": ["Complete Blood Count (CBC)"],
+      "defaultUnit": "K/µL",
+      "altUnits": ["10^9/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 150-400 K/µL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Platelets are tiny cell fragments in your blood that help stop bleeding. When you get a cut, they rush to the spot and stick together like tiny band-aids to form a clot.",
+        "whyItMatters": "Platelet count can be influenced by various health factors. They play an important role in normal blood clotting.",
+        "whatCanAffectIt": ["Medications", "Infections", "Immune health", "Bone marrow health", "Inflammation"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Berries", "Citrus fruits", "Pomegranate"],
+        "vegetables": ["Leafy greens", "Broccoli", "Brussels sprouts"],
+        "proteins": ["Lean meats", "Fish", "Eggs", "Legumes"],
+        "other": ["Whole grains", "Overall balanced meals"]
+      },
+      "lifestyleTips": [
+        "Eat a well-balanced diet",
+        "Stay hydrated",
+        "Get adequate sleep",
+        "Manage stress",
+        "Avoid excessive alcohol",
+        "Exercise regularly but avoid injury"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my platelet count?",
+        "Should I have follow-up testing?",
+        "Are any of my medications affecting this?",
+        "How often should I retest?",
+        "Are there any symptoms to watch for?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy platelet range for my pet?",
+        "Should we do follow-up testing?",
+        "Are there any concerns about my pet's health?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "glucose_fasting",
+      "displayName": "Glucose (Fasting)",
+      "category": "Metabolic",
+      "specimen": "Blood",
+      "commonPanels": ["Basic Metabolic Panel", "Comprehensive Metabolic Panel", "Diabetes Panel"],
+      "defaultUnit": "mg/dL",
+      "altUnits": ["mmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 70-100 mg/dL but individual targets vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Glucose is a type of sugar in your blood that your cells use for energy. It comes from the foods you eat, especially carbohydrates. This test checks your blood sugar after you haven't eaten for a while.",
+        "whyItMatters": "Fasting glucose can be influenced by diet, activity, stress, and overall health. It helps show how your body manages blood sugar when you're not eating.",
+        "whatCanAffectIt": ["Carbohydrate intake", "Physical activity", "Stress", "Sleep", "Weight", "Overall diet"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Berries", "Apples", "Pears"],
+        "vegetables": ["Non-starchy vegetables", "Leafy greens", "Broccoli"],
+        "proteins": ["Lean proteins", "Fish", "Poultry", "Beans"],
+        "other": ["Whole grains", "Nuts", "Seeds"]
+      },
+      "lifestyleTips": [
+        "Exercise regularly",
+        "Eat balanced meals with fiber and protein",
+        "Limit sugary drinks and refined carbs",
+        "Get 7-9 hours of sleep",
+        "Manage stress",
+        "Stay hydrated"
+      ],
+      "askYourDoctorQuestions": [
+        "What is my individual target for fasting glucose?",
+        "What lifestyle changes would you recommend?",
+        "Should I monitor my glucose at home?",
+        "How often should I retest?",
+        "Are there risk factors I should address?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy glucose range for my pet?",
+        "Is my pet's diet appropriate?",
+        "Should we adjust feeding times or food?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "sodium",
+      "displayName": "Sodium",
+      "category": "Metabolic",
+      "specimen": "Blood",
+      "commonPanels": ["Basic Metabolic Panel", "Comprehensive Metabolic Panel", "Electrolyte Panel"],
+      "defaultUnit": "mEq/L",
+      "altUnits": ["mmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 136-145 mEq/L but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Sodium is a mineral that helps control the amount of water in your body and helps your nerves and muscles work properly. It's like a regulator that keeps things balanced.",
+        "whyItMatters": "Sodium levels can be influenced by hydration, diet, medications, and overall health. Your body carefully regulates sodium to maintain proper fluid balance.",
+        "whatCanAffectIt": ["Hydration status", "Salt intake", "Certain medications", "Kidney health", "Hormone levels"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Fresh fruits naturally low in sodium"],
+        "vegetables": ["Fresh vegetables", "Leafy greens"],
+        "proteins": ["Fresh meats (avoid processed)", "Fish", "Eggs", "Beans"],
+        "other": ["Whole grains", "Herbs and spices instead of salt"]
+      },
+      "lifestyleTips": [
+        "Stay well hydrated with water",
+        "Read food labels for sodium content",
+        "Use herbs and spices instead of salt",
+        "Choose fresh foods over processed",
+        "Cook at home when possible",
+        "Limit canned and packaged foods"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my sodium level?",
+        "Is my hydration adequate?",
+        "Should I adjust my salt intake?",
+        "Are any medications affecting this?",
+        "How often should I retest?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy sodium range for my pet?",
+        "Is my pet well hydrated?",
+        "Should we adjust my pet's diet?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "potassium",
+      "displayName": "Potassium",
+      "category": "Metabolic",
+      "specimen": "Blood",
+      "commonPanels": ["Basic Metabolic Panel", "Comprehensive Metabolic Panel", "Electrolyte Panel"],
+      "defaultUnit": "mEq/L",
+      "altUnits": ["mmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 3.5-5.0 mEq/L but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Potassium is a mineral that helps your heart beat steadily, your muscles move, and your nerves send messages. It's like an electrical conductor in your body.",
+        "whyItMatters": "Potassium levels can be influenced by diet, medications, and kidney health. Your body needs the right amount for proper heart and muscle function.",
+        "whatCanAffectIt": ["Dietary potassium intake", "Kidney function", "Certain medications", "Hydration", "Vomiting or diarrhea"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Bananas", "Oranges", "Cantaloupe", "Apricots", "Avocados"],
+        "vegetables": ["Spinach", "Sweet potatoes", "Tomatoes", "Broccoli", "Potatoes"],
+        "proteins": ["Beans", "Lentils", "Fish", "Chicken"],
+        "other": ["Yogurt", "Nuts", "Whole grains"]
+      },
+      "lifestyleTips": [
+        "Eat a variety of fruits and vegetables",
+        "Stay well hydrated",
+        "Avoid excessive processed foods",
+        "Get regular physical activity",
+        "Manage stress",
+        "Follow medication instructions carefully"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my potassium level?",
+        "Should I adjust my diet?",
+        "Are any medications affecting this?",
+        "How often should I retest?",
+        "Are there any symptoms to watch for?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy potassium range for my pet?",
+        "Is my pet's diet appropriate?",
+        "Should we adjust my pet's food?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "chloride",
+      "displayName": "Chloride",
+      "category": "Metabolic",
+      "specimen": "Blood",
+      "commonPanels": ["Basic Metabolic Panel", "Comprehensive Metabolic Panel", "Electrolyte Panel"],
+      "defaultUnit": "mEq/L",
+      "altUnits": ["mmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 96-106 mEq/L but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Chloride works together with sodium and other minerals to keep the right amount of fluid inside and outside your cells. It also helps maintain your body's acid-base balance.",
+        "whyItMatters": "Chloride levels can be influenced by hydration, diet, and overall health. It works closely with sodium to regulate fluid balance.",
+        "whatCanAffectIt": ["Hydration status", "Salt intake", "Kidney health", "Vomiting or diarrhea", "Certain medications"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Fresh fruits"],
+        "vegetables": ["Fresh vegetables", "Celery", "Tomatoes"],
+        "proteins": ["Fresh meats", "Fish", "Eggs"],
+        "other": ["Table salt (in moderation)", "Whole foods"]
+      },
+      "lifestyleTips": [
+        "Stay well hydrated",
+        "Eat a balanced diet",
+        "Limit excessive salt intake",
+        "Choose fresh foods over processed",
+        "Manage overall health",
+        "Follow medication instructions"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my chloride level?",
+        "Is this related to my hydration?",
+        "Should I have additional testing?",
+        "How often should I retest?",
+        "Are any medications affecting this?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy chloride range for my pet?",
+        "Is my pet well hydrated?",
+        "Should we do follow-up testing?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "co2_bicarbonate",
+      "displayName": "CO2 (Bicarbonate)",
+      "category": "Metabolic",
+      "specimen": "Blood",
+      "commonPanels": ["Basic Metabolic Panel", "Comprehensive Metabolic Panel"],
+      "defaultUnit": "mEq/L",
+      "altUnits": ["mmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 23-29 mEq/L but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Bicarbonate helps keep your blood at the right pH level, which means it's not too acidic or too basic. It's like a buffer that keeps your body chemistry balanced.",
+        "whyItMatters": "CO2/bicarbonate levels can be influenced by breathing, kidney function, and overall health. Your body carefully regulates this to maintain proper acid-base balance.",
+        "whatCanAffectIt": ["Breathing patterns", "Kidney health", "Vomiting or diarrhea", "Certain medications", "Overall health"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Fresh fruits"],
+        "vegetables": ["Fresh vegetables", "Leafy greens"],
+        "proteins": ["Lean proteins", "Fish", "Poultry"],
+        "other": ["Whole grains", "Overall balanced diet"]
+      },
+      "lifestyleTips": [
+        "Stay well hydrated",
+        "Eat a balanced diet",
+        "Get regular exercise",
+        "Practice proper breathing during exercise",
+        "Manage stress",
+        "Avoid smoking"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my CO2/bicarbonate level?",
+        "Should I have additional testing?",
+        "Are any medications affecting this?",
+        "How often should I retest?",
+        "Are there any symptoms to watch for?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy CO2 range for my pet?",
+        "Should we do follow-up testing?",
+        "Are there any concerns about my pet's health?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "bun",
+      "displayName": "Blood Urea Nitrogen (BUN)",
+      "category": "Metabolic",
+      "specimen": "Blood",
+      "commonPanels": ["Basic Metabolic Panel", "Comprehensive Metabolic Panel", "Kidney Panel"],
+      "defaultUnit": "mg/dL",
+      "altUnits": ["mmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 7-20 mg/dL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "BUN measures waste that comes from breaking down protein in your body. Your kidneys filter this waste out of your blood. Think of it like checking how well your body's cleanup system is working.",
+        "whyItMatters": "BUN levels can be influenced by protein intake, hydration, and kidney health. It helps show how well your kidneys are filtering waste.",
+        "whatCanAffectIt": ["Protein intake", "Hydration status", "Kidney function", "Muscle mass", "Certain medications"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Fresh fruits", "Berries", "Melons"],
+        "vegetables": ["Fresh vegetables", "Leafy greens", "Cucumbers"],
+        "proteins": ["Lean proteins in moderation", "Fish", "Poultry", "Plant proteins"],
+        "other": ["Whole grains", "Adequate fluids"]
+      },
+      "lifestyleTips": [
+        "Stay well hydrated throughout the day",
+        "Eat a balanced diet with appropriate protein",
+        "Limit excessive protein intake if advised",
+        "Get regular exercise",
+        "Manage stress",
+        "Follow medication instructions"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my BUN level?",
+        "Is my protein intake appropriate?",
+        "Should I have kidney function tests?",
+        "How often should I retest?",
+        "Are any medications affecting this?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy BUN range for my pet?",
+        "Is my pet well hydrated?",
+        "Should we test kidney function?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "creatinine",
+      "displayName": "Creatinine",
+      "category": "Metabolic",
+      "specimen": "Blood",
+      "commonPanels": ["Basic Metabolic Panel", "Comprehensive Metabolic Panel", "Kidney Panel"],
+      "defaultUnit": "mg/dL",
+      "altUnits": ["µmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab, sex, and muscle mass; prefer user-provided ranges. Commonly 0.7-1.3 mg/dL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Creatinine is waste that comes from normal muscle activity. Your kidneys filter it out and it leaves your body in urine. It's another way to check how well your kidneys are working.",
+        "whyItMatters": "Creatinine levels can be influenced by muscle mass, hydration, and kidney health. It's often used alongside BUN to assess kidney function.",
+        "whatCanAffectIt": ["Muscle mass", "Hydration status", "Kidney function", "Age", "Physical activity"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Fresh fruits", "Berries", "Watermelon"],
+        "vegetables": ["Fresh vegetables", "Leafy greens", "Cucumbers"],
+        "proteins": ["Lean proteins in moderation", "Fish", "Poultry"],
+        "other": ["Whole grains", "Adequate fluids"]
+      },
+      "lifestyleTips": [
+        "Stay well hydrated",
+        "Eat a balanced diet",
+        "Get regular moderate exercise",
+        "Avoid excessive protein intake if advised",
+        "Manage overall health",
+        "Limit excessive creatine supplements"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my creatinine level?",
+        "Should I have kidney function tests?",
+        "Is my hydration adequate?",
+        "How often should I retest?",
+        "Are any medications affecting this?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy creatinine range for my pet?",
+        "Should we test kidney function?",
+        "Is my pet well hydrated?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "calcium",
+      "displayName": "Calcium",
+      "category": "Metabolic",
+      "specimen": "Blood",
+      "commonPanels": ["Basic Metabolic Panel", "Comprehensive Metabolic Panel"],
+      "defaultUnit": "mg/dL",
+      "altUnits": ["mmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 8.5-10.5 mg/dL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Calcium is a mineral that makes your bones and teeth strong. It also helps your muscles contract, your blood clot, and your nerves send messages throughout your body.",
+        "whyItMatters": "Calcium levels can be influenced by diet, vitamin D, and overall health. Your body tightly regulates blood calcium for proper bone health and muscle function.",
+        "whatCanAffectIt": ["Dietary calcium intake", "Vitamin D levels", "Parathyroid function", "Kidney health", "Certain medications"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Figs", "Oranges", "Fortified orange juice"],
+        "vegetables": ["Kale", "Broccoli", "Bok choy", "Collard greens"],
+        "proteins": ["Dairy (milk, yogurt, cheese)", "Sardines with bones", "Salmon with bones", "Tofu"],
+        "other": ["Fortified plant milks", "Almonds", "Sesame seeds"]
+      },
+      "lifestyleTips": [
+        "Get adequate vitamin D for calcium absorption",
+        "Weight-bearing exercise for bone health",
+        "Limit excessive sodium which can affect calcium",
+        "Don't smoke",
+        "Limit excessive caffeine and alcohol",
+        "Maintain a healthy weight"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my calcium level?",
+        "Should I have vitamin D tested?",
+        "Is my dietary calcium adequate?",
+        "How often should I retest?",
+        "Should I have bone density testing?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy calcium range for my pet?",
+        "Is my pet's diet adequate?",
+        "Should we adjust my pet's food?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "alt",
+      "displayName": "ALT (Alanine Aminotransferase)",
+      "category": "Liver",
+      "specimen": "Blood",
+      "commonPanels": ["Comprehensive Metabolic Panel", "Liver Panel"],
+      "defaultUnit": "U/L",
+      "altUnits": ["IU/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab and sex; prefer user-provided ranges. Commonly 7-56 U/L but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "ALT is an enzyme found mainly in your liver. When liver cells are damaged, ALT leaks into your blood. It's like a warning signal that something might be affecting your liver.",
+        "whyItMatters": "ALT levels can be influenced by medications, alcohol, weight, and overall liver health. It's one measure of liver function.",
+        "whatCanAffectIt": ["Certain medications", "Alcohol intake", "Weight", "Fatty liver", "Viral infections", "Muscle injury"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Berries", "Apples", "Citrus fruits"],
+        "vegetables": ["Leafy greens", "Cruciferous vegetables (broccoli, Brussels sprouts)", "Beets"],
+        "proteins": ["Lean proteins", "Fish", "Nuts", "Legumes"],
+        "other": ["Whole grains", "Green tea", "Olive oil"]
+      },
+      "lifestyleTips": [
+        "Maintain a healthy weight",
+        "Limit alcohol consumption",
+        "Exercise regularly",
+        "Eat a balanced diet",
+        "Avoid unnecessary medications or supplements",
+        "Stay hydrated"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my ALT level?",
+        "Should I have additional liver tests?",
+        "Are any medications affecting this?",
+        "Should I adjust my lifestyle?",
+        "How often should I retest?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy ALT range for my pet?",
+        "Could this indicate liver concerns?",
+        "Should we do follow-up testing?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "ast",
+      "displayName": "AST (Aspartate Aminotransferase)",
+      "category": "Liver",
+      "specimen": "Blood",
+      "commonPanels": ["Comprehensive Metabolic Panel", "Liver Panel"],
+      "defaultUnit": "U/L",
+      "altUnits": ["IU/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab and sex; prefer user-provided ranges. Commonly 10-40 U/L but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "AST is an enzyme found in your liver, heart, muscles, and other tissues. When these cells are damaged, AST leaks into your blood. It helps doctors understand which organs might need attention.",
+        "whyItMatters": "AST levels can be influenced by liver health, heart health, muscle damage, and certain medications. It's often looked at together with ALT.",
+        "whatCanAffectIt": ["Liver health", "Heart health", "Muscle injury or exercise", "Certain medications", "Alcohol intake"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Berries", "Apples", "Citrus fruits"],
+        "vegetables": ["Leafy greens", "Broccoli", "Beets", "Carrots"],
+        "proteins": ["Lean proteins", "Fish", "Legumes"],
+        "other": ["Whole grains", "Green tea", "Olive oil"]
+      },
+      "lifestyleTips": [
+        "Maintain a healthy weight",
+        "Limit alcohol consumption",
+        "Exercise regularly but avoid overtraining",
+        "Eat a balanced diet",
+        "Manage overall health",
+        "Avoid unnecessary medications"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my AST level?",
+        "Should I have additional testing?",
+        "How does this relate to my ALT?",
+        "Are any medications affecting this?",
+        "How often should I retest?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy AST range for my pet?",
+        "Should we do additional testing?",
+        "Are there any health concerns?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "alp",
+      "displayName": "ALP (Alkaline Phosphatase)",
+      "category": "Liver",
+      "specimen": "Blood",
+      "commonPanels": ["Comprehensive Metabolic Panel", "Liver Panel"],
+      "defaultUnit": "U/L",
+      "altUnits": ["IU/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab, age, and sex; prefer user-provided ranges. Commonly 44-147 U/L but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Higher in growing children; varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "ALP is an enzyme found in your liver, bones, and other tissues. Higher levels can come from growing bones (normal in kids and teens) or from your liver and bile ducts working harder.",
+        "whyItMatters": "ALP levels can be influenced by age, liver health, bone health, and certain medications. It's naturally higher in growing children and teens.",
+        "whatCanAffectIt": ["Age (growth)", "Liver and bile duct health", "Bone health", "Certain medications", "Vitamin D levels"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Fresh fruits", "Berries", "Citrus fruits"],
+        "vegetables": ["Leafy greens", "Cruciferous vegetables", "Beets"],
+        "proteins": ["Lean proteins", "Fish", "Legumes"],
+        "other": ["Whole grains", "Overall balanced diet"]
+      },
+      "lifestyleTips": [
+        "Maintain a healthy weight",
+        "Eat a balanced diet",
+        "Exercise regularly",
+        "Limit alcohol",
+        "Get adequate vitamin D",
+        "Manage overall health"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my ALP level?",
+        "Should I have additional liver or bone tests?",
+        "Are any medications affecting this?",
+        "Is this related to my age or growth?",
+        "How often should I retest?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy ALP range for my pet?",
+        "Could this indicate liver or bone concerns?",
+        "Should we do follow-up testing?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "bilirubin_total",
+      "displayName": "Bilirubin (Total)",
+      "category": "Liver",
+      "specimen": "Blood",
+      "commonPanels": ["Comprehensive Metabolic Panel", "Liver Panel"],
+      "defaultUnit": "mg/dL",
+      "altUnits": ["µmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 0.1-1.2 mg/dL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Bilirubin is a yellow substance made when old red blood cells break down. Your liver processes it so it can leave your body. Too much can make skin and eyes look yellow.",
+        "whyItMatters": "Bilirubin levels can be influenced by liver function, red blood cell breakdown, and bile duct health. Your liver and bile ducts work to remove it from your body.",
+        "whatCanAffectIt": ["Liver health", "Bile duct health", "Red blood cell lifespan", "Certain medications", "Fasting"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Fresh fruits", "Berries"],
+        "vegetables": ["Leafy greens", "Cruciferous vegetables", "Beets"],
+        "proteins": ["Lean proteins", "Fish"],
+        "other": ["Whole grains", "Overall balanced diet", "Adequate hydration"]
+      },
+      "lifestyleTips": [
+        "Maintain a healthy weight",
+        "Limit alcohol consumption",
+        "Eat a balanced diet",
+        "Stay hydrated",
+        "Avoid unnecessary medications",
+        "Manage overall liver health"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my bilirubin level?",
+        "Should I have additional liver tests?",
+        "Are any medications affecting this?",
+        "Should I notice any symptoms?",
+        "How often should I retest?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy bilirubin range for my pet?",
+        "Could this indicate liver concerns?",
+        "Should we do follow-up testing?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "total_protein",
+      "displayName": "Total Protein",
+      "category": "Liver",
+      "specimen": "Blood",
+      "commonPanels": ["Comprehensive Metabolic Panel"],
+      "defaultUnit": "g/dL",
+      "altUnits": ["g/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 6.0-8.3 g/dL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Total protein measures all the proteins in your blood, including albumin and globulins. Proteins do many important jobs like fighting infections, carrying nutrients, and keeping fluids balanced.",
+        "whyItMatters": "Total protein levels can be influenced by nutrition, liver health, kidney health, and immune function. Your body needs adequate protein for many essential functions.",
+        "whatCanAffectIt": ["Dietary protein intake", "Liver health", "Kidney health", "Hydration", "Immune function"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": [],
+        "vegetables": ["Legumes", "Peas"],
+        "proteins": ["Lean meats", "Poultry", "Fish", "Eggs", "Dairy", "Beans", "Lentils", "Nuts", "Seeds"],
+        "other": ["Quinoa", "Whole grains", "Soy products"]
+      },
+      "lifestyleTips": [
+        "Eat adequate protein from varied sources",
+        "Stay well hydrated",
+        "Maintain a balanced diet",
+        "Get regular exercise",
+        "Manage overall health",
+        "Avoid excessive alcohol"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my total protein level?",
+        "Is my protein intake adequate?",
+        "Should I have additional testing?",
+        "Are albumin and globulin levels normal?",
+        "How often should I retest?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy total protein range for my pet?",
+        "Is my pet's diet adequate?",
+        "Should we do follow-up testing?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "albumin",
+      "displayName": "Albumin",
+      "category": "Liver",
+      "specimen": "Blood",
+      "commonPanels": ["Comprehensive Metabolic Panel"],
+      "defaultUnit": "g/dL",
+      "altUnits": ["g/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 3.5-5.5 g/dL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Albumin is the main protein in your blood, made by your liver. It helps carry nutrients and hormones, keeps fluid in your blood vessels, and supports healing.",
+        "whyItMatters": "Albumin levels can be influenced by liver health, nutrition, kidney health, and inflammation. Your liver makes albumin, so it reflects liver function.",
+        "whatCanAffectIt": ["Liver health", "Protein intake", "Kidney health", "Inflammation", "Hydration"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": [],
+        "vegetables": ["Legumes"],
+        "proteins": ["Lean meats", "Poultry", "Fish", "Eggs", "Dairy", "Beans", "Lentils"],
+        "other": ["Whole grains", "Nuts", "Seeds"]
+      },
+      "lifestyleTips": [
+        "Eat adequate high-quality protein",
+        "Maintain a balanced diet",
+        "Stay well hydrated",
+        "Limit alcohol consumption",
+        "Manage overall health",
+        "Get regular exercise"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my albumin level?",
+        "Should I have liver function tests?",
+        "Is my protein intake adequate?",
+        "Are there any health concerns?",
+        "How often should I retest?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy albumin range for my pet?",
+        "Is my pet's diet adequate?",
+        "Should we test liver function?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "globulin",
+      "displayName": "Globulin",
+      "category": "Liver",
+      "specimen": "Blood",
+      "commonPanels": ["Comprehensive Metabolic Panel"],
+      "defaultUnit": "g/dL",
+      "altUnits": ["g/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 2.0-3.5 g/dL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Globulins are a group of proteins in your blood that include antibodies to fight infections and proteins that carry nutrients. They're part of your immune system's defense team.",
+        "whyItMatters": "Globulin levels can be influenced by immune function, liver health, and inflammation. They reflect your body's immune activity and protein balance.",
+        "whatCanAffectIt": ["Immune function", "Infections", "Inflammation", "Liver health", "Overall health"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Citrus fruits", "Berries"],
+        "vegetables": ["Leafy greens", "Broccoli"],
+        "proteins": ["Lean proteins", "Fish", "Eggs", "Legumes"],
+        "other": ["Overall balanced diet", "Immune-supporting foods"]
+      },
+      "lifestyleTips": [
+        "Eat a balanced diet",
+        "Support immune health",
+        "Get adequate sleep",
+        "Manage stress",
+        "Exercise regularly",
+        "Stay hydrated"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my globulin level?",
+        "Should I have additional immune or liver tests?",
+        "Is this related to inflammation or infection?",
+        "How often should I retest?",
+        "Are there any health concerns?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy globulin range for my pet?",
+        "Could this indicate immune concerns?",
+        "Should we do follow-up testing?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "tsh",
+      "displayName": "TSH (Thyroid Stimulating Hormone)",
+      "category": "Thyroid",
+      "specimen": "Blood",
+      "commonPanels": ["Thyroid Panel"],
+      "defaultUnit": "mIU/L",
+      "altUnits": ["µIU/mL"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 0.4-4.0 mIU/L but individual targets vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Not commonly measured in cats; consult veterinarian."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "TSH is a hormone from your pituitary gland (in your brain) that tells your thyroid gland how much thyroid hormone to make. It's like a thermostat that controls your body's metabolism.",
+        "whyItMatters": "TSH levels can be influenced by thyroid health, medications, and stress. It helps show whether your thyroid is making the right amount of hormone for your body's needs.",
+        "whatCanAffectIt": ["Thyroid function", "Certain medications", "Stress", "Age", "Pregnancy"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Berries", "Apples"],
+        "vegetables": ["Seaweed (iodine source)", "Leafy greens"],
+        "proteins": ["Fish", "Eggs", "Dairy"],
+        "other": ["Iodized salt (in moderation)", "Brazil nuts (selenium)", "Overall balanced diet"]
+      },
+      "lifestyleTips": [
+        "Get adequate iodine and selenium from diet",
+        "Manage stress",
+        "Get regular exercise",
+        "Get adequate sleep",
+        "Avoid excessive soy if thyroid concerns",
+        "Follow medication instructions if prescribed"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my TSH level?",
+        "Should I have additional thyroid tests (Free T4, Free T3)?",
+        "Do I have thyroid concerns?",
+        "Are any medications affecting this?",
+        "How often should I retest?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy TSH range for my dog?",
+        "Should we test thyroid function?",
+        "Are there signs of thyroid issues in my pet?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": false
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "free_t4",
+      "displayName": "Free T4 (Thyroxine)",
+      "category": "Thyroid",
+      "specimen": "Blood",
+      "commonPanels": ["Thyroid Panel"],
+      "defaultUnit": "ng/dL",
+      "altUnits": ["pmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 0.8-1.8 ng/dL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Free T4 is the active form of thyroid hormone that's available for your cells to use. It helps control your metabolism, which is how fast your body uses energy.",
+        "whyItMatters": "Free T4 levels can be influenced by thyroid health and certain medications. It directly affects your energy, metabolism, and body temperature regulation.",
+        "whatCanAffectIt": ["Thyroid function", "Certain medications", "Stress", "Illness", "Pregnancy"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Berries", "Apples"],
+        "vegetables": ["Seaweed (iodine)", "Leafy greens"],
+        "proteins": ["Fish", "Eggs", "Dairy"],
+        "other": ["Iodized salt (in moderation)", "Brazil nuts (selenium)", "Overall balanced diet"]
+      },
+      "lifestyleTips": [
+        "Get adequate iodine and selenium",
+        "Manage stress",
+        "Get regular exercise",
+        "Get adequate sleep",
+        "Maintain a healthy weight",
+        "Follow medication instructions if prescribed"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my Free T4 level?",
+        "How does this relate to my TSH?",
+        "Do I have thyroid concerns?",
+        "Should I have additional testing?",
+        "How often should I retest?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy Free T4 range for my pet?",
+        "Should we test other thyroid markers?",
+        "Are there signs of thyroid issues?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "free_t3",
+      "displayName": "Free T3 (Triiodothyronine)",
+      "category": "Thyroid",
+      "specimen": "Blood",
+      "commonPanels": ["Thyroid Panel"],
+      "defaultUnit": "pg/mL",
+      "altUnits": ["pmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 2.3-4.2 pg/mL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Not commonly measured; consult veterinarian."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Not commonly measured; consult veterinarian."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Free T3 is the most active form of thyroid hormone. Your body converts T4 into T3, and T3 is what actually tells your cells how fast to work.",
+        "whyItMatters": "Free T3 levels can be influenced by thyroid health, conversion from T4, and overall health. It's the hormone that most directly affects your metabolism and energy.",
+        "whatCanAffectIt": ["Thyroid function", "T4 to T3 conversion", "Stress", "Illness", "Certain medications"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Berries", "Apples"],
+        "vegetables": ["Seaweed (iodine)", "Leafy greens"],
+        "proteins": ["Fish", "Eggs", "Dairy"],
+        "other": ["Iodized salt (in moderation)", "Brazil nuts (selenium)", "Zinc-rich foods"]
+      },
+      "lifestyleTips": [
+        "Get adequate selenium and zinc for T4 to T3 conversion",
+        "Manage stress",
+        "Get regular exercise",
+        "Get adequate sleep",
+        "Eat a balanced diet",
+        "Follow medication instructions if prescribed"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my Free T3 level?",
+        "How do my TSH and Free T4 relate to this?",
+        "Is my body converting T4 to T3 properly?",
+        "Should I have additional testing?",
+        "How often should I retest?"
+      ],
+      "askYourVetQuestions": [
+        "Is this test appropriate for my pet?",
+        "Should we test other thyroid markers?",
+        "Are there thyroid concerns?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "crp",
+      "displayName": "CRP (C-Reactive Protein)",
+      "category": "Inflammation",
+      "specimen": "Blood",
+      "commonPanels": ["Inflammation Panel"],
+      "defaultUnit": "mg/L",
+      "altUnits": ["mg/dL"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly <3.0 mg/L but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "CRP is a protein your liver makes when there's inflammation in your body. It's like a smoke alarm that goes off when your body is responding to something.",
+        "whyItMatters": "CRP levels can be influenced by infections, inflammation, injury, and chronic health conditions. It's a general marker that inflammation is present somewhere in the body.",
+        "whatCanAffectIt": ["Infections", "Inflammation", "Injuries", "Chronic conditions", "Recent illness"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Berries", "Cherries", "Citrus fruits"],
+        "vegetables": ["Leafy greens", "Tomatoes", "Broccoli", "Peppers"],
+        "proteins": ["Fatty fish (omega-3s)", "Nuts", "Legumes"],
+        "other": ["Olive oil", "Whole grains", "Green tea", "Turmeric"]
+      },
+      "lifestyleTips": [
+        "Eat anti-inflammatory foods",
+        "Exercise regularly",
+        "Maintain a healthy weight",
+        "Get adequate sleep",
+        "Manage stress",
+        "Don't smoke",
+        "Limit processed foods and added sugars"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be causing inflammation?",
+        "Should I have additional testing?",
+        "Are there any acute or chronic conditions to address?",
+        "How often should I retest?",
+        "What lifestyle changes would you recommend?"
+      ],
+      "askYourVetQuestions": [
+        "What could be causing inflammation in my pet?",
+        "Should we do additional testing?",
+        "Are there any health concerns?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "hs_crp",
+      "displayName": "hs-CRP (High-Sensitivity C-Reactive Protein)",
+      "category": "Inflammation",
+      "specimen": "Blood",
+      "commonPanels": ["Cardiac Risk Panel", "Inflammation Panel"],
+      "defaultUnit": "mg/L",
+      "altUnits": ["mg/dL"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. For cardiovascular risk: <1.0 mg/L low risk, 1.0-3.0 mg/L average risk, >3.0 mg/L high risk, but individual assessment varies."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Not commonly measured; consult veterinarian."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Not commonly measured; consult veterinarian."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "hs-CRP is a very sensitive test that measures even tiny amounts of inflammation in your body. It can help assess heart health risk along with other factors.",
+        "whyItMatters": "hs-CRP can be influenced by inflammation, diet, exercise, and overall health. It's sometimes used to help assess cardiovascular risk when combined with other factors.",
+        "whatCanAffectIt": ["Low-level inflammation", "Diet", "Exercise", "Weight", "Smoking", "Stress"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Berries", "Cherries", "Citrus fruits"],
+        "vegetables": ["Leafy greens", "Tomatoes", "Broccoli", "Peppers"],
+        "proteins": ["Fatty fish (omega-3s)", "Nuts", "Walnuts", "Legumes"],
+        "other": ["Olive oil", "Whole grains", "Green tea", "Turmeric", "Ginger"]
+      },
+      "lifestyleTips": [
+        "Eat anti-inflammatory foods",
+        "Exercise regularly (moderate activity)",
+        "Maintain a healthy weight",
+        "Get 7-9 hours of sleep",
+        "Manage stress effectively",
+        "Don't smoke",
+        "Limit processed foods and refined sugars"
+      ],
+      "askYourDoctorQuestions": [
+        "What does my hs-CRP mean for my heart health?",
+        "Should I have additional cardiovascular testing?",
+        "What lifestyle changes would you recommend?",
+        "How often should I retest?",
+        "Are there other risk factors to address?"
+      ],
+      "askYourVetQuestions": [
+        "Is this test appropriate for my pet?",
+        "Should we use different inflammation markers?",
+        "Are there health concerns?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": false,
+        "petCat": false
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "serum_iron",
+      "displayName": "Serum Iron",
+      "category": "Iron",
+      "specimen": "Blood",
+      "commonPanels": ["Iron Panel"],
+      "defaultUnit": "µg/dL",
+      "altUnits": ["µmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab and sex; prefer user-provided ranges. Commonly 60-170 µg/dL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Serum iron measures the amount of iron currently traveling in your blood. Iron is like fuel that helps carry oxygen throughout your body.",
+        "whyItMatters": "Serum iron levels can be influenced by diet, time of day, and overall iron status. It fluctuates more than ferritin, so it's often measured with other iron tests.",
+        "whatCanAffectIt": ["Dietary iron intake", "Time of day", "Recent meals", "Inflammation", "Menstrual cycle"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Dried apricots", "Prunes", "Raisins"],
+        "vegetables": ["Spinach", "Kale", "Broccoli", "Beets"],
+        "proteins": ["Red meat (in moderation)", "Poultry", "Fish", "Beans", "Lentils"],
+        "other": ["Fortified cereals", "Pumpkin seeds", "Quinoa"]
+      },
+      "lifestyleTips": [
+        "Pair iron-rich foods with vitamin C",
+        "Avoid tea or coffee with iron-rich meals",
+        "Eat a balanced diet",
+        "Cook in cast iron pans",
+        "Get adequate sleep",
+        "Manage overall health"
+      ],
+      "askYourDoctorQuestions": [
+        "What could be affecting my serum iron?",
+        "Should I have a complete iron panel (ferritin, TIBC)?",
+        "Is my dietary iron adequate?",
+        "How often should I retest?",
+        "Are there any concerns?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy serum iron range for my pet?",
+        "Should we do a complete iron panel?",
+        "Is my pet's diet adequate?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "tibc",
+      "displayName": "TIBC (Total Iron Binding Capacity)",
+      "category": "Iron",
+      "specimen": "Blood",
+      "commonPanels": ["Iron Panel"],
+      "defaultUnit": "µg/dL",
+      "altUnits": ["µmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 250-450 µg/dL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "TIBC measures how much space is available for iron to bind to proteins in your blood. It's like measuring how many empty seats are on a bus that carries iron.",
+        "whyItMatters": "TIBC can be influenced by iron stores and overall health. When combined with serum iron, it helps show your body's iron status.",
+        "whatCanAffectIt": ["Iron stores", "Inflammation", "Liver health", "Overall nutrition"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Dried fruits", "Berries"],
+        "vegetables": ["Leafy greens", "Broccoli"],
+        "proteins": ["Lean meats", "Poultry", "Fish", "Beans", "Lentils"],
+        "other": ["Fortified cereals", "Whole grains", "Overall balanced diet"]
+      },
+      "lifestyleTips": [
+        "Eat a balanced diet with adequate iron",
+        "Pair iron-rich foods with vitamin C",
+        "Stay hydrated",
+        "Get regular exercise",
+        "Manage overall health",
+        "Get adequate sleep"
+      ],
+      "askYourDoctorQuestions": [
+        "What does my TIBC indicate about my iron status?",
+        "How does this relate to my serum iron and ferritin?",
+        "Should I adjust my diet?",
+        "How often should I retest?",
+        "Are there any concerns?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy TIBC range for my pet?",
+        "How does this relate to other iron markers?",
+        "Should we adjust my pet's diet?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "transferrin_saturation",
+      "displayName": "Transferrin Saturation",
+      "category": "Iron",
+      "specimen": "Blood",
+      "commonPanels": ["Iron Panel"],
+      "defaultUnit": "%",
+      "altUnits": [],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 20-50% but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Varies by lab; consult veterinarian for species-appropriate ranges."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Transferrin saturation shows what percentage of iron-carrying proteins in your blood are actually carrying iron. It's like checking how full those iron-carrying buses are.",
+        "whyItMatters": "Transferrin saturation can be influenced by iron availability and overall iron status. It helps show how much iron is available for your body to use.",
+        "whatCanAffectIt": ["Iron availability", "Iron stores", "Recent iron intake", "Overall iron status"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Dried apricots", "Prunes"],
+        "vegetables": ["Spinach", "Kale", "Broccoli"],
+        "proteins": ["Red meat (in moderation)", "Poultry", "Fish", "Beans", "Lentils"],
+        "other": ["Fortified cereals", "Pumpkin seeds", "Overall balanced diet"]
+      },
+      "lifestyleTips": [
+        "Eat iron-rich foods with vitamin C",
+        "Avoid tea or coffee with iron-rich meals",
+        "Maintain a balanced diet",
+        "Get regular exercise",
+        "Manage overall health",
+        "Stay hydrated"
+      ],
+      "askYourDoctorQuestions": [
+        "What does my transferrin saturation indicate?",
+        "How does this relate to my other iron markers?",
+        "Should I adjust my iron intake?",
+        "How often should I retest?",
+        "Are there any concerns about iron overload or deficiency?"
+      ],
+      "askYourVetQuestions": [
+        "What is a healthy transferrin saturation for my pet?",
+        "How does this relate to my pet's overall iron status?",
+        "Should we adjust my pet's diet?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": true,
+        "petCat": true
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    },
+    {
+      "key": "fasting_insulin",
+      "displayName": "Fasting Insulin",
+      "category": "Metabolic",
+      "specimen": "Blood",
+      "commonPanels": ["Metabolic Panel", "Diabetes Panel"],
+      "defaultUnit": "µIU/mL",
+      "altUnits": ["pmol/L"],
+      "referenceRanges": {
+        "adult": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by lab; prefer user-provided ranges. Commonly 2-20 µIU/mL but individual ranges vary."
+        },
+        "pediatric": {
+          "low": null,
+          "high": null,
+          "notes": "Varies by age and lab; prefer user-provided ranges."
+        },
+        "pet": {
+          "dog": {
+            "low": null,
+            "high": null,
+            "notes": "Not commonly measured; consult veterinarian."
+          },
+          "cat": {
+            "low": null,
+            "high": null,
+            "notes": "Not commonly measured; consult veterinarian."
+          }
+        }
+      },
+      "educational": {
+        "kidFriendlyExplanation": "Insulin is a hormone your pancreas makes that helps sugar (glucose) get into your cells for energy. This test measures insulin when you haven't eaten for a while.",
+        "whyItMatters": "Fasting insulin levels can be influenced by diet, weight, physical activity, and how well your body responds to insulin. It helps show how your body manages blood sugar.",
+        "whatCanAffectIt": ["Diet (especially carbohydrates)", "Weight", "Physical activity", "Stress", "Sleep quality"],
+        "notDiagnosis": "This marker alone does not diagnose any condition; consult your healthcare provider for interpretation."
+      },
+      "foodSources": {
+        "fruits": ["Berries", "Apples", "Pears"],
+        "vegetables": ["Non-starchy vegetables", "Leafy greens", "Broccoli", "Cauliflower"],
+        "proteins": ["Lean proteins", "Fish", "Poultry", "Beans", "Nuts"],
+        "other": ["Whole grains", "Cinnamon", "Fiber-rich foods"]
+      },
+      "lifestyleTips": [
+        "Exercise regularly (improves insulin sensitivity)",
+        "Maintain a healthy weight",
+        "Eat balanced meals with fiber and protein",
+        "Limit refined carbs and added sugars",
+        "Get 7-9 hours of sleep",
+        "Manage stress",
+        "Stay physically active throughout the day"
+      ],
+      "askYourDoctorQuestions": [
+        "What does my fasting insulin indicate about my metabolic health?",
+        "Should I have glucose tolerance testing?",
+        "What lifestyle changes would you recommend?",
+        "How often should I retest?",
+        "Are there risk factors I should address?"
+      ],
+      "askYourVetQuestions": [
+        "Is this test appropriate for my pet?",
+        "Should we use different metabolic markers?",
+        "Are there health concerns?"
+      ],
+      "statusLogic": {
+        "type": "rangeCompare",
+        "notes": "If user provides referenceLow/referenceHigh, classify as Low/High/In Range; otherwise Unknown."
+      },
+      "visibility": {
+        "human": true,
+        "petDog": false,
+        "petCat": false
+      },
+      "safety": {
+        "allowedRecommendations": ["food", "lifestyle", "questions"],
+        "disallowed": ["diagnosis", "medicationAdvice", "supplementDosing"]
+      }
+    }
+  ]
+}
