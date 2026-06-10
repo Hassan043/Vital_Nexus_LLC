@@ -110,6 +110,16 @@ Uses **SQLite** for local development. The database file (`nutrient.db`) is crea
 - BodyTendencyProfiles
 - ExercisePlans
 
+## Database Schema Management
+The `/database` directory contains SQL Database Projects that are the authoritative source of truth for Azure SQL schema.
+
+- `/database` contains the SQL Database Projects for account business, patient health, and function operations.
+- SQL Database Projects are the source of truth for schema and object deployment.
+- Deployment uses `DACPAC` artifacts and `sqlpackage` for Azure SQL publishing.
+- EF Core in `backend/` is used for runtime data access only.
+- EF Core migrations are not the production schema deployment mechanism.
+- `/data` is reserved for static/reference data files such as `markers.json`.
+
 ## 📊 Supported Lab Markers
 
 ### CBC
@@ -197,6 +207,27 @@ SMTP not configured. Reset link: http://localhost:5173/reset-password?token=ABC1
 ```
 
 ## 🌐 Environment Variables
+
+## Database Schema Management
+
+The `/database` folder contains SQL Database Projects that define the Azure SQL schema and serve as the source of truth for database objects and deployment.
+
+- `VitalNexus.AccountBusiness.Database` - database project for account and business data
+- `VitalNexus.PatientHealth.Database` - database project for patient health data
+- `VitalNexus.FunctionOperations.Database` - database project for functions and operational objects
+- `VitalNexus.Database.Shared` - shared scripts, naming conventions, and deployment rules
+
+### Shared SQL Conventions and Naming Standards
+The `/database/VitalNexus.Database.Shared` project contains the authoritative shared conventions for Azure SQL database objects.
+- `NamingConventions.md` describes naming rules for tables, columns, keys, indexes, procedures, and functions.
+- `DeploymentRules.md` defines how to organize deployment scripts and maintain project-level consistency.
+- Use these shared conventions across all SQL Database Projects to ensure consistent object names, schema organization, and deployment behavior.
+
+Deployment is performed using DACPAC artifacts and `sqlpackage`/`SqlPackage.exe`.
+EF Core in `backend/` is used for runtime data access only and is not the production schema deployment mechanism. Keep schema changes in the SQL Database Projects and deploy via DACPAC.
+
+The `/data` folder is reserved for static/reference JSON files (for example `markers.json`) and does not contain schema files.
+
 
 ### Required for Production
 ```bash
