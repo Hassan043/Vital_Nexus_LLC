@@ -9,14 +9,15 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.21.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.17.2" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../Core/VitalNexus.Domain/VitalNexus.Domain.csproj" />
-    <ProjectReference Include="../../../Core/VitalNexus.Application/VitalNexus.Application.csproj" />
-    <ProjectReference Include="../../../Infrastructure/VitalNexus.Infrastructure/VitalNexus.Infrastructure.csproj" />
+    <ProjectReference Include="../../Core/VitalNexus.Domain/VitalNexus.Domain.csproj" />
+    <ProjectReference Include="../../Core/VitalNexus.Application/VitalNexus.Application.csproj" />
+    <ProjectReference Include="../../Infrastructure/VitalNexus.Infrastructure/VitalNexus.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

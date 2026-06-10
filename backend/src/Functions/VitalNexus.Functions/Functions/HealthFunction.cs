@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -15,11 +16,11 @@ public class HealthFunction
 
     [Function("Health")]
     public HttpResponseData Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "health")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req)
     {
         _logger.LogInformation("Health check function triggered.");
 
-        var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
+        var response = req.CreateResponse(HttpStatusCode.OK);
         response.Headers.Add("Content-Type", "application/json");
 
         return response;
