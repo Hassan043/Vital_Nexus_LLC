@@ -1,0 +1,31 @@
+name: Backend Build
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  pull_request:
+    branches:
+      - dev
+      - main
+
+jobs:
+  build:
+    name: Build backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore backend dependencies
+        run: dotnet restore backend/NutrientInsight.Api.csproj
+
+      - name: Build backend
+        run: dotnet build backend/NutrientInsight.Api.csproj --configuration Release --no-restore
