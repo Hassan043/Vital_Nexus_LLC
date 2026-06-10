@@ -1,20 +1,14 @@
-using Azure.Monitor.OpenTelemetry.Exporter;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Builder;
-using Microsoft.Azure.Functions.Worker.OpenTelemetry;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry;
+using Microsoft.Azure.Functions.Worker.Configuration;
 
-var builder = FunctionsApplication.CreateBuilder(args);
+var host = new HostBuilder()
+    .ConfigureFunctionsWorkerDefaults()
+    .ConfigureAppConfiguration(configBuilder =>
+    {
+        configBuilder.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+                     .AddEnvironmentVariables();
+    })
+    .Build();
 
-builder.ConfigureFunctionsWebApplication();
-
-if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING")))
-{
-    builder.Services.AddOpenTelemetry()
-        .UseFunctionsWorkerDefaults()
-        .UseAzureMonitorExporter();
-}
-
-builder.Build().Run();
+host.Run();
