@@ -1,0 +1,42 @@
+name: Deploy Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment for infrastructure deployment'
+        required: true
+        default: prod
+        type: choice
+        options:
+          - dev
+          - prod
+
+jobs:
+  deploy:
+    name: Deploy infra to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set Azure subscription
+        run: az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Bicep infrastructure
+        run: |
+          envFile="infra/main.${{ github.event.inputs.environment }}.bicepparam"
+          if [ ! -f "$envFile" ]; then
+            echo "Parameter file $envFile not found"
+            exit 1
+          fi
+
+          rg="rg-vitalnexus-${{ github.event.inputs.environment }}"
+          az deployment group create -g "$rg" -f infra/main.bicep -p "$envFile"

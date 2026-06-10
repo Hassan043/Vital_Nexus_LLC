@@ -37,7 +37,7 @@ dotnet restore
 
 # Frontend
 cd ../frontend
-npm install
+npm ci
 ```
 
 ### 3. Configure Environment Variables (Optional for Email)
