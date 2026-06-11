@@ -1,25 +1,29 @@
+using System.Net;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
-namespace VitalNexus.Functions.Functions;
+namespace VitalNexus.Functions;
 
-/// <summary>
-/// Baseline timer function proving the isolated worker host runs and emits telemetry.
-/// Runs every 5 minutes. Logs only non-PHI operational data.
-/// Replaced/joined by real jobs (AI analysis, retention scans, exports) in later phases.
-/// </summary>
-public sealed class HealthPingFunction
+public class HealthPingFunction
 {
     private readonly ILogger<HealthPingFunction> _logger;
 
-    public HealthPingFunction(ILogger<HealthPingFunction> logger) => _logger = logger;
-
-    [Function(nameof(HealthPingFunction))]
-    public void Run([TimerTrigger("0 */5 * * * *")] TimerInfo timer)
+    public HealthPingFunction(ILogger<HealthPingFunction> logger)
     {
-        _logger.LogInformation(
-            "VitalNexus Functions host heartbeat at {UtcNow:O}. Next run: {Next}",
-            DateTime.UtcNow,
-            timer.ScheduleStatus?.Next);
+        _logger = logger;
+    }
+
+    [Function("HealthPing")]
+    public HttpResponseData Run([
+        HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "health")]
+        HttpRequestData req)
+    {
+        _logger.LogInformation("Health ping received.");
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        response.Headers.Add("Content-Type", "application/json");
+        response.WriteString("{\"status\":\"Healthy\"}");
+        return response;
     }
 }

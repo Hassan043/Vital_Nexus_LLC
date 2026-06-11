@@ -2,8 +2,10 @@
   "profiles": {
     "VitalNexus.Functions": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7258",
-      "launchBrowser": false
+      "commandLineArgs": "host start",
+      "environmentVariables": {
+        "AzureFunctionsJobHost__Logging__Console__IsEnabled": "true"
+      }
     }
   }
 }
