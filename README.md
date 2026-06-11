@@ -235,4 +235,18 @@ Educational use only. Not for commercial distribution.
 
 ## LabMarkersData Database Project
 
-`VitalNexus.LabMarkersData.Database` stores non-patient lab marker master/reference data used by the application, including marker definitions, units, categories, reference ranges, optimal ranges, threshold rules, and lab panel templates. It does NOT store patient-specific lab results, PHI, AI prompts, AI responses, or vector embeddings.
+Create the `VitalNexus.LabMarkersData.Database` SQL Database Project to manage reusable lab marker reference/configuration data only. This database must not store patient-specific results, PHI, AI prompts, AI responses, recommendations, or vector embeddings.
+
+Good example tables:
+
+- `LabMarkers`
+- `LabMarkerCategories`
+- `Units`
+- `ReferenceRanges`
+- `OptimalRanges`
+- `ThresholdRules`
+- `LabPanels`
+- `LabPanelMarkers`
+- `MarkerMetadata`
+
+This project holds non-patient master/reference data such as marker definitions, display names, units, categories, reference and optimal ranges, threshold rules, lab panel templates, and marker metadata. Patient lab reports, patient results, AI analysis records, and vector data must remain in their respective databases.
