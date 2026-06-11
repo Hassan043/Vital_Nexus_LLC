@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.Build.Sql/1.0">
+  <PropertyGroup>
+    <ProjectGuid>{A1B2C3D4-E5F6-4712-8123-ABCDEF012345}</ProjectGuid>
+    <Name>VitalNexus.AccountBusiness.Database</Name>
+    <TargetServerVersion>AzureV12</TargetServerVersion>
+    <DSP>Microsoft.Data.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
+  </PropertyGroup>
+  <ItemGroup>
+    <Build Include="Tables\**\*.sql" />
+    <Build Include="Views\**\*.sql" />
+    <Build Include="StoredProcedures\**\*.sql" />
+    <None Include="PostDeployment.sql">
+      <SubType>PostDeploy</SubType>
+    </None>
+    <None Include="PublishProfiles\**\*.publish.xml" />
+  </ItemGroup>
+</Project>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <ProjectGuid>{9B5E3C8A-12D4-4E2B-9EB0-FD1E8DBA1A21}</ProjectGuid>
+    <RootNamespace>VitalNexus.AccountBusiness.Database</RootNamespace>
+    <DatabaseSchemaProvider>Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider</DatabaseSchemaProvider>
+    <TargetServerVersion>Latest</TargetServerVersion>
+    <OutputType>Library</OutputType>
+    <DefaultDeployDatabaseName>VitalNexus.AccountBusiness</DefaultDeployDatabaseName>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="Tables\**\*.sql" />
+    <None Include="Views\**\*.sql" />
+    <None Include="StoredProcedures\**\*.sql" />
+    <None Include="Security\**\*.sql" />
+    <None Include="ReferenceData\**\*.sql" />
+    <None Include="PostDeployment.sql" />
+  </ItemGroup>
+</Project>
