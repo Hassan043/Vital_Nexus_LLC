@@ -25,7 +25,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore backend dependencies
-        run: dotnet restore backend/NutrientInsight.Api.csproj
+        run: dotnet restore backend/src/Api/VitalNexus.Api/VitalNexus.Api.csproj
 
       - name: Build backend
-        run: dotnet build backend/NutrientInsight.Api.csproj --configuration Release --no-restore
+        run: dotnet build backend/src/Api/VitalNexus.Api/VitalNexus.Api.csproj --configuration Release --no-restore
