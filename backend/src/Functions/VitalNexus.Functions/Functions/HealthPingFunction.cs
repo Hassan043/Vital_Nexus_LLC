@@ -1,11 +1,11 @@
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Azure.Functions.Worker.Extensions.Timer;
 using Microsoft.Extensions.Logging;
 
 namespace VitalNexus.Functions;
 
-public class HealthPingFunction
+public sealed class HealthPingFunction
 {
     private readonly ILogger<HealthPingFunction> _logger;
 
