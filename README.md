@@ -1,73 +1,78 @@
-# VitalNexus - Educational Wellness Platform
+# VitalNexus
 
-An educational wellness application that helps users understand their lab results through kid-friendly explanations, personalized wellness guidance, and actionable insights.
+Health technology SaaS platform for functional medicine clinics, independent
+practitioners, and wellness professionals. Providers track patient lab results
+over time and receive AI-supported, **longitudinal** clinical insights based on
+each patient's complete history.
 
-## ⚠️ IMPORTANT DISCLAIMER
+> **Confidential** — for internal use only.
 
-This application is for **EDUCATIONAL PURPOSES ONLY**. It does NOT provide medical advice, diagnosis, or treatment. Always consult qualified healthcare professionals before making health decisions.
+## Core Principles
 
-## 🎯 Features
+- Every patient has a permanent, append-only health record that is never overwritten.
+- Every lab result is a timestamped entry; every AI analysis is saved and reused as future context.
+- Strict PHI isolation — patient health data lives in a separate database from account/business data.
+- **No patient health information is ever sent to the AI engine** — only anonymized lab values and reference ranges.
+- No record is ever automatically deleted.
 
-- **Lab Report Management**: Enter lab values manually with privacy-first design
-- **Educational Explanations**: 5th-grade reading level explanations of lab markers
-- **Food Recommendations**: Evidence-based food sources for each marker
-- **Export Reports**: Generate Excel and PDF reports
-- **Pet Support**: Track lab results for dogs and cats
-- **Focus Areas**: Automatically identify top priority markers
-- **Secure Authentication**: JWT-based auth with password reset flow
+## Technology Stack
 
-## 📋 Prerequisites
+| Layer            | Technology                                                        |
+| ---------------- | ----------------------------------------------------------------- |
+| Backend API      | .NET 8 ASP.NET Core Web API                                        |
+| Background jobs  | Azure Functions (isolated worker, .NET 8)                         |
+| Data access      | Entity Framework Core — separate `DbContext` per database         |
+| Databases        | Azure SQL — Account/Business DB + Patient Health DB (PHI)         |
+| Vector store     | Vector Intelligence Store (Azure AI Search / pgvector — TBD)      |
+| Frontend         | React + Vite (added in a later phase)                             |
+| AI engine        | Claude API                                                        |
+| Billing          | Stripe                                                            |
+| Observability    | Azure Application Insights / Azure Monitor                        |
+| Infrastructure   | Bicep (IaC), CI/CD pipelines                                      |
 
-- **.NET 8 SDK** - [Download](https://dotnet.microsoft.com/download/dotnet/8.0)
-- **Node.js 18+** - [Download](https://nodejs.org/)
-- **macOS or Linux** - This project uses bash scripts
+## Repository Layout
 
-## 🚀 Quick Start
-
-### 1. Clone and Navigate
-```bash
-cd VitalNexus
+```
+VitalNexus/
+├── docs/                      Source requirements & technical design documents
+├── backend/                   .NET 8 solution (VitalNexus.sln)
+│   ├── src/
+│   │   ├── Core/
+│   │   │   ├── VitalNexus.Domain/         Entities, enums, value objects (no dependencies)
+│   │   │   └── VitalNexus.Application/    Use cases, service interfaces, DTOs
+│   │   ├── Infrastructure/
+│   │   │   └── VitalNexus.Infrastructure/ EF Core DbContexts, data access, external services
+│   │   ├── Api/
+│   │   │   └── VitalNexus.Api/            ASP.NET Core Web API (the only synchronous data-store access point)
+│   │   └── Functions/                     Azure Functions — async AI, retention, export, notifications
+│   └── tests/
+│       ├── VitalNexus.UnitTests/
+│       └── VitalNexus.IntegrationTests/
+├── frontend/                  React + Vite + TypeScript SPA (Provider / Clinic Owner / Master Admin portals)
+├── infra/                     Bicep templates & deployment (added during Phase 1)
+└── scripts/                   Developer & ops helper scripts
 ```
 
-### 2. Install Dependencies
-```bash
-# Backend
-cd backend
-dotnet restore
+## Architecture Rules
 
-# Frontend
-cd ../frontend
-npm install
-```
+- The frontend never touches a database directly. **All** auth, RBAC, patient-scope
+  resolution, PHI isolation, AI prompt construction, audit logging, and billing
+  validation happen in the backend.
+- The backend API is the only synchronous service permitted to access the three data stores.
+- Cross-store joins are performed in application memory **after** authorization — never via direct DB links.
+- Application Insights must never receive PHI, raw lab values, AI prompts/responses, or clinical notes.
+- No monetary value is hard-coded — prices, fees, discounts, and Stripe price IDs are database-managed.
 
-### 3. Configure Environment Variables (Optional for Email)
+## Implementation Roadmap
 
-Create a `.env` file or configure `appsettings.json` for SMTP:
-```json
-{
-  "Smtp": {
-    "Host": "smtp.gmail.com",
-    "Port": 587,
-    "User": "your-email@gmail.com",
-    "Pass": "your-app-password",
-    "From": "noreply@vitalnexus.com"
-  }
-}
-```
-
-**Note**: If SMTP is not configured, password reset links will be logged to console for local testing.
-
-### 4. Run the Application
-
-**Backend** (from `backend/` directory):
-```bash
-dotnet run --urls "http://localhost:5000"
-```
-
-**Frontend** (from `frontend/` directory):
-```bash
-npm run dev
-```
+| Phase | Focus                                       |
+| ----- | ------------------------------------------- |
+| **1** | **Foundation** — infra, identity, DB separation, auth/MFA, RBAC, audit, Functions + App Insights baseline |
+| 2     | Clinic operations — onboarding, billing, licenses |
+| 3     | Patient & lab workflows                      |
+| 4     | AI & vector intelligence                      |
+| 5     | Archive, retention, export, deletion          |
+| 6     | Hardening & launch                            |
 
 ### 5. Access Application
 - **Frontend**: http://localhost:5173
@@ -206,60 +211,21 @@ Example log output:
 SMTP not configured. Reset link: http://localhost:5173/reset-password?token=ABC123...
 ```
 
-## 🌐 Environment Variables
+Prerequisites: .NET SDK (8/9/10), Node.js 20+, and the Azure Functions Core Tools
+(for running Functions locally).
 
-## Database Schema Management
-
-The `/database` folder contains SQL Database Projects that define the Azure SQL schema and serve as the source of truth for database objects and deployment.
-
-- `VitalNexus.AccountBusiness.Database` - database project for account and business data
-- `VitalNexus.PatientHealth.Database` - database project for patient health data
-- `VitalNexus.FunctionOperations.Database` - database project for functions and operational objects
-- `VitalNexus.Database.Shared` - shared scripts, naming conventions, and deployment rules
-
-### Shared SQL Conventions and Naming Standards
-The `/database/VitalNexus.Database.Shared` project contains the authoritative shared conventions for Azure SQL database objects.
-- `NamingConventions.md` describes naming rules for tables, columns, keys, indexes, procedures, and functions.
-- `DeploymentRules.md` defines how to organize deployment scripts and maintain project-level consistency.
-- Use these shared conventions across all SQL Database Projects to ensure consistent object names, schema organization, and deployment behavior.
-
-Deployment is performed using DACPAC artifacts and `sqlpackage`/`SqlPackage.exe`.
-EF Core in `backend/` is used for runtime data access only and is not the production schema deployment mechanism. Keep schema changes in the SQL Database Projects and deploy via DACPAC.
-
-The `/data` folder is reserved for static/reference JSON files (for example `markers.json`) and does not contain schema files.
-
-
-### Required for Production
 ```bash
-# SMTP Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-SMTP_FROM=noreply@vitalnexus.com
+# Backend
+cd backend
+dotnet restore
+dotnet build
+dotnet test
 
-# Frontend URL (for email links)
-FRONTEND_BASE_URL=https://your-domain.com
+# Frontend
+cd ../frontend
+npm install
+npm run dev
 ```
 
-### Optional
-```bash
-# JWT Configuration (use strong secret in production)
-JWT_KEY=your-secret-key-here
-```
-
-## 🐛 Known Limitations
-
-- PDF export is HTML format (needs proper PDF library for production)
-- No CSV import (manual entry only)
-- No exercise plan generation (stub model exists)
-- No body tendency assessment (stub model exists)
-- Basic SMTP email (consider transactional email service for production)
-
-## 📝 License
-
-Educational use only. Not for commercial distribution.
-
----
-
-**Remember**: This tool is educational only. Always consult healthcare professionals for medical advice.
+> Source of truth for requirements: `docs/VitalNexus Platform Requirements Document.pdf`
+> and the accompanying Technical Design Document.
