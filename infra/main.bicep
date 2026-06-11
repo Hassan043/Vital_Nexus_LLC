@@ -61,7 +61,7 @@ module functionApp 'modules/function-app.bicep' = {
   }
 }
 
-// Core data: account/business, function operations, and lab marker reference
+// Core data: account/business, and lab marker reference
 // data. Never hosts PHI.
 module coreSql 'modules/sql-server.bicep' = {
   name: 'core-sql'
@@ -72,8 +72,7 @@ module coreSql 'modules/sql-server.bicep' = {
     administratorLogin: sqlAdministratorLogin
     administratorLoginPassword: sqlAdministratorPassword
     databaseNames: [
-      'AccountBusiness'
-      'FunctionOperations'
+      'Accounts'
       'LabMarkersData'
     ]
     databaseSkuName: sqlDatabaseSkuName
