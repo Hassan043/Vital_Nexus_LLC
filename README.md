@@ -232,3 +232,7 @@ Educational use only. Not for commercial distribution.
 ---
 
 **Remember**: This tool is educational only. Always consult healthcare professionals for medical advice.
+
+## LabMarkersData Database Project
+
+`VitalNexus.LabMarkersData.Database` stores non-patient lab marker master/reference data used by the application, including marker definitions, units, categories, reference ranges, optimal ranges, threshold rules, and lab panel templates. It does NOT store patient-specific lab results, PHI, AI prompts, AI responses, or vector embeddings.
