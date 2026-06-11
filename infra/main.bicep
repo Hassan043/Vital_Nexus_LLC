@@ -97,6 +97,34 @@ module phiSql 'modules/sql-server.bicep' = {
   }
 }
 
+// Application storage: export packages and other app data, separate from the
+// Functions runtime storage account.
+module appStorage 'modules/storage-account.bicep' = {
+  name: 'app-storage'
+  params: {
+    location: location
+    tags: tags
+    storageAccountName: 'st${namePrefix}app${environmentName}${take(uniqueString(resourceGroup().id), 7)}'
+    containerNames: [
+      'exports'
+    ]
+  }
+}
+
+// Secrets: RBAC-only Key Vault readable by the API and Functions identities.
+module keyVault 'modules/key-vault.bicep' = {
+  name: 'key-vault'
+  params: {
+    location: location
+    tags: tags
+    keyVaultName: 'kv-${namePrefix}-${environmentName}-${take(uniqueString(resourceGroup().id), 7)}'
+    secretsUserPrincipalIds: [
+      apiAppService.outputs.principalId
+      functionApp.outputs.principalId
+    ]
+  }
+}
+
 output apiAppServiceName string = apiAppService.outputs.appName
 output apiAppServiceHostname string = apiAppService.outputs.defaultHostname
 output apiAppServicePrincipalId string = apiAppService.outputs.principalId
@@ -108,3 +136,7 @@ output coreSqlServerName string = coreSql.outputs.serverName
 output coreSqlServerFqdn string = coreSql.outputs.serverFqdn
 output phiSqlServerName string = phiSql.outputs.serverName
 output phiSqlServerFqdn string = phiSql.outputs.serverFqdn
+output appStorageAccountName string = appStorage.outputs.storageAccountName
+output appStorageBlobEndpoint string = appStorage.outputs.blobEndpoint
+output keyVaultName string = keyVault.outputs.keyVaultName
+output keyVaultUri string = keyVault.outputs.keyVaultUri
