@@ -33,24 +33,31 @@ each patient's complete history.
 ## Repository Layout
 
 ```
-VitalNexus/
-├── docs/                      Source requirements & technical design documents
-├── backend/                   .NET 8 solution (VitalNexus.sln)
-│   ├── src/
-│   │   ├── Core/
-│   │   │   ├── VitalNexus.Domain/         Entities, enums, value objects (no dependencies)
-│   │   │   └── VitalNexus.Application/    Use cases, service interfaces, DTOs
-│   │   ├── Infrastructure/
-│   │   │   └── VitalNexus.Infrastructure/ EF Core DbContexts, data access, external services
-│   │   ├── Api/
-│   │   │   └── VitalNexus.Api/            ASP.NET Core Web API (the only synchronous data-store access point)
-│   │   └── Functions/                     Azure Functions — async AI, retention, export, notifications
-│   └── tests/
-│       ├── VitalNexus.UnitTests/
-│       └── VitalNexus.IntegrationTests/
-├── frontend/                  React + Vite + TypeScript SPA (Provider / Clinic Owner / Master Admin portals)
-├── infra/                     Bicep templates & deployment (added during Phase 1)
-└── scripts/                   Developer & ops helper scripts
+
+### 2. Install Dependencies
+```bash
+# Backend
+cd backend
+dotnet restore
+
+# Frontend
+cd ../frontend
+npm ci
+```
+
+### 3. Configure Environment Variables (Optional for Email)
+
+Create a `.env` file or configure `appsettings.json` for SMTP:
+```json
+{
+  "Smtp": {
+    "Host": "smtp.gmail.com",
+    "Port": 587,
+    "User": "your-email@gmail.com",
+    "Pass": "your-app-password",
+    "From": "noreply@vitalnexus.com"
+  }
+}
 ```
 
 ## Architecture Rules
