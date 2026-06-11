@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.Build.Sql/1.0">
+  <PropertyGroup>
+    <ProjectGuid>{A3E9E6C2-4F9B-4C3E-A8F9-1B2C3D4E5F60}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
+    <ModelCollation>SQL_Latin1_General_CP1_CI_AS</ModelCollation>
+    <DeployToDatabaseName>$(DatabaseName)</DeployToDatabaseName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Tables\" />
+    <Folder Include="Views\" />
+    <Folder Include="StoredProcedures\" />
+    <Folder Include="Security\" />
+    <Folder Include="ReferenceData\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Build Include="Tables\MarkerDefinitions.sql" />
+    <Build Include="Views\MarkerViews.sql" />
+    <Build Include="StoredProcedures\Placeholders.sql" />
+    <Build Include="Security\Placeholders.sql" />
+    <Build Include="ReferenceData\InitialReferenceData.sql" />
+    <PostDeploy Include="PostDeployment.sql" />
+  </ItemGroup>
+</Project>

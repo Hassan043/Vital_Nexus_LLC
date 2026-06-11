@@ -6,6 +6,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{1AE8
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NutrientInsight.Api", "backend\NutrientInsight.Api.csproj", "{583964CF-9C17-C957-23C6-D9EC4668D08A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VitalNexus.AccountBusiness.Database", "database\VitalNexus.AccountBusiness.Database\VitalNexus.AccountBusiness.Database.sqlproj", "{9B5E3C8A-12D4-4E2B-9EB0-FD1E8DBA1A21}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VitalNexus.PatientHealth.Database", "database\VitalNexus.PatientHealth.Database\VitalNexus.PatientHealth.Database.sqlproj", "{D36A7E4B-4C6E-464B-A7F9-3F352B49C6DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VitalNexus.FunctionOperations.Database", "database\VitalNexus.FunctionOperations.Database\VitalNexus.FunctionOperations.Database.sqlproj", "{B7D4B981-4298-42F6-B2F3-893F7A24D02A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VitalNexus.LabMarkersData.Database", "database\VitalNexus.LabMarkersData.Database\VitalNexus.LabMarkersData.Database.sqlproj", "{A3E9E6C2-4F9B-4C3E-A8F9-1B2C3D4E5F60}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,6 +24,22 @@ Global
 		{583964CF-9C17-C957-23C6-D9EC4668D08A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{583964CF-9C17-C957-23C6-D9EC4668D08A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{583964CF-9C17-C957-23C6-D9EC4668D08A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B5E3C8A-12D4-4E2B-9EB0-FD1E8DBA1A21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B5E3C8A-12D4-4E2B-9EB0-FD1E8DBA1A21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B5E3C8A-12D4-4E2B-9EB0-FD1E8DBA1A21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B5E3C8A-12D4-4E2B-9EB0-FD1E8DBA1A21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D36A7E4B-4C6E-464B-A7F9-3F352B49C6DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D36A7E4B-4C6E-464B-A7F9-3F352B49C6DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D36A7E4B-4C6E-464B-A7F9-3F352B49C6DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D36A7E4B-4C6E-464B-A7F9-3F352B49C6DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7D4B981-4298-42F6-B2F3-893F7A24D02A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7D4B981-4298-42F6-B2F3-893F7A24D02A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7D4B981-4298-42F6-B2F3-893F7A24D02A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7D4B981-4298-42F6-B2F3-893F7A24D02A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3E9E6C2-4F9B-4C3E-A8F9-1B2C3D4E5F60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3E9E6C2-4F9B-4C3E-A8F9-1B2C3D4E5F60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3E9E6C2-4F9B-4C3E-A8F9-1B2C3D4E5F60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3E9E6C2-4F9B-4C3E-A8F9-1B2C3D4E5F60}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
