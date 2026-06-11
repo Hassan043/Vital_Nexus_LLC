@@ -48,6 +48,22 @@ module apiAppService 'modules/app-service.bicep' = {
   }
 }
 
+// Background jobs: Linux consumption Function App running the .NET 8 isolated worker.
+module functionApp 'modules/function-app.bicep' = {
+  name: 'function-app'
+  params: {
+    location: location
+    tags: tags
+    planName: 'asp-${namePrefix}-func-${environmentName}'
+    functionAppName: 'func-${namePrefix}-${environmentName}-${uniqueString(resourceGroup().id)}'
+    storageAccountName: 'st${namePrefix}fn${environmentName}${take(uniqueString(resourceGroup().id), 8)}'
+  }
+}
+
 output apiAppServiceName string = apiAppService.outputs.appName
 output apiAppServiceHostname string = apiAppService.outputs.defaultHostname
 output apiAppServicePrincipalId string = apiAppService.outputs.principalId
+output functionAppName string = functionApp.outputs.functionAppName
+output functionAppHostname string = functionApp.outputs.defaultHostname
+output functionAppPrincipalId string = functionApp.outputs.principalId
+output functionStorageAccountName string = functionApp.outputs.storageAccountName
