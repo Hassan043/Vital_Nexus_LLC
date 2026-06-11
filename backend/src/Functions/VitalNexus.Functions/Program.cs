@@ -1,13 +1,12 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Azure.Functions.Worker.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
-    .ConfigureAppConfiguration(configBuilder =>
+    .ConfigureServices(services =>
     {
-        configBuilder.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-                     .AddEnvironmentVariables();
+        services.AddLogging();
     })
     .Build();
 
