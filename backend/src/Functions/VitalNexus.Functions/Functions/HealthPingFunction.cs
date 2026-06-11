@@ -2,6 +2,7 @@ using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Timer;
 using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Functions.Worker.Http;
 
 namespace VitalNexus.Functions;
 
