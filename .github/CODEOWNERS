@@ -1,0 +1,14 @@
+# CODEOWNERS
+# Replace the placeholder handles below with your org/team or GitHub usernames.
+# Example: @my-org/core or @alice
+
+# Owners for source code and infra
+/src/ @scubakiz03
+/infra/ @scubakiz03
+
+# Owners for repository config and docs
+/.github/ @scubakiz03
+/docs/ @scubakiz03
+
+# Fallback owner for everything else
+* @scubakiz03
