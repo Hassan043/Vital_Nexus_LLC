@@ -17,12 +17,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Core\VitalNexus.Domain\VitalNexus.Domain.csproj" />
     <ProjectReference Include="..\..\src\Core\VitalNexus.Application\VitalNexus.Application.csproj" />
+    <ProjectReference Include="..\..\src\Api\VitalNexus.Api\VitalNexus.Api.csproj" />
   </ItemGroup>
 
 </Project>

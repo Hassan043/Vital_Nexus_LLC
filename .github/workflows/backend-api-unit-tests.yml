@@ -1,0 +1,46 @@
+name: "CI / Backend API Unit Tests"
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'backend/tests/VitalNexus.UnitTests/**'
+      - 'backend/src/Api/VitalNexus.Api/**'
+      - 'backend/src/Core/**'
+      - 'backend/src/Infrastructure/**'
+      - '.github/workflows/backend-api-unit-tests.yml'
+  pull_request:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'backend/tests/VitalNexus.UnitTests/**'
+      - 'backend/src/Api/VitalNexus.Api/**'
+      - 'backend/src/Core/**'
+      - 'backend/src/Infrastructure/**'
+      - '.github/workflows/backend-api-unit-tests.yml'
+
+jobs:
+  backend-api-unit-tests:
+    name: ci/tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore backend unit test project
+        run: dotnet restore backend/tests/VitalNexus.UnitTests/VitalNexus.UnitTests.csproj
+
+      - name: Build backend unit test project
+        run: dotnet build backend/tests/VitalNexus.UnitTests/VitalNexus.UnitTests.csproj --configuration Release --no-restore
+
+      - name: Run backend API unit tests
+        run: dotnet test backend/tests/VitalNexus.UnitTests/VitalNexus.UnitTests.csproj --configuration Release --no-restore
