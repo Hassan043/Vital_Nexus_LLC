@@ -24,11 +24,19 @@ param sqlAdministratorLogin string
 @secure()
 param sqlAdministratorPassword string
 
-@description('App Service plan SKU name for the backend API (capacity tier identifier, not a monetary value).')
-param apiPlanSkuName string = 'B1'
-
 @description('Azure SQL database SKU name (capacity tier identifier, not a monetary value).')
 param sqlDatabaseSkuName string = 'S0'
+
+@description('ACR SKU name (capacity tier identifier, not a monetary value).')
+@allowed([
+  'Basic'
+  'Standard'
+  'Premium'
+])
+param acrSkuName string = 'Basic'
+
+@description('Log Analytics retention in days for the Container Apps environment.')
+param logAnalyticsRetentionInDays int = 30
 
 var tags = {
   product: 'VitalNexus'
@@ -36,17 +44,39 @@ var tags = {
   managedBy: 'bicep'
 }
 
-// Backend API hosting: Linux App Service running the .NET 8 ASP.NET Core Web API.
-module apiAppService 'modules/app-service.bicep' = {
-  name: 'api-app-service'
+var nameSuffix = take(uniqueString(resourceGroup().id), 8)
+
+// Container hosting foundation: shared ACA environment and image registry.
+module acaWorkloadIdentity 'modules/container-apps-workload-identity.bicep' = {
+  name: 'aca-workload-identity'
   params: {
     location: location
     tags: tags
-    planName: 'asp-${namePrefix}-api-${environmentName}'
-    appName: 'app-${namePrefix}-api-${environmentName}-${uniqueString(resourceGroup().id)}'
-    skuName: apiPlanSkuName
-    alwaysOn: apiPlanSkuName != 'F1'
-    aspnetcoreEnvironment: environmentName == 'prod' ? 'Production' : 'Development'
+    identityName: 'id-${namePrefix}-aca-${environmentName}-${nameSuffix}'
+  }
+}
+
+module acr 'modules/container-registry.bicep' = {
+  name: 'container-registry'
+  params: {
+    location: location
+    tags: tags
+    acrName: 'acr${namePrefix}${environmentName}${nameSuffix}'
+    skuName: acrSkuName
+    acrPullPrincipalIds: [
+      acaWorkloadIdentity.outputs.principalId
+    ]
+  }
+}
+
+module acaEnvironment 'modules/container-apps-environment.bicep' = {
+  name: 'container-apps-environment'
+  params: {
+    location: location
+    tags: tags
+    logAnalyticsWorkspaceName: 'log-${namePrefix}-aca-${environmentName}-${nameSuffix}'
+    managedEnvironmentName: 'cae-${namePrefix}-${environmentName}-${nameSuffix}'
+    logRetentionInDays: logAnalyticsRetentionInDays
   }
 }
 
@@ -111,7 +141,7 @@ module appStorage 'modules/storage-account.bicep' = {
   }
 }
 
-// Secrets: RBAC-only Key Vault readable by the API and Functions identities.
+// Secrets: RBAC-only Key Vault readable by Container Apps and Functions identities.
 module keyVault 'modules/key-vault.bicep' = {
   name: 'key-vault'
   params: {
@@ -119,15 +149,20 @@ module keyVault 'modules/key-vault.bicep' = {
     tags: tags
     keyVaultName: 'kv-${namePrefix}-${environmentName}-${take(uniqueString(resourceGroup().id), 7)}'
     secretsUserPrincipalIds: [
-      apiAppService.outputs.principalId
+      acaWorkloadIdentity.outputs.principalId
       functionApp.outputs.principalId
     ]
   }
 }
 
-output apiAppServiceName string = apiAppService.outputs.appName
-output apiAppServiceHostname string = apiAppService.outputs.defaultHostname
-output apiAppServicePrincipalId string = apiAppService.outputs.principalId
+output containerAppsEnvironmentName string = acaEnvironment.outputs.environmentName
+output containerAppsEnvironmentId string = acaEnvironment.outputs.environmentId
+output logAnalyticsWorkspaceName string = acaEnvironment.outputs.logAnalyticsWorkspaceName
+output acrName string = acr.outputs.acrName
+output acrLoginServer string = acr.outputs.acrLoginServer
+output containerAppsWorkloadIdentityName string = acaWorkloadIdentity.outputs.identityName
+output containerAppsWorkloadIdentityPrincipalId string = acaWorkloadIdentity.outputs.principalId
+output containerAppsWorkloadIdentityClientId string = acaWorkloadIdentity.outputs.clientId
 output functionAppName string = functionApp.outputs.functionAppName
 output functionAppHostname string = functionApp.outputs.defaultHostname
 output functionAppPrincipalId string = functionApp.outputs.principalId

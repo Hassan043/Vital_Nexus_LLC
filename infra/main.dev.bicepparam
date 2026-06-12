@@ -6,8 +6,9 @@ param namePrefix = 'vnx'
 // Optional. If omitted, it uses the resource group location.
 // param location = 'eastus'
 
-param apiPlanSkuName = 'F1'
+param acrSkuName = 'Basic'
 param sqlDatabaseSkuName = 'Basic'
+param logAnalyticsRetentionInDays = 30
 
 // SECURITY: never commit real credentials. Injected at deploy time (empty
 // password default so the repo holds no secret). Set before deploying:

@@ -3,6 +3,9 @@ using './main.bicep'
 param environmentName = 'prod'
 param namePrefix = 'vnx'
 param sqlAdministratorLogin = 'vnxadmin'
+param acrSkuName = 'Standard'
+param sqlDatabaseSkuName = 'S0'
+param logAnalyticsRetentionInDays = 90
 
 // SECURITY: never commit a real password. The value is read from the
 // SQL_ADMIN_PASSWORD environment variable at deploy time (empty default so the
