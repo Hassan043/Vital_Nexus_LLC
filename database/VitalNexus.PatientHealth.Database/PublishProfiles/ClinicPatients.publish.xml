@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Template publish profile for deploying the Patients DACPAC to a clinic-specific database.
+  Copy and set TargetDatabaseName per clinic/customer. One DACPAC, many target databases.
+-->
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetDatabaseName>Patients-ClinicTemplate</TargetDatabaseName>
+    <DeployScriptFileName>VitalNexus.PatientHealth.Database.sql</DeployScriptFileName>
+    <BlockOnPossibleDataLoss>True</BlockOnPossibleDataLoss>
+    <CreateNewDatabase>False</CreateNewDatabase>
+  </PropertyGroup>
+</Project>
