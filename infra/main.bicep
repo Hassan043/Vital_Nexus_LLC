@@ -38,6 +38,12 @@ param acrSkuName string = 'Basic'
 @description('Log Analytics retention in days for the Container Apps environment.')
 param logAnalyticsRetentionInDays int = 30
 
+@description('Container image tag applied to frontend, API, and worker images.')
+param containerImageTag string = 'latest'
+
+@description('Deploy the payment/Stripe worker container app scaffold.')
+param deployPaymentWorker bool = false
+
 var tags = {
   product: 'VitalNexus'
   environment: environmentName
@@ -45,6 +51,7 @@ var tags = {
 }
 
 var nameSuffix = take(uniqueString(resourceGroup().id), 8)
+var aspnetcoreEnvironment = environmentName == 'prod' ? 'Production' : 'Development'
 
 // Container hosting foundation: shared ACA environment and image registry.
 module acaWorkloadIdentity 'modules/container-apps-workload-identity.bicep' = {
@@ -80,15 +87,115 @@ module acaEnvironment 'modules/container-apps-environment.bicep' = {
   }
 }
 
-// Background jobs: Linux consumption Function App running the .NET 8 isolated worker.
-module functionApp 'modules/function-app.bicep' = {
-  name: 'function-app'
+module frontendApp 'modules/container-app.bicep' = {
+  name: 'frontend-container-app'
   params: {
     location: location
     tags: tags
-    planName: 'asp-${namePrefix}-func-${environmentName}'
-    functionAppName: 'func-${namePrefix}-${environmentName}-${uniqueString(resourceGroup().id)}'
-    storageAccountName: 'st${namePrefix}fn${environmentName}${take(uniqueString(resourceGroup().id), 8)}'
+    containerAppName: 'ca-${namePrefix}-frontend-${environmentName}-${nameSuffix}'
+    managedEnvironmentId: acaEnvironment.outputs.environmentId
+    containerImage: '${acr.outputs.acrLoginServer}/vitalnexus-frontend:${containerImageTag}'
+    cpu: environmentName == 'prod' ? '0.5' : '0.25'
+    memory: environmentName == 'prod' ? '1Gi' : '0.5Gi'
+    minReplicas: environmentName == 'prod' ? 1 : 0
+    maxReplicas: environmentName == 'prod' ? 5 : 2
+    ingressEnabled: true
+    externalIngress: true
+    targetPort: 8080
+    userAssignedIdentityResourceId: acaWorkloadIdentity.outputs.identityId
+    acrLoginServer: acr.outputs.acrLoginServer
+    environmentVariables: [
+      {
+        name: 'PORT'
+        value: '8080'
+      }
+    ]
+  }
+}
+
+module apiApp 'modules/container-app.bicep' = {
+  name: 'api-container-app'
+  params: {
+    location: location
+    tags: tags
+    containerAppName: 'ca-${namePrefix}-api-${environmentName}-${nameSuffix}'
+    managedEnvironmentId: acaEnvironment.outputs.environmentId
+    containerImage: '${acr.outputs.acrLoginServer}/vitalnexus-api:${containerImageTag}'
+    cpu: environmentName == 'prod' ? '1.0' : '0.5'
+    memory: environmentName == 'prod' ? '2Gi' : '1Gi'
+    minReplicas: 1
+    maxReplicas: environmentName == 'prod' ? 10 : 3
+    ingressEnabled: true
+    externalIngress: true
+    targetPort: 8080
+    healthProbePath: '/health'
+    userAssignedIdentityResourceId: acaWorkloadIdentity.outputs.identityId
+    acrLoginServer: acr.outputs.acrLoginServer
+    environmentVariables: [
+      {
+        name: 'ASPNETCORE_ENVIRONMENT'
+        value: aspnetcoreEnvironment
+      }
+      {
+        name: 'ASPNETCORE_URLS'
+        value: 'http://+:8080'
+      }
+    ]
+  }
+}
+
+module aiAnalysisWorkerApp 'modules/container-app.bicep' = {
+  name: 'ai-analysis-worker-container-app'
+  params: {
+    location: location
+    tags: tags
+    containerAppName: 'ca-${namePrefix}-ai-worker-${environmentName}-${nameSuffix}'
+    managedEnvironmentId: acaEnvironment.outputs.environmentId
+    containerImage: '${acr.outputs.acrLoginServer}/vitalnexus-ai-analysis-worker:${containerImageTag}'
+    cpu: environmentName == 'prod' ? '1.0' : '0.5'
+    memory: environmentName == 'prod' ? '2Gi' : '1Gi'
+    minReplicas: 1
+    maxReplicas: environmentName == 'prod' ? 5 : 2
+    ingressEnabled: false
+    userAssignedIdentityResourceId: acaWorkloadIdentity.outputs.identityId
+    acrLoginServer: acr.outputs.acrLoginServer
+    daprEnabled: true
+    daprAppId: 'ai-analysis-worker'
+    daprAppPort: 8080
+    environmentVariables: [
+      {
+        name: 'ASPNETCORE_ENVIRONMENT'
+        value: aspnetcoreEnvironment
+      }
+      {
+        name: 'ASPNETCORE_URLS'
+        value: 'http://+:8080'
+      }
+    ]
+  }
+}
+
+module paymentWorkerApp 'modules/container-app.bicep' = if (deployPaymentWorker) {
+  name: 'payment-worker-container-app'
+  params: {
+    location: location
+    tags: tags
+    containerAppName: 'ca-${namePrefix}-payment-worker-${environmentName}-${nameSuffix}'
+    managedEnvironmentId: acaEnvironment.outputs.environmentId
+    containerImage: '${acr.outputs.acrLoginServer}/vitalnexus-payment-worker:${containerImageTag}'
+    cpu: '0.5'
+    memory: '1Gi'
+    minReplicas: 0
+    maxReplicas: environmentName == 'prod' ? 3 : 1
+    ingressEnabled: false
+    userAssignedIdentityResourceId: acaWorkloadIdentity.outputs.identityId
+    acrLoginServer: acr.outputs.acrLoginServer
+    environmentVariables: [
+      {
+        name: 'ASPNETCORE_ENVIRONMENT'
+        value: aspnetcoreEnvironment
+      }
+    ]
   }
 }
 
@@ -127,8 +234,7 @@ module phiSql 'modules/sql-server.bicep' = {
   }
 }
 
-// Application storage: export packages and other app data, separate from the
-// Functions runtime storage account.
+// Application storage: export packages and other app data.
 module appStorage 'modules/storage-account.bicep' = {
   name: 'app-storage'
   params: {
@@ -141,7 +247,7 @@ module appStorage 'modules/storage-account.bicep' = {
   }
 }
 
-// Secrets: RBAC-only Key Vault readable by Container Apps and Functions identities.
+// Secrets: RBAC-only Key Vault readable by Container Apps workload identity.
 module keyVault 'modules/key-vault.bicep' = {
   name: 'key-vault'
   params: {
@@ -150,7 +256,6 @@ module keyVault 'modules/key-vault.bicep' = {
     keyVaultName: 'kv-${namePrefix}-${environmentName}-${take(uniqueString(resourceGroup().id), 7)}'
     secretsUserPrincipalIds: [
       acaWorkloadIdentity.outputs.principalId
-      functionApp.outputs.principalId
     ]
   }
 }
@@ -163,10 +268,12 @@ output acrLoginServer string = acr.outputs.acrLoginServer
 output containerAppsWorkloadIdentityName string = acaWorkloadIdentity.outputs.identityName
 output containerAppsWorkloadIdentityPrincipalId string = acaWorkloadIdentity.outputs.principalId
 output containerAppsWorkloadIdentityClientId string = acaWorkloadIdentity.outputs.clientId
-output functionAppName string = functionApp.outputs.functionAppName
-output functionAppHostname string = functionApp.outputs.defaultHostname
-output functionAppPrincipalId string = functionApp.outputs.principalId
-output functionStorageAccountName string = functionApp.outputs.storageAccountName
+output frontendContainerAppName string = frontendApp.outputs.containerAppName
+output frontendContainerAppFqdn string = frontendApp.outputs.fqdn
+output apiContainerAppName string = apiApp.outputs.containerAppName
+output apiContainerAppFqdn string = apiApp.outputs.fqdn
+output aiAnalysisWorkerContainerAppName string = aiAnalysisWorkerApp.outputs.containerAppName
+output paymentWorkerContainerAppName string = deployPaymentWorker ? paymentWorkerApp!.outputs.containerAppName : ''
 output coreSqlServerName string = coreSql.outputs.serverName
 output coreSqlServerFqdn string = coreSql.outputs.serverFqdn
 output phiSqlServerName string = phiSql.outputs.serverName

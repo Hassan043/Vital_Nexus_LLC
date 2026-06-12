@@ -9,6 +9,8 @@ param namePrefix = 'vnx'
 param acrSkuName = 'Basic'
 param sqlDatabaseSkuName = 'Basic'
 param logAnalyticsRetentionInDays = 30
+param containerImageTag = 'latest'
+param deployPaymentWorker = false
 
 // SECURITY: never commit real credentials. Injected at deploy time (empty
 // password default so the repo holds no secret). Set before deploying:

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.44.1.10279",
-      "templateHash": "16644612582798525395"
+      "templateHash": "14813783001554643912"
     }
   },
   "parameters": {
@@ -72,6 +72,20 @@
       "metadata": {
         "description": "Log Analytics retention in days for the Container Apps environment."
       }
+    },
+    "containerImageTag": {
+      "type": "string",
+      "defaultValue": "latest",
+      "metadata": {
+        "description": "Container image tag applied to frontend, API, and worker images."
+      }
+    },
+    "deployPaymentWorker": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Deploy the payment/Stripe worker container app scaffold."
+      }
     }
   },
   "variables": {
@@ -80,7 +94,8 @@
       "environment": "[parameters('environmentName')]",
       "managedBy": "bicep"
     },
-    "nameSuffix": "[take(uniqueString(resourceGroup().id), 8)]"
+    "nameSuffix": "[take(uniqueString(resourceGroup().id), 8)]",
+    "aspnetcoreEnvironment": "[if(equals(parameters('environmentName'), 'prod'), 'Production', 'Development')]"
   },
   "resources": [
     {
@@ -442,7 +457,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
-      "name": "function-app",
+      "name": "frontend-container-app",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -455,14 +470,41 @@
           "tags": {
             "value": "[variables('tags')]"
           },
-          "planName": {
-            "value": "[format('asp-{0}-func-{1}', parameters('namePrefix'), parameters('environmentName'))]"
+          "containerAppName": {
+            "value": "[format('ca-{0}-frontend-{1}-{2}', parameters('namePrefix'), parameters('environmentName'), variables('nameSuffix'))]"
           },
-          "functionAppName": {
-            "value": "[format('func-{0}-{1}-{2}', parameters('namePrefix'), parameters('environmentName'), uniqueString(resourceGroup().id))]"
+          "managedEnvironmentId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.environmentId.value]"
           },
-          "storageAccountName": {
-            "value": "[format('st{0}fn{1}{2}', parameters('namePrefix'), parameters('environmentName'), take(uniqueString(resourceGroup().id), 8))]"
+          "containerImage": {
+            "value": "[format('{0}/vitalnexus-frontend:{1}', reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value, parameters('containerImageTag'))]"
+          },
+          "cpu": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', '0.5'), createObject('value', '0.25'))]",
+          "memory": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', '1Gi'), createObject('value', '0.5Gi'))]",
+          "minReplicas": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', 1), createObject('value', 0))]",
+          "maxReplicas": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', 5), createObject('value', 2))]",
+          "ingressEnabled": {
+            "value": true
+          },
+          "externalIngress": {
+            "value": true
+          },
+          "targetPort": {
+            "value": 8080
+          },
+          "userAssignedIdentityResourceId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.identityId.value]"
+          },
+          "acrLoginServer": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value]"
+          },
+          "environmentVariables": {
+            "value": [
+              {
+                "name": "PORT",
+                "value": "8080"
+              }
+            ]
           }
         },
         "template": {
@@ -472,137 +514,1196 @@
             "_generator": {
               "name": "bicep",
               "version": "0.44.1.10279",
-              "templateHash": "7704772894691019324"
+              "templateHash": "5097148160382813481"
             }
           },
           "parameters": {
             "location": {
               "type": "string",
               "metadata": {
-                "description": "Azure region for all resources in this module."
+                "description": "Azure region for the container app."
               }
             },
             "tags": {
               "type": "object",
               "defaultValue": {},
               "metadata": {
-                "description": "Tags applied to all resources in this module."
+                "description": "Tags applied to the container app."
               }
             },
-            "planName": {
+            "containerAppName": {
               "type": "string",
               "metadata": {
-                "description": "Name of the consumption App Service plan backing the Function App."
+                "description": "Name of the container app (lowercase alphanumeric and hyphens)."
               }
             },
-            "functionAppName": {
+            "managedEnvironmentId": {
               "type": "string",
               "metadata": {
-                "description": "Globally unique name of the Function App."
+                "description": "Resource ID of the shared Container Apps managed environment."
               }
             },
-            "storageAccountName": {
+            "containerImage": {
               "type": "string",
-              "minLength": 3,
-              "maxLength": 24,
               "metadata": {
-                "description": "Name of the storage account used by the Functions runtime (3-24 chars, lowercase alphanumeric)."
+                "description": "Full container image reference (for example myacr.azurecr.io/vitalnexus-api:latest)."
+              }
+            },
+            "cpu": {
+              "type": "string",
+              "defaultValue": "0.25",
+              "metadata": {
+                "description": "Container CPU cores (for example 0.25)."
+              }
+            },
+            "memory": {
+              "type": "string",
+              "defaultValue": "0.5Gi",
+              "metadata": {
+                "description": "Container memory (for example 0.5Gi)."
+              }
+            },
+            "minReplicas": {
+              "type": "int",
+              "defaultValue": 1,
+              "metadata": {
+                "description": "Minimum replica count."
+              }
+            },
+            "maxReplicas": {
+              "type": "int",
+              "defaultValue": 1,
+              "metadata": {
+                "description": "Maximum replica count."
+              }
+            },
+            "ingressEnabled": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Expose HTTP ingress for the container app."
+              }
+            },
+            "externalIngress": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "When ingress is enabled, expose the app externally. Set false for internal-only ingress."
+              }
+            },
+            "targetPort": {
+              "type": "int",
+              "defaultValue": 8080,
+              "metadata": {
+                "description": "Target port for ingress traffic."
+              }
+            },
+            "userAssignedIdentityResourceId": {
+              "type": "string",
+              "metadata": {
+                "description": "User-assigned managed identity resource ID used for ACR pull and runtime access."
+              }
+            },
+            "acrLoginServer": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "ACR login server used for registry authentication via managed identity."
+              }
+            },
+            "environmentVariables": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Plain-text environment variables injected into the container."
+              }
+            },
+            "secrets": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Container app secrets (referenced by secret-backed environment variables)."
+              }
+            },
+            "secretEnvironmentVariables": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Environment variables backed by container app secrets."
+              }
+            },
+            "daprEnabled": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Enable the Dapr sidecar for this container app."
+              }
+            },
+            "daprAppId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Dapr application identifier."
+              }
+            },
+            "daprAppPort": {
+              "type": "int",
+              "defaultValue": 8080,
+              "metadata": {
+                "description": "Port the application listens on for Dapr app-channel communication."
+              }
+            },
+            "healthProbePath": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Optional HTTP health probe path."
               }
             }
           },
-          "resources": [
-            {
-              "type": "Microsoft.Storage/storageAccounts",
-              "apiVersion": "2023-05-01",
-              "name": "[parameters('storageAccountName')]",
-              "location": "[parameters('location')]",
-              "tags": "[parameters('tags')]",
-              "kind": "StorageV2",
-              "sku": {
-                "name": "Standard_LRS"
-              },
-              "properties": {
-                "supportsHttpsTrafficOnly": true,
-                "minimumTlsVersion": "TLS1_2",
-                "allowBlobPublicAccess": false
-              }
-            },
-            {
-              "type": "Microsoft.Web/serverfarms",
-              "apiVersion": "2023-12-01",
-              "name": "[parameters('planName')]",
-              "location": "[parameters('location')]",
-              "tags": "[parameters('tags')]",
-              "kind": "functionapp",
-              "sku": {
-                "name": "Y1",
-                "tier": "Dynamic"
-              },
-              "properties": {
-                "reserved": true
-              }
-            },
-            {
-              "type": "Microsoft.Web/sites",
-              "apiVersion": "2023-12-01",
-              "name": "[parameters('functionAppName')]",
-              "location": "[parameters('location')]",
-              "tags": "[parameters('tags')]",
-              "kind": "functionapp,linux",
-              "identity": {
-                "type": "SystemAssigned"
-              },
-              "properties": {
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('planName'))]",
-                "httpsOnly": true,
-                "clientAffinityEnabled": false,
-                "siteConfig": {
-                  "linuxFxVersion": "DOTNET-ISOLATED|8.0",
-                  "minTlsVersion": "1.2",
-                  "ftpsState": "Disabled",
-                  "http20Enabled": true,
-                  "appSettings": [
-                    {
-                      "name": "AzureWebJobsStorage",
-                      "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', parameters('storageAccountName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2023-05-01').keys[0].value)]"
-                    },
-                    {
-                      "name": "FUNCTIONS_EXTENSION_VERSION",
-                      "value": "~4"
-                    },
-                    {
-                      "name": "FUNCTIONS_WORKER_RUNTIME",
-                      "value": "dotnet-isolated"
-                    }
-                  ]
+          "variables": {
+            "copy": [
+              {
+                "name": "plainEnvironmentVariables",
+                "count": "[length(parameters('environmentVariables'))]",
+                "input": {
+                  "name": "[parameters('environmentVariables')[copyIndex('plainEnvironmentVariables')].name]",
+                  "value": "[parameters('environmentVariables')[copyIndex('plainEnvironmentVariables')].value]"
                 }
               },
-              "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', parameters('planName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
-              ]
+              {
+                "name": "secretBackedEnvironmentVariables",
+                "count": "[length(parameters('secretEnvironmentVariables'))]",
+                "input": {
+                  "name": "[parameters('secretEnvironmentVariables')[copyIndex('secretBackedEnvironmentVariables')].name]",
+                  "secretRef": "[parameters('secretEnvironmentVariables')[copyIndex('secretBackedEnvironmentVariables')].secretName]"
+                }
+              }
+            ],
+            "containerEnvironmentVariables": "[concat(variables('plainEnvironmentVariables'), variables('secretBackedEnvironmentVariables'))]",
+            "registryConfiguration": "[if(empty(parameters('acrLoginServer')), createArray(), createArray(createObject('server', parameters('acrLoginServer'), 'identity', parameters('userAssignedIdentityResourceId'))))]",
+            "healthProbes": "[if(empty(parameters('healthProbePath')), createArray(), createArray(createObject('type', 'Liveness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 10, 'periodSeconds', 30), createObject('type', 'Readiness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 5, 'periodSeconds', 10)))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.App/containerApps",
+              "apiVersion": "2024-03-01",
+              "name": "[parameters('containerAppName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('userAssignedIdentityResourceId'))]": {}
+                }
+              },
+              "properties": {
+                "managedEnvironmentId": "[parameters('managedEnvironmentId')]",
+                "configuration": {
+                  "copy": [
+                    {
+                      "name": "secrets",
+                      "count": "[length(parameters('secrets'))]",
+                      "input": {
+                        "name": "[parameters('secrets')[copyIndex('secrets')].name]",
+                        "value": "[parameters('secrets')[copyIndex('secrets')].value]"
+                      }
+                    }
+                  ],
+                  "activeRevisionsMode": "Single",
+                  "ingress": "[if(parameters('ingressEnabled'), createObject('external', parameters('externalIngress'), 'targetPort', parameters('targetPort'), 'transport', 'auto', 'allowInsecure', false()), null())]",
+                  "registries": "[variables('registryConfiguration')]",
+                  "dapr": "[if(parameters('daprEnabled'), createObject('enabled', true(), 'appId', parameters('daprAppId'), 'appPort', parameters('daprAppPort')), null())]"
+                },
+                "template": {
+                  "containers": [
+                    {
+                      "name": "app",
+                      "image": "[parameters('containerImage')]",
+                      "resources": {
+                        "cpu": "[json(parameters('cpu'))]",
+                        "memory": "[parameters('memory')]"
+                      },
+                      "env": "[variables('containerEnvironmentVariables')]",
+                      "probes": "[variables('healthProbes')]"
+                    }
+                  ],
+                  "scale": {
+                    "minReplicas": "[parameters('minReplicas')]",
+                    "maxReplicas": "[parameters('maxReplicas')]"
+                  }
+                }
+              }
             }
           ],
           "outputs": {
-            "functionAppName": {
+            "containerAppName": {
               "type": "string",
-              "value": "[parameters('functionAppName')]"
+              "value": "[parameters('containerAppName')]"
             },
-            "defaultHostname": {
+            "containerAppId": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2023-12-01').defaultHostName]"
+              "value": "[resourceId('Microsoft.App/containerApps', parameters('containerAppName'))]"
             },
-            "principalId": {
+            "fqdn": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2023-12-01', 'full').identity.principalId]"
+              "value": "[if(parameters('ingressEnabled'), reference(resourceId('Microsoft.App/containerApps', parameters('containerAppName')), '2024-03-01').configuration.ingress.fqdn, '')]"
             },
-            "storageAccountName": {
+            "latestRevisionName": {
               "type": "string",
-              "value": "[parameters('storageAccountName')]"
+              "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('containerAppName')), '2024-03-01').latestRevisionName]"
             }
           }
         }
-      }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
+        "[resourceId('Microsoft.Resources/deployments', 'aca-workload-identity')]",
+        "[resourceId('Microsoft.Resources/deployments', 'container-registry')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "api-container-app",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[variables('tags')]"
+          },
+          "containerAppName": {
+            "value": "[format('ca-{0}-api-{1}-{2}', parameters('namePrefix'), parameters('environmentName'), variables('nameSuffix'))]"
+          },
+          "managedEnvironmentId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.environmentId.value]"
+          },
+          "containerImage": {
+            "value": "[format('{0}/vitalnexus-api:{1}', reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value, parameters('containerImageTag'))]"
+          },
+          "cpu": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', '1.0'), createObject('value', '0.5'))]",
+          "memory": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', '2Gi'), createObject('value', '1Gi'))]",
+          "minReplicas": {
+            "value": 1
+          },
+          "maxReplicas": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', 10), createObject('value', 3))]",
+          "ingressEnabled": {
+            "value": true
+          },
+          "externalIngress": {
+            "value": true
+          },
+          "targetPort": {
+            "value": 8080
+          },
+          "healthProbePath": {
+            "value": "/health"
+          },
+          "userAssignedIdentityResourceId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.identityId.value]"
+          },
+          "acrLoginServer": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value]"
+          },
+          "environmentVariables": {
+            "value": [
+              {
+                "name": "ASPNETCORE_ENVIRONMENT",
+                "value": "[variables('aspnetcoreEnvironment')]"
+              },
+              {
+                "name": "ASPNETCORE_URLS",
+                "value": "http://+:8080"
+              }
+            ]
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.44.1.10279",
+              "templateHash": "5097148160382813481"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for the container app."
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags applied to the container app."
+              }
+            },
+            "containerAppName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the container app (lowercase alphanumeric and hyphens)."
+              }
+            },
+            "managedEnvironmentId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the shared Container Apps managed environment."
+              }
+            },
+            "containerImage": {
+              "type": "string",
+              "metadata": {
+                "description": "Full container image reference (for example myacr.azurecr.io/vitalnexus-api:latest)."
+              }
+            },
+            "cpu": {
+              "type": "string",
+              "defaultValue": "0.25",
+              "metadata": {
+                "description": "Container CPU cores (for example 0.25)."
+              }
+            },
+            "memory": {
+              "type": "string",
+              "defaultValue": "0.5Gi",
+              "metadata": {
+                "description": "Container memory (for example 0.5Gi)."
+              }
+            },
+            "minReplicas": {
+              "type": "int",
+              "defaultValue": 1,
+              "metadata": {
+                "description": "Minimum replica count."
+              }
+            },
+            "maxReplicas": {
+              "type": "int",
+              "defaultValue": 1,
+              "metadata": {
+                "description": "Maximum replica count."
+              }
+            },
+            "ingressEnabled": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Expose HTTP ingress for the container app."
+              }
+            },
+            "externalIngress": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "When ingress is enabled, expose the app externally. Set false for internal-only ingress."
+              }
+            },
+            "targetPort": {
+              "type": "int",
+              "defaultValue": 8080,
+              "metadata": {
+                "description": "Target port for ingress traffic."
+              }
+            },
+            "userAssignedIdentityResourceId": {
+              "type": "string",
+              "metadata": {
+                "description": "User-assigned managed identity resource ID used for ACR pull and runtime access."
+              }
+            },
+            "acrLoginServer": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "ACR login server used for registry authentication via managed identity."
+              }
+            },
+            "environmentVariables": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Plain-text environment variables injected into the container."
+              }
+            },
+            "secrets": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Container app secrets (referenced by secret-backed environment variables)."
+              }
+            },
+            "secretEnvironmentVariables": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Environment variables backed by container app secrets."
+              }
+            },
+            "daprEnabled": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Enable the Dapr sidecar for this container app."
+              }
+            },
+            "daprAppId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Dapr application identifier."
+              }
+            },
+            "daprAppPort": {
+              "type": "int",
+              "defaultValue": 8080,
+              "metadata": {
+                "description": "Port the application listens on for Dapr app-channel communication."
+              }
+            },
+            "healthProbePath": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Optional HTTP health probe path."
+              }
+            }
+          },
+          "variables": {
+            "copy": [
+              {
+                "name": "plainEnvironmentVariables",
+                "count": "[length(parameters('environmentVariables'))]",
+                "input": {
+                  "name": "[parameters('environmentVariables')[copyIndex('plainEnvironmentVariables')].name]",
+                  "value": "[parameters('environmentVariables')[copyIndex('plainEnvironmentVariables')].value]"
+                }
+              },
+              {
+                "name": "secretBackedEnvironmentVariables",
+                "count": "[length(parameters('secretEnvironmentVariables'))]",
+                "input": {
+                  "name": "[parameters('secretEnvironmentVariables')[copyIndex('secretBackedEnvironmentVariables')].name]",
+                  "secretRef": "[parameters('secretEnvironmentVariables')[copyIndex('secretBackedEnvironmentVariables')].secretName]"
+                }
+              }
+            ],
+            "containerEnvironmentVariables": "[concat(variables('plainEnvironmentVariables'), variables('secretBackedEnvironmentVariables'))]",
+            "registryConfiguration": "[if(empty(parameters('acrLoginServer')), createArray(), createArray(createObject('server', parameters('acrLoginServer'), 'identity', parameters('userAssignedIdentityResourceId'))))]",
+            "healthProbes": "[if(empty(parameters('healthProbePath')), createArray(), createArray(createObject('type', 'Liveness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 10, 'periodSeconds', 30), createObject('type', 'Readiness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 5, 'periodSeconds', 10)))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.App/containerApps",
+              "apiVersion": "2024-03-01",
+              "name": "[parameters('containerAppName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('userAssignedIdentityResourceId'))]": {}
+                }
+              },
+              "properties": {
+                "managedEnvironmentId": "[parameters('managedEnvironmentId')]",
+                "configuration": {
+                  "copy": [
+                    {
+                      "name": "secrets",
+                      "count": "[length(parameters('secrets'))]",
+                      "input": {
+                        "name": "[parameters('secrets')[copyIndex('secrets')].name]",
+                        "value": "[parameters('secrets')[copyIndex('secrets')].value]"
+                      }
+                    }
+                  ],
+                  "activeRevisionsMode": "Single",
+                  "ingress": "[if(parameters('ingressEnabled'), createObject('external', parameters('externalIngress'), 'targetPort', parameters('targetPort'), 'transport', 'auto', 'allowInsecure', false()), null())]",
+                  "registries": "[variables('registryConfiguration')]",
+                  "dapr": "[if(parameters('daprEnabled'), createObject('enabled', true(), 'appId', parameters('daprAppId'), 'appPort', parameters('daprAppPort')), null())]"
+                },
+                "template": {
+                  "containers": [
+                    {
+                      "name": "app",
+                      "image": "[parameters('containerImage')]",
+                      "resources": {
+                        "cpu": "[json(parameters('cpu'))]",
+                        "memory": "[parameters('memory')]"
+                      },
+                      "env": "[variables('containerEnvironmentVariables')]",
+                      "probes": "[variables('healthProbes')]"
+                    }
+                  ],
+                  "scale": {
+                    "minReplicas": "[parameters('minReplicas')]",
+                    "maxReplicas": "[parameters('maxReplicas')]"
+                  }
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "containerAppName": {
+              "type": "string",
+              "value": "[parameters('containerAppName')]"
+            },
+            "containerAppId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.App/containerApps', parameters('containerAppName'))]"
+            },
+            "fqdn": {
+              "type": "string",
+              "value": "[if(parameters('ingressEnabled'), reference(resourceId('Microsoft.App/containerApps', parameters('containerAppName')), '2024-03-01').configuration.ingress.fqdn, '')]"
+            },
+            "latestRevisionName": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('containerAppName')), '2024-03-01').latestRevisionName]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
+        "[resourceId('Microsoft.Resources/deployments', 'aca-workload-identity')]",
+        "[resourceId('Microsoft.Resources/deployments', 'container-registry')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "ai-analysis-worker-container-app",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[variables('tags')]"
+          },
+          "containerAppName": {
+            "value": "[format('ca-{0}-ai-worker-{1}-{2}', parameters('namePrefix'), parameters('environmentName'), variables('nameSuffix'))]"
+          },
+          "managedEnvironmentId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.environmentId.value]"
+          },
+          "containerImage": {
+            "value": "[format('{0}/vitalnexus-ai-analysis-worker:{1}', reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value, parameters('containerImageTag'))]"
+          },
+          "cpu": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', '1.0'), createObject('value', '0.5'))]",
+          "memory": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', '2Gi'), createObject('value', '1Gi'))]",
+          "minReplicas": {
+            "value": 1
+          },
+          "maxReplicas": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', 5), createObject('value', 2))]",
+          "ingressEnabled": {
+            "value": false
+          },
+          "userAssignedIdentityResourceId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.identityId.value]"
+          },
+          "acrLoginServer": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value]"
+          },
+          "daprEnabled": {
+            "value": true
+          },
+          "daprAppId": {
+            "value": "ai-analysis-worker"
+          },
+          "daprAppPort": {
+            "value": 8080
+          },
+          "environmentVariables": {
+            "value": [
+              {
+                "name": "ASPNETCORE_ENVIRONMENT",
+                "value": "[variables('aspnetcoreEnvironment')]"
+              },
+              {
+                "name": "ASPNETCORE_URLS",
+                "value": "http://+:8080"
+              }
+            ]
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.44.1.10279",
+              "templateHash": "5097148160382813481"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for the container app."
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags applied to the container app."
+              }
+            },
+            "containerAppName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the container app (lowercase alphanumeric and hyphens)."
+              }
+            },
+            "managedEnvironmentId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the shared Container Apps managed environment."
+              }
+            },
+            "containerImage": {
+              "type": "string",
+              "metadata": {
+                "description": "Full container image reference (for example myacr.azurecr.io/vitalnexus-api:latest)."
+              }
+            },
+            "cpu": {
+              "type": "string",
+              "defaultValue": "0.25",
+              "metadata": {
+                "description": "Container CPU cores (for example 0.25)."
+              }
+            },
+            "memory": {
+              "type": "string",
+              "defaultValue": "0.5Gi",
+              "metadata": {
+                "description": "Container memory (for example 0.5Gi)."
+              }
+            },
+            "minReplicas": {
+              "type": "int",
+              "defaultValue": 1,
+              "metadata": {
+                "description": "Minimum replica count."
+              }
+            },
+            "maxReplicas": {
+              "type": "int",
+              "defaultValue": 1,
+              "metadata": {
+                "description": "Maximum replica count."
+              }
+            },
+            "ingressEnabled": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Expose HTTP ingress for the container app."
+              }
+            },
+            "externalIngress": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "When ingress is enabled, expose the app externally. Set false for internal-only ingress."
+              }
+            },
+            "targetPort": {
+              "type": "int",
+              "defaultValue": 8080,
+              "metadata": {
+                "description": "Target port for ingress traffic."
+              }
+            },
+            "userAssignedIdentityResourceId": {
+              "type": "string",
+              "metadata": {
+                "description": "User-assigned managed identity resource ID used for ACR pull and runtime access."
+              }
+            },
+            "acrLoginServer": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "ACR login server used for registry authentication via managed identity."
+              }
+            },
+            "environmentVariables": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Plain-text environment variables injected into the container."
+              }
+            },
+            "secrets": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Container app secrets (referenced by secret-backed environment variables)."
+              }
+            },
+            "secretEnvironmentVariables": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Environment variables backed by container app secrets."
+              }
+            },
+            "daprEnabled": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Enable the Dapr sidecar for this container app."
+              }
+            },
+            "daprAppId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Dapr application identifier."
+              }
+            },
+            "daprAppPort": {
+              "type": "int",
+              "defaultValue": 8080,
+              "metadata": {
+                "description": "Port the application listens on for Dapr app-channel communication."
+              }
+            },
+            "healthProbePath": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Optional HTTP health probe path."
+              }
+            }
+          },
+          "variables": {
+            "copy": [
+              {
+                "name": "plainEnvironmentVariables",
+                "count": "[length(parameters('environmentVariables'))]",
+                "input": {
+                  "name": "[parameters('environmentVariables')[copyIndex('plainEnvironmentVariables')].name]",
+                  "value": "[parameters('environmentVariables')[copyIndex('plainEnvironmentVariables')].value]"
+                }
+              },
+              {
+                "name": "secretBackedEnvironmentVariables",
+                "count": "[length(parameters('secretEnvironmentVariables'))]",
+                "input": {
+                  "name": "[parameters('secretEnvironmentVariables')[copyIndex('secretBackedEnvironmentVariables')].name]",
+                  "secretRef": "[parameters('secretEnvironmentVariables')[copyIndex('secretBackedEnvironmentVariables')].secretName]"
+                }
+              }
+            ],
+            "containerEnvironmentVariables": "[concat(variables('plainEnvironmentVariables'), variables('secretBackedEnvironmentVariables'))]",
+            "registryConfiguration": "[if(empty(parameters('acrLoginServer')), createArray(), createArray(createObject('server', parameters('acrLoginServer'), 'identity', parameters('userAssignedIdentityResourceId'))))]",
+            "healthProbes": "[if(empty(parameters('healthProbePath')), createArray(), createArray(createObject('type', 'Liveness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 10, 'periodSeconds', 30), createObject('type', 'Readiness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 5, 'periodSeconds', 10)))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.App/containerApps",
+              "apiVersion": "2024-03-01",
+              "name": "[parameters('containerAppName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('userAssignedIdentityResourceId'))]": {}
+                }
+              },
+              "properties": {
+                "managedEnvironmentId": "[parameters('managedEnvironmentId')]",
+                "configuration": {
+                  "copy": [
+                    {
+                      "name": "secrets",
+                      "count": "[length(parameters('secrets'))]",
+                      "input": {
+                        "name": "[parameters('secrets')[copyIndex('secrets')].name]",
+                        "value": "[parameters('secrets')[copyIndex('secrets')].value]"
+                      }
+                    }
+                  ],
+                  "activeRevisionsMode": "Single",
+                  "ingress": "[if(parameters('ingressEnabled'), createObject('external', parameters('externalIngress'), 'targetPort', parameters('targetPort'), 'transport', 'auto', 'allowInsecure', false()), null())]",
+                  "registries": "[variables('registryConfiguration')]",
+                  "dapr": "[if(parameters('daprEnabled'), createObject('enabled', true(), 'appId', parameters('daprAppId'), 'appPort', parameters('daprAppPort')), null())]"
+                },
+                "template": {
+                  "containers": [
+                    {
+                      "name": "app",
+                      "image": "[parameters('containerImage')]",
+                      "resources": {
+                        "cpu": "[json(parameters('cpu'))]",
+                        "memory": "[parameters('memory')]"
+                      },
+                      "env": "[variables('containerEnvironmentVariables')]",
+                      "probes": "[variables('healthProbes')]"
+                    }
+                  ],
+                  "scale": {
+                    "minReplicas": "[parameters('minReplicas')]",
+                    "maxReplicas": "[parameters('maxReplicas')]"
+                  }
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "containerAppName": {
+              "type": "string",
+              "value": "[parameters('containerAppName')]"
+            },
+            "containerAppId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.App/containerApps', parameters('containerAppName'))]"
+            },
+            "fqdn": {
+              "type": "string",
+              "value": "[if(parameters('ingressEnabled'), reference(resourceId('Microsoft.App/containerApps', parameters('containerAppName')), '2024-03-01').configuration.ingress.fqdn, '')]"
+            },
+            "latestRevisionName": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('containerAppName')), '2024-03-01').latestRevisionName]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
+        "[resourceId('Microsoft.Resources/deployments', 'aca-workload-identity')]",
+        "[resourceId('Microsoft.Resources/deployments', 'container-registry')]"
+      ]
+    },
+    {
+      "condition": "[parameters('deployPaymentWorker')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "payment-worker-container-app",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[variables('tags')]"
+          },
+          "containerAppName": {
+            "value": "[format('ca-{0}-payment-worker-{1}-{2}', parameters('namePrefix'), parameters('environmentName'), variables('nameSuffix'))]"
+          },
+          "managedEnvironmentId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.environmentId.value]"
+          },
+          "containerImage": {
+            "value": "[format('{0}/vitalnexus-payment-worker:{1}', reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value, parameters('containerImageTag'))]"
+          },
+          "cpu": {
+            "value": "0.5"
+          },
+          "memory": {
+            "value": "1Gi"
+          },
+          "minReplicas": {
+            "value": 0
+          },
+          "maxReplicas": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', 3), createObject('value', 1))]",
+          "ingressEnabled": {
+            "value": false
+          },
+          "userAssignedIdentityResourceId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.identityId.value]"
+          },
+          "acrLoginServer": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value]"
+          },
+          "environmentVariables": {
+            "value": [
+              {
+                "name": "ASPNETCORE_ENVIRONMENT",
+                "value": "[variables('aspnetcoreEnvironment')]"
+              }
+            ]
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.44.1.10279",
+              "templateHash": "5097148160382813481"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for the container app."
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags applied to the container app."
+              }
+            },
+            "containerAppName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the container app (lowercase alphanumeric and hyphens)."
+              }
+            },
+            "managedEnvironmentId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the shared Container Apps managed environment."
+              }
+            },
+            "containerImage": {
+              "type": "string",
+              "metadata": {
+                "description": "Full container image reference (for example myacr.azurecr.io/vitalnexus-api:latest)."
+              }
+            },
+            "cpu": {
+              "type": "string",
+              "defaultValue": "0.25",
+              "metadata": {
+                "description": "Container CPU cores (for example 0.25)."
+              }
+            },
+            "memory": {
+              "type": "string",
+              "defaultValue": "0.5Gi",
+              "metadata": {
+                "description": "Container memory (for example 0.5Gi)."
+              }
+            },
+            "minReplicas": {
+              "type": "int",
+              "defaultValue": 1,
+              "metadata": {
+                "description": "Minimum replica count."
+              }
+            },
+            "maxReplicas": {
+              "type": "int",
+              "defaultValue": 1,
+              "metadata": {
+                "description": "Maximum replica count."
+              }
+            },
+            "ingressEnabled": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Expose HTTP ingress for the container app."
+              }
+            },
+            "externalIngress": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "When ingress is enabled, expose the app externally. Set false for internal-only ingress."
+              }
+            },
+            "targetPort": {
+              "type": "int",
+              "defaultValue": 8080,
+              "metadata": {
+                "description": "Target port for ingress traffic."
+              }
+            },
+            "userAssignedIdentityResourceId": {
+              "type": "string",
+              "metadata": {
+                "description": "User-assigned managed identity resource ID used for ACR pull and runtime access."
+              }
+            },
+            "acrLoginServer": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "ACR login server used for registry authentication via managed identity."
+              }
+            },
+            "environmentVariables": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Plain-text environment variables injected into the container."
+              }
+            },
+            "secrets": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Container app secrets (referenced by secret-backed environment variables)."
+              }
+            },
+            "secretEnvironmentVariables": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Environment variables backed by container app secrets."
+              }
+            },
+            "daprEnabled": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Enable the Dapr sidecar for this container app."
+              }
+            },
+            "daprAppId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Dapr application identifier."
+              }
+            },
+            "daprAppPort": {
+              "type": "int",
+              "defaultValue": 8080,
+              "metadata": {
+                "description": "Port the application listens on for Dapr app-channel communication."
+              }
+            },
+            "healthProbePath": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Optional HTTP health probe path."
+              }
+            }
+          },
+          "variables": {
+            "copy": [
+              {
+                "name": "plainEnvironmentVariables",
+                "count": "[length(parameters('environmentVariables'))]",
+                "input": {
+                  "name": "[parameters('environmentVariables')[copyIndex('plainEnvironmentVariables')].name]",
+                  "value": "[parameters('environmentVariables')[copyIndex('plainEnvironmentVariables')].value]"
+                }
+              },
+              {
+                "name": "secretBackedEnvironmentVariables",
+                "count": "[length(parameters('secretEnvironmentVariables'))]",
+                "input": {
+                  "name": "[parameters('secretEnvironmentVariables')[copyIndex('secretBackedEnvironmentVariables')].name]",
+                  "secretRef": "[parameters('secretEnvironmentVariables')[copyIndex('secretBackedEnvironmentVariables')].secretName]"
+                }
+              }
+            ],
+            "containerEnvironmentVariables": "[concat(variables('plainEnvironmentVariables'), variables('secretBackedEnvironmentVariables'))]",
+            "registryConfiguration": "[if(empty(parameters('acrLoginServer')), createArray(), createArray(createObject('server', parameters('acrLoginServer'), 'identity', parameters('userAssignedIdentityResourceId'))))]",
+            "healthProbes": "[if(empty(parameters('healthProbePath')), createArray(), createArray(createObject('type', 'Liveness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 10, 'periodSeconds', 30), createObject('type', 'Readiness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 5, 'periodSeconds', 10)))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.App/containerApps",
+              "apiVersion": "2024-03-01",
+              "name": "[parameters('containerAppName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('userAssignedIdentityResourceId'))]": {}
+                }
+              },
+              "properties": {
+                "managedEnvironmentId": "[parameters('managedEnvironmentId')]",
+                "configuration": {
+                  "copy": [
+                    {
+                      "name": "secrets",
+                      "count": "[length(parameters('secrets'))]",
+                      "input": {
+                        "name": "[parameters('secrets')[copyIndex('secrets')].name]",
+                        "value": "[parameters('secrets')[copyIndex('secrets')].value]"
+                      }
+                    }
+                  ],
+                  "activeRevisionsMode": "Single",
+                  "ingress": "[if(parameters('ingressEnabled'), createObject('external', parameters('externalIngress'), 'targetPort', parameters('targetPort'), 'transport', 'auto', 'allowInsecure', false()), null())]",
+                  "registries": "[variables('registryConfiguration')]",
+                  "dapr": "[if(parameters('daprEnabled'), createObject('enabled', true(), 'appId', parameters('daprAppId'), 'appPort', parameters('daprAppPort')), null())]"
+                },
+                "template": {
+                  "containers": [
+                    {
+                      "name": "app",
+                      "image": "[parameters('containerImage')]",
+                      "resources": {
+                        "cpu": "[json(parameters('cpu'))]",
+                        "memory": "[parameters('memory')]"
+                      },
+                      "env": "[variables('containerEnvironmentVariables')]",
+                      "probes": "[variables('healthProbes')]"
+                    }
+                  ],
+                  "scale": {
+                    "minReplicas": "[parameters('minReplicas')]",
+                    "maxReplicas": "[parameters('maxReplicas')]"
+                  }
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "containerAppName": {
+              "type": "string",
+              "value": "[parameters('containerAppName')]"
+            },
+            "containerAppId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.App/containerApps', parameters('containerAppName'))]"
+            },
+            "fqdn": {
+              "type": "string",
+              "value": "[if(parameters('ingressEnabled'), reference(resourceId('Microsoft.App/containerApps', parameters('containerAppName')), '2024-03-01').configuration.ingress.fqdn, '')]"
+            },
+            "latestRevisionName": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('containerAppName')), '2024-03-01').latestRevisionName]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
+        "[resourceId('Microsoft.Resources/deployments', 'aca-workload-identity')]",
+        "[resourceId('Microsoft.Resources/deployments', 'container-registry')]"
+      ]
     },
     {
       "type": "Microsoft.Resources/deployments",
@@ -1091,8 +2192,7 @@
           },
           "secretsUserPrincipalIds": {
             "value": [
-              "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.principalId.value]",
-              "[reference(resourceId('Microsoft.Resources/deployments', 'function-app'), '2025-04-01').outputs.principalId.value]"
+              "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.principalId.value]"
             ]
           }
         },
@@ -1190,8 +2290,7 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', 'aca-workload-identity')]",
-        "[resourceId('Microsoft.Resources/deployments', 'function-app')]"
+        "[resourceId('Microsoft.Resources/deployments', 'aca-workload-identity')]"
       ]
     }
   ],
@@ -1228,21 +2327,29 @@
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.clientId.value]"
     },
-    "functionAppName": {
+    "frontendContainerAppName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'function-app'), '2025-04-01').outputs.functionAppName.value]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'frontend-container-app'), '2025-04-01').outputs.containerAppName.value]"
     },
-    "functionAppHostname": {
+    "frontendContainerAppFqdn": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'function-app'), '2025-04-01').outputs.defaultHostname.value]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'frontend-container-app'), '2025-04-01').outputs.fqdn.value]"
     },
-    "functionAppPrincipalId": {
+    "apiContainerAppName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'function-app'), '2025-04-01').outputs.principalId.value]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'api-container-app'), '2025-04-01').outputs.containerAppName.value]"
     },
-    "functionStorageAccountName": {
+    "apiContainerAppFqdn": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'function-app'), '2025-04-01').outputs.storageAccountName.value]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'api-container-app'), '2025-04-01').outputs.fqdn.value]"
+    },
+    "aiAnalysisWorkerContainerAppName": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'ai-analysis-worker-container-app'), '2025-04-01').outputs.containerAppName.value]"
+    },
+    "paymentWorkerContainerAppName": {
+      "type": "string",
+      "value": "[if(parameters('deployPaymentWorker'), reference(resourceId('Microsoft.Resources/deployments', 'payment-worker-container-app'), '2025-04-01').outputs.containerAppName.value, '')]"
     },
     "coreSqlServerName": {
       "type": "string",
