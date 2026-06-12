@@ -1,29 +1,27 @@
 <Project Sdk="Microsoft.Build.Sql/1.0">
   <PropertyGroup>
-    <ProjectGuid>{B234C5D6-E7F8-4823-9123-BCDEF0123456}</ProjectGuid>
-    <Name>VitalNexus.PatientHealth.Database</Name>
-    <TargetServerVersion>AzureV12</TargetServerVersion>
-    <DSP>Microsoft.Data.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
-  </PropertyGroup>
-  <ItemGroup />
-</Project>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <ProjectGuid>{D36A7E4B-4C6E-464B-A7F9-3F352B49C6DC}</ProjectGuid>
+    <Name>VitalNexus.PatientHealth.Database</Name>
     <RootNamespace>VitalNexus.PatientHealth.Database</RootNamespace>
-    <DatabaseSchemaProvider>Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider</DatabaseSchemaProvider>
-    <TargetServerVersion>Latest</TargetServerVersion>
-    <OutputType>Library</OutputType>
-    <DefaultDeployDatabaseName>VitalNexus.PatientHealth</DefaultDeployDatabaseName>
-    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
+    <ModelCollation>SQL_Latin1_General_CP1_CI_AS</ModelCollation>
+    <DeployToDatabaseName>$(DatabaseName)</DeployToDatabaseName>
   </PropertyGroup>
+
   <ItemGroup>
-    <None Include="Tables\**\*.sql" />
-    <None Include="Views\**\*.sql" />
-    <None Include="StoredProcedures\**\*.sql" />
-    <None Include="Security\**\*.sql" />
-    <None Include="ReferenceData\**\*.sql" />
-    <None Include="PostDeployment.sql" />
+    <Folder Include="Tables\" />
+    <Folder Include="Views\" />
+    <Folder Include="StoredProcedures\" />
+    <Folder Include="Security\" />
+    <Folder Include="ReferenceData\" />
+    <Folder Include="PublishProfiles\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Build Include="Tables\Patient.sql" />
+    <Build Include="StoredProcedures\Placeholders.sql" />
+    <Build Include="Security\Placeholders.sql" />
+    <PostDeploy Include="PostDeployment.sql" />
+    <None Include="PublishProfiles\ClinicPatients.publish.xml" />
   </ItemGroup>
 </Project>

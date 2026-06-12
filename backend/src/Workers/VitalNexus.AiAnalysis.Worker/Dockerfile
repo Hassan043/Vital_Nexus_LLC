@@ -1,6 +1,5 @@
-# Build context: backend/
-# Requires VitalNexus.AiAnalysis.Worker project (F1.T2.3).
-# Example: docker build -f src/Workers/VitalNexus.AiAnalysis.Worker/Dockerfile -t vitalnexus-ai-analysis-worker:local .
+# Build context: backend/ (repository root: backend/)
+# Example: docker build -f src/Workers/VitalNexus.AiAnalysis.Worker/Dockerfile -t vitalnexus-ai-analysis-worker .
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
