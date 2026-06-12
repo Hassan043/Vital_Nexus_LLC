@@ -1,0 +1,49 @@
+name: "CI / AI Analysis Worker Container Unit Tests"
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - 'backend/tests/VitalNexus.AiAnalysis.Worker.Tests/**'
+      - 'backend/src/Workers/VitalNexus.AiAnalysis.Worker/**'
+      - 'backend/src/Core/**'
+      - 'backend/src/Infrastructure/**'
+      - '.github/workflows/ai-analysis-worker-unit-tests.yml'
+  pull_request:
+    branches:
+      - dev
+      - main
+    paths:
+      - 'backend/tests/VitalNexus.AiAnalysis.Worker.Tests/**'
+      - 'backend/src/Workers/VitalNexus.AiAnalysis.Worker/**'
+      - 'backend/src/Core/**'
+      - 'backend/src/Infrastructure/**'
+      - '.github/workflows/ai-analysis-worker-unit-tests.yml'
+
+jobs:
+  ai-analysis-worker-unit-tests:
+    name: Test AI Analysis Worker container
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore AI Analysis Worker test project
+        run: dotnet restore backend/tests/VitalNexus.AiAnalysis.Worker.Tests/VitalNexus.AiAnalysis.Worker.Tests.csproj
+
+      - name: Build AI Analysis Worker test project
+        run: dotnet build backend/tests/VitalNexus.AiAnalysis.Worker.Tests/VitalNexus.AiAnalysis.Worker.Tests.csproj --configuration Release --no-restore
+
+      - name: Run AI Analysis Worker unit tests
+        env:
+          ANTHROPIC_API_KEY: ''
+          OPENAI_API_KEY: ''
+        run: dotnet test backend/tests/VitalNexus.AiAnalysis.Worker.Tests/VitalNexus.AiAnalysis.Worker.Tests.csproj --configuration Release --no-restore
