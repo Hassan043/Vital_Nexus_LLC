@@ -44,6 +44,19 @@ param containerImageTag string = 'latest'
 @description('Deploy the payment/Stripe worker container app scaffold.')
 param deployPaymentWorker bool = false
 
+@description('Service Bus SKU tier (Standard required for Dapr topic-based pub/sub).')
+@allowed([
+  'Standard'
+  'Premium'
+])
+param serviceBusSkuName string = 'Standard'
+
+@description('Dapr pub/sub component name used by application code.')
+param daprPubSubComponentName string = 'pubsub'
+
+@description('Initial Dapr pub/sub topic for AI analysis queue messages.')
+param aiAnalysisTopicName string = 'ai-analysis-queue'
+
 var tags = {
   product: 'VitalNexus'
   environment: environmentName
@@ -52,6 +65,20 @@ var tags = {
 
 var nameSuffix = take(uniqueString(resourceGroup().id), 8)
 var aspnetcoreEnvironment = environmentName == 'prod' ? 'Production' : 'Development'
+var daprPubSubScopedAppIds = [
+  'vitalnexus-api'
+  'ai-analysis-worker'
+]
+var daprConfigurationEnvironmentVariables = [
+  {
+    name: 'Dapr__PubSubComponentName'
+    value: daprPubSubComponentName
+  }
+  {
+    name: 'Dapr__AiAnalysisTopicName'
+    value: aiAnalysisTopicName
+  }
+]
 
 // Container hosting foundation: shared ACA environment and image registry.
 module acaWorkloadIdentity 'modules/container-apps-workload-identity.bicep' = {
@@ -131,7 +158,10 @@ module apiApp 'modules/container-app.bicep' = {
     healthProbePath: '/health'
     userAssignedIdentityResourceId: acaWorkloadIdentity.outputs.identityId
     acrLoginServer: acr.outputs.acrLoginServer
-    environmentVariables: [
+    daprEnabled: true
+    daprAppId: 'vitalnexus-api'
+    daprAppPort: 8080
+    environmentVariables: concat(daprConfigurationEnvironmentVariables, [
       {
         name: 'ASPNETCORE_ENVIRONMENT'
         value: aspnetcoreEnvironment
@@ -140,7 +170,7 @@ module apiApp 'modules/container-app.bicep' = {
         name: 'ASPNETCORE_URLS'
         value: 'http://+:8080'
       }
-    ]
+    ])
   }
 }
 
@@ -162,7 +192,7 @@ module aiAnalysisWorkerApp 'modules/container-app.bicep' = {
     daprEnabled: true
     daprAppId: 'ai-analysis-worker'
     daprAppPort: 8080
-    environmentVariables: [
+    environmentVariables: concat(daprConfigurationEnvironmentVariables, [
       {
         name: 'ASPNETCORE_ENVIRONMENT'
         value: aspnetcoreEnvironment
@@ -171,7 +201,7 @@ module aiAnalysisWorkerApp 'modules/container-app.bicep' = {
         name: 'ASPNETCORE_URLS'
         value: 'http://+:8080'
       }
-    ]
+    ])
   }
 }
 
@@ -260,6 +290,37 @@ module keyVault 'modules/key-vault.bicep' = {
   }
 }
 
+// Dapr pub/sub broker for API and worker messaging.
+module serviceBus 'modules/service-bus.bicep' = {
+  name: 'service-bus'
+  params: {
+    location: location
+    tags: tags
+    namespaceName: 'sb-${namePrefix}-${environmentName}-${nameSuffix}'
+    skuName: serviceBusSkuName
+    aiAnalysisTopicName: aiAnalysisTopicName
+  }
+}
+
+module serviceBusConnectionSecret 'modules/key-vault-secret.bicep' = {
+  name: 'servicebus-connection-secret'
+  params: {
+    keyVaultName: keyVault.outputs.keyVaultName
+    secretName: 'servicebus-connection-string'
+    secretValue: serviceBus.outputs.primaryConnectionString
+  }
+}
+
+module daprPubSub 'modules/dapr-pubsub-component.bicep' = {
+  name: 'dapr-pubsub-component'
+  params: {
+    managedEnvironmentName: acaEnvironment.outputs.environmentName
+    componentName: daprPubSubComponentName
+    connectionString: serviceBus.outputs.primaryConnectionString
+    scopedAppIds: daprPubSubScopedAppIds
+  }
+}
+
 output containerAppsEnvironmentName string = acaEnvironment.outputs.environmentName
 output containerAppsEnvironmentId string = acaEnvironment.outputs.environmentId
 output logAnalyticsWorkspaceName string = acaEnvironment.outputs.logAnalyticsWorkspaceName
@@ -282,3 +343,7 @@ output appStorageAccountName string = appStorage.outputs.storageAccountName
 output appStorageBlobEndpoint string = appStorage.outputs.blobEndpoint
 output keyVaultName string = keyVault.outputs.keyVaultName
 output keyVaultUri string = keyVault.outputs.keyVaultUri
+output serviceBusNamespaceName string = serviceBus.outputs.namespaceName
+output serviceBusTopicName string = serviceBus.outputs.aiAnalysisTopicName
+output serviceBusConnectionSecretName string = serviceBusConnectionSecret.outputs.secretName
+output daprPubSubComponentName string = daprPubSub.outputs.componentName

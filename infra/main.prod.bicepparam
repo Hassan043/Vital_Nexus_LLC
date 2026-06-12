@@ -8,6 +8,9 @@ param sqlDatabaseSkuName = 'S0'
 param logAnalyticsRetentionInDays = 90
 param containerImageTag = 'latest'
 param deployPaymentWorker = false
+param serviceBusSkuName = 'Standard'
+param daprPubSubComponentName = 'pubsub'
+param aiAnalysisTopicName = 'ai-analysis-queue'
 
 // SECURITY: never commit a real password. The value is read from the
 // SQL_ADMIN_PASSWORD environment variable at deploy time (empty default so the

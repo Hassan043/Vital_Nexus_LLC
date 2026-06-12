@@ -1,7 +1,7 @@
 // Key Vault for application secrets (connection strings, API keys, Stripe
-// keys). RBAC authorization only — no access policies — so the API and
-// Functions managed identities read secrets with least privilege and no
-// credentials ever live in app settings or source control.
+// keys). RBAC authorization only — no access policies — so Container Apps
+// managed identities read secrets with least privilege and no credentials
+// ever live in app settings or source control.
 
 @description('Azure region for the Key Vault.')
 param location string

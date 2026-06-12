@@ -1,11 +1,12 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.0",
   "contentVersion": "1.0.0.0",
   "metadata": {
     "_generator": {
       "name": "bicep",
       "version": "0.44.1.10279",
-      "templateHash": "14813783001554643912"
+      "templateHash": "363233190217703251"
     }
   },
   "parameters": {
@@ -86,6 +87,31 @@
       "metadata": {
         "description": "Deploy the payment/Stripe worker container app scaffold."
       }
+    },
+    "serviceBusSkuName": {
+      "type": "string",
+      "defaultValue": "Standard",
+      "allowedValues": [
+        "Standard",
+        "Premium"
+      ],
+      "metadata": {
+        "description": "Service Bus SKU tier (Standard required for Dapr topic-based pub/sub)."
+      }
+    },
+    "daprPubSubComponentName": {
+      "type": "string",
+      "defaultValue": "pubsub",
+      "metadata": {
+        "description": "Dapr pub/sub component name used by application code."
+      }
+    },
+    "aiAnalysisTopicName": {
+      "type": "string",
+      "defaultValue": "ai-analysis-queue",
+      "metadata": {
+        "description": "Initial Dapr pub/sub topic for AI analysis queue messages."
+      }
     }
   },
   "variables": {
@@ -95,10 +121,24 @@
       "managedBy": "bicep"
     },
     "nameSuffix": "[take(uniqueString(resourceGroup().id), 8)]",
-    "aspnetcoreEnvironment": "[if(equals(parameters('environmentName'), 'prod'), 'Production', 'Development')]"
+    "aspnetcoreEnvironment": "[if(equals(parameters('environmentName'), 'prod'), 'Production', 'Development')]",
+    "daprPubSubScopedAppIds": [
+      "vitalnexus-api",
+      "ai-analysis-worker"
+    ],
+    "daprConfigurationEnvironmentVariables": [
+      {
+        "name": "Dapr__PubSubComponentName",
+        "value": "[parameters('daprPubSubComponentName')]"
+      },
+      {
+        "name": "Dapr__AiAnalysisTopicName",
+        "value": "[parameters('aiAnalysisTopicName')]"
+      }
+    ]
   },
-  "resources": [
-    {
+  "resources": {
+    "acaWorkloadIdentity": {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "aca-workload-identity",
@@ -179,7 +219,7 @@
         }
       }
     },
-    {
+    "acr": {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "container-registry",
@@ -203,7 +243,7 @@
           },
           "acrPullPrincipalIds": {
             "value": [
-              "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.principalId.value]"
+              "[reference('acaWorkloadIdentity').outputs.principalId.value]"
             ]
           }
         },
@@ -326,10 +366,10 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', 'aca-workload-identity')]"
+        "acaWorkloadIdentity"
       ]
     },
-    {
+    "acaEnvironment": {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "container-apps-environment",
@@ -454,7 +494,7 @@
         }
       }
     },
-    {
+    "frontendApp": {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "frontend-container-app",
@@ -474,10 +514,10 @@
             "value": "[format('ca-{0}-frontend-{1}-{2}', parameters('namePrefix'), parameters('environmentName'), variables('nameSuffix'))]"
           },
           "managedEnvironmentId": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.environmentId.value]"
+            "value": "[reference('acaEnvironment').outputs.environmentId.value]"
           },
           "containerImage": {
-            "value": "[format('{0}/vitalnexus-frontend:{1}', reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value, parameters('containerImageTag'))]"
+            "value": "[format('{0}/vitalnexus-frontend:{1}', reference('acr').outputs.acrLoginServer.value, parameters('containerImageTag'))]"
           },
           "cpu": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', '0.5'), createObject('value', '0.25'))]",
           "memory": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', '1Gi'), createObject('value', '0.5Gi'))]",
@@ -493,10 +533,10 @@
             "value": 8080
           },
           "userAssignedIdentityResourceId": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.identityId.value]"
+            "value": "[reference('acaWorkloadIdentity').outputs.identityId.value]"
           },
           "acrLoginServer": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value]"
+            "value": "[reference('acr').outputs.acrLoginServer.value]"
           },
           "environmentVariables": {
             "value": [
@@ -757,12 +797,12 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
-        "[resourceId('Microsoft.Resources/deployments', 'aca-workload-identity')]",
-        "[resourceId('Microsoft.Resources/deployments', 'container-registry')]"
+        "acaEnvironment",
+        "acaWorkloadIdentity",
+        "acr"
       ]
     },
-    {
+    "apiApp": {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "api-container-app",
@@ -782,10 +822,10 @@
             "value": "[format('ca-{0}-api-{1}-{2}', parameters('namePrefix'), parameters('environmentName'), variables('nameSuffix'))]"
           },
           "managedEnvironmentId": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.environmentId.value]"
+            "value": "[reference('acaEnvironment').outputs.environmentId.value]"
           },
           "containerImage": {
-            "value": "[format('{0}/vitalnexus-api:{1}', reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value, parameters('containerImageTag'))]"
+            "value": "[format('{0}/vitalnexus-api:{1}', reference('acr').outputs.acrLoginServer.value, parameters('containerImageTag'))]"
           },
           "cpu": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', '1.0'), createObject('value', '0.5'))]",
           "memory": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', '2Gi'), createObject('value', '1Gi'))]",
@@ -806,22 +846,22 @@
             "value": "/health"
           },
           "userAssignedIdentityResourceId": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.identityId.value]"
+            "value": "[reference('acaWorkloadIdentity').outputs.identityId.value]"
           },
           "acrLoginServer": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value]"
+            "value": "[reference('acr').outputs.acrLoginServer.value]"
+          },
+          "daprEnabled": {
+            "value": true
+          },
+          "daprAppId": {
+            "value": "vitalnexus-api"
+          },
+          "daprAppPort": {
+            "value": 8080
           },
           "environmentVariables": {
-            "value": [
-              {
-                "name": "ASPNETCORE_ENVIRONMENT",
-                "value": "[variables('aspnetcoreEnvironment')]"
-              },
-              {
-                "name": "ASPNETCORE_URLS",
-                "value": "http://+:8080"
-              }
-            ]
+            "value": "[concat(variables('daprConfigurationEnvironmentVariables'), createArray(createObject('name', 'ASPNETCORE_ENVIRONMENT', 'value', variables('aspnetcoreEnvironment')), createObject('name', 'ASPNETCORE_URLS', 'value', 'http://+:8080')))]"
           }
         },
         "template": {
@@ -1074,12 +1114,12 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
-        "[resourceId('Microsoft.Resources/deployments', 'aca-workload-identity')]",
-        "[resourceId('Microsoft.Resources/deployments', 'container-registry')]"
+        "acaEnvironment",
+        "acaWorkloadIdentity",
+        "acr"
       ]
     },
-    {
+    "aiAnalysisWorkerApp": {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "ai-analysis-worker-container-app",
@@ -1099,10 +1139,10 @@
             "value": "[format('ca-{0}-ai-worker-{1}-{2}', parameters('namePrefix'), parameters('environmentName'), variables('nameSuffix'))]"
           },
           "managedEnvironmentId": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.environmentId.value]"
+            "value": "[reference('acaEnvironment').outputs.environmentId.value]"
           },
           "containerImage": {
-            "value": "[format('{0}/vitalnexus-ai-analysis-worker:{1}', reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value, parameters('containerImageTag'))]"
+            "value": "[format('{0}/vitalnexus-ai-analysis-worker:{1}', reference('acr').outputs.acrLoginServer.value, parameters('containerImageTag'))]"
           },
           "cpu": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', '1.0'), createObject('value', '0.5'))]",
           "memory": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', '2Gi'), createObject('value', '1Gi'))]",
@@ -1114,10 +1154,10 @@
             "value": false
           },
           "userAssignedIdentityResourceId": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.identityId.value]"
+            "value": "[reference('acaWorkloadIdentity').outputs.identityId.value]"
           },
           "acrLoginServer": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value]"
+            "value": "[reference('acr').outputs.acrLoginServer.value]"
           },
           "daprEnabled": {
             "value": true
@@ -1129,16 +1169,7 @@
             "value": 8080
           },
           "environmentVariables": {
-            "value": [
-              {
-                "name": "ASPNETCORE_ENVIRONMENT",
-                "value": "[variables('aspnetcoreEnvironment')]"
-              },
-              {
-                "name": "ASPNETCORE_URLS",
-                "value": "http://+:8080"
-              }
-            ]
+            "value": "[concat(variables('daprConfigurationEnvironmentVariables'), createArray(createObject('name', 'ASPNETCORE_ENVIRONMENT', 'value', variables('aspnetcoreEnvironment')), createObject('name', 'ASPNETCORE_URLS', 'value', 'http://+:8080')))]"
           }
         },
         "template": {
@@ -1391,12 +1422,12 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
-        "[resourceId('Microsoft.Resources/deployments', 'aca-workload-identity')]",
-        "[resourceId('Microsoft.Resources/deployments', 'container-registry')]"
+        "acaEnvironment",
+        "acaWorkloadIdentity",
+        "acr"
       ]
     },
-    {
+    "paymentWorkerApp": {
       "condition": "[parameters('deployPaymentWorker')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
@@ -1417,10 +1448,10 @@
             "value": "[format('ca-{0}-payment-worker-{1}-{2}', parameters('namePrefix'), parameters('environmentName'), variables('nameSuffix'))]"
           },
           "managedEnvironmentId": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.environmentId.value]"
+            "value": "[reference('acaEnvironment').outputs.environmentId.value]"
           },
           "containerImage": {
-            "value": "[format('{0}/vitalnexus-payment-worker:{1}', reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value, parameters('containerImageTag'))]"
+            "value": "[format('{0}/vitalnexus-payment-worker:{1}', reference('acr').outputs.acrLoginServer.value, parameters('containerImageTag'))]"
           },
           "cpu": {
             "value": "0.5"
@@ -1436,10 +1467,10 @@
             "value": false
           },
           "userAssignedIdentityResourceId": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.identityId.value]"
+            "value": "[reference('acaWorkloadIdentity').outputs.identityId.value]"
           },
           "acrLoginServer": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value]"
+            "value": "[reference('acr').outputs.acrLoginServer.value]"
           },
           "environmentVariables": {
             "value": [
@@ -1700,12 +1731,12 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
-        "[resourceId('Microsoft.Resources/deployments', 'aca-workload-identity')]",
-        "[resourceId('Microsoft.Resources/deployments', 'container-registry')]"
+        "acaEnvironment",
+        "acaWorkloadIdentity",
+        "acr"
       ]
     },
-    {
+    "coreSql": {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "core-sql",
@@ -1870,7 +1901,7 @@
         }
       }
     },
-    {
+    "phiSql": {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "phi-sql",
@@ -2034,7 +2065,7 @@
         }
       }
     },
-    {
+    "appStorage": {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "app-storage",
@@ -2171,7 +2202,7 @@
         }
       }
     },
-    {
+    "keyVault": {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "key-vault",
@@ -2192,7 +2223,7 @@
           },
           "secretsUserPrincipalIds": {
             "value": [
-              "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.principalId.value]"
+              "[reference('acaWorkloadIdentity').outputs.principalId.value]"
             ]
           }
         },
@@ -2290,98 +2321,419 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', 'aca-workload-identity')]"
+        "acaWorkloadIdentity"
+      ]
+    },
+    "serviceBus": {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "service-bus",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[variables('tags')]"
+          },
+          "namespaceName": {
+            "value": "[format('sb-{0}-{1}-{2}', parameters('namePrefix'), parameters('environmentName'), variables('nameSuffix'))]"
+          },
+          "skuName": {
+            "value": "[parameters('serviceBusSkuName')]"
+          },
+          "aiAnalysisTopicName": {
+            "value": "[parameters('aiAnalysisTopicName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "languageVersion": "2.0",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.44.1.10279",
+              "templateHash": "11252902864181995019"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for Service Bus resources."
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags applied to all resources in this module."
+              }
+            },
+            "namespaceName": {
+              "type": "string",
+              "metadata": {
+                "description": "Globally unique Service Bus namespace name."
+              }
+            },
+            "skuName": {
+              "type": "string",
+              "defaultValue": "Standard",
+              "allowedValues": [
+                "Standard",
+                "Premium"
+              ],
+              "metadata": {
+                "description": "Service Bus SKU tier (Standard required for topics)."
+              }
+            },
+            "aiAnalysisTopicName": {
+              "type": "string",
+              "defaultValue": "ai-analysis-queue",
+              "metadata": {
+                "description": "Initial Dapr pub/sub topic for AI analysis queue messages."
+              }
+            }
+          },
+          "resources": {
+            "serviceBusNamespace": {
+              "type": "Microsoft.ServiceBus/namespaces",
+              "apiVersion": "2022-10-01-preview",
+              "name": "[parameters('namespaceName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "[parameters('skuName')]",
+                "tier": "[parameters('skuName')]"
+              },
+              "properties": {
+                "minimumTlsVersion": "1.2",
+                "publicNetworkAccess": "Enabled"
+              }
+            },
+            "aiAnalysisTopic": {
+              "type": "Microsoft.ServiceBus/namespaces/topics",
+              "apiVersion": "2022-10-01-preview",
+              "name": "[format('{0}/{1}', parameters('namespaceName'), parameters('aiAnalysisTopicName'))]",
+              "properties": {
+                "enablePartitioning": false
+              },
+              "dependsOn": [
+                "serviceBusNamespace"
+              ]
+            }
+          },
+          "outputs": {
+            "namespaceName": {
+              "type": "string",
+              "value": "[parameters('namespaceName')]"
+            },
+            "namespaceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaceName'))]"
+            },
+            "aiAnalysisTopicName": {
+              "type": "string",
+              "value": "[parameters('aiAnalysisTopicName')]"
+            },
+            "primaryConnectionString": {
+              "type": "securestring",
+              "value": "[listKeys('serviceBusNamespace', '2022-10-01-preview').primaryConnectionString]"
+            }
+          }
+        }
+      }
+    },
+    "serviceBusConnectionSecret": {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "servicebus-connection-secret",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "keyVaultName": {
+            "value": "[reference('keyVault').outputs.keyVaultName.value]"
+          },
+          "secretName": {
+            "value": "servicebus-connection-string"
+          },
+          "secretValue": {
+            "value": "[listOutputsWithSecureValues('serviceBus', '2025-04-01').primaryConnectionString]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.44.1.10279",
+              "templateHash": "13873121172465225906"
+            }
+          },
+          "parameters": {
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the existing Key Vault."
+              }
+            },
+            "secretName": {
+              "type": "string",
+              "metadata": {
+                "description": "Secret name (Key Vault secret identifier)."
+              }
+            },
+            "secretValue": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Secret value to store."
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2023-07-01",
+              "name": "[format('{0}/{1}', parameters('keyVaultName'), parameters('secretName'))]",
+              "properties": {
+                "value": "[parameters('secretValue')]"
+              }
+            }
+          ],
+          "outputs": {
+            "secretName": {
+              "type": "string",
+              "value": "[parameters('secretName')]"
+            },
+            "secretUri": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('secretName')), '2023-07-01').secretUri]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "keyVault",
+        "serviceBus"
+      ]
+    },
+    "daprPubSub": {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "dapr-pubsub-component",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "managedEnvironmentName": {
+            "value": "[reference('acaEnvironment').outputs.environmentName.value]"
+          },
+          "componentName": {
+            "value": "[parameters('daprPubSubComponentName')]"
+          },
+          "connectionString": {
+            "value": "[listOutputsWithSecureValues('serviceBus', '2025-04-01').primaryConnectionString]"
+          },
+          "scopedAppIds": {
+            "value": "[variables('daprPubSubScopedAppIds')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.44.1.10279",
+              "templateHash": "4693654034367921555"
+            }
+          },
+          "parameters": {
+            "managedEnvironmentName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the existing Container Apps managed environment."
+              }
+            },
+            "componentName": {
+              "type": "string",
+              "defaultValue": "pubsub",
+              "metadata": {
+                "description": "Dapr component name used by application code (for example pubsub)."
+              }
+            },
+            "connectionString": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Azure Service Bus connection string for the pub/sub broker."
+              }
+            },
+            "scopedAppIds": {
+              "type": "array",
+              "metadata": {
+                "description": "Dapr application IDs allowed to use this pub/sub component."
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.App/managedEnvironments/daprComponents",
+              "apiVersion": "2024-03-01",
+              "name": "[format('{0}/{1}', parameters('managedEnvironmentName'), parameters('componentName'))]",
+              "properties": {
+                "componentType": "pubsub.azure.servicebus.topics",
+                "version": "v1",
+                "ignoreErrors": false,
+                "initTimeout": "60s",
+                "secrets": [
+                  {
+                    "name": "servicebus-connection-string",
+                    "value": "[parameters('connectionString')]"
+                  }
+                ],
+                "metadata": [
+                  {
+                    "name": "connectionString",
+                    "secretRef": "servicebus-connection-string"
+                  }
+                ],
+                "scopes": "[parameters('scopedAppIds')]"
+              }
+            }
+          ],
+          "outputs": {
+            "componentName": {
+              "type": "string",
+              "value": "[parameters('componentName')]"
+            },
+            "componentType": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.App/managedEnvironments/daprComponents', parameters('managedEnvironmentName'), parameters('componentName')), '2024-03-01').componentType]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "acaEnvironment",
+        "serviceBus"
       ]
     }
-  ],
+  },
   "outputs": {
     "containerAppsEnvironmentName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.environmentName.value]"
+      "value": "[reference('acaEnvironment').outputs.environmentName.value]"
     },
     "containerAppsEnvironmentId": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.environmentId.value]"
+      "value": "[reference('acaEnvironment').outputs.environmentId.value]"
     },
     "logAnalyticsWorkspaceName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.logAnalyticsWorkspaceName.value]"
+      "value": "[reference('acaEnvironment').outputs.logAnalyticsWorkspaceName.value]"
     },
     "acrName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrName.value]"
+      "value": "[reference('acr').outputs.acrName.value]"
     },
     "acrLoginServer": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.acrLoginServer.value]"
+      "value": "[reference('acr').outputs.acrLoginServer.value]"
     },
     "containerAppsWorkloadIdentityName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.identityName.value]"
+      "value": "[reference('acaWorkloadIdentity').outputs.identityName.value]"
     },
     "containerAppsWorkloadIdentityPrincipalId": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.principalId.value]"
+      "value": "[reference('acaWorkloadIdentity').outputs.principalId.value]"
     },
     "containerAppsWorkloadIdentityClientId": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aca-workload-identity'), '2025-04-01').outputs.clientId.value]"
+      "value": "[reference('acaWorkloadIdentity').outputs.clientId.value]"
     },
     "frontendContainerAppName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'frontend-container-app'), '2025-04-01').outputs.containerAppName.value]"
+      "value": "[reference('frontendApp').outputs.containerAppName.value]"
     },
     "frontendContainerAppFqdn": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'frontend-container-app'), '2025-04-01').outputs.fqdn.value]"
+      "value": "[reference('frontendApp').outputs.fqdn.value]"
     },
     "apiContainerAppName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'api-container-app'), '2025-04-01').outputs.containerAppName.value]"
+      "value": "[reference('apiApp').outputs.containerAppName.value]"
     },
     "apiContainerAppFqdn": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'api-container-app'), '2025-04-01').outputs.fqdn.value]"
+      "value": "[reference('apiApp').outputs.fqdn.value]"
     },
     "aiAnalysisWorkerContainerAppName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'ai-analysis-worker-container-app'), '2025-04-01').outputs.containerAppName.value]"
+      "value": "[reference('aiAnalysisWorkerApp').outputs.containerAppName.value]"
     },
     "paymentWorkerContainerAppName": {
       "type": "string",
-      "value": "[if(parameters('deployPaymentWorker'), reference(resourceId('Microsoft.Resources/deployments', 'payment-worker-container-app'), '2025-04-01').outputs.containerAppName.value, '')]"
+      "value": "[if(parameters('deployPaymentWorker'), reference('paymentWorkerApp').outputs.containerAppName.value, '')]"
     },
     "coreSqlServerName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'core-sql'), '2025-04-01').outputs.serverName.value]"
+      "value": "[reference('coreSql').outputs.serverName.value]"
     },
     "coreSqlServerFqdn": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'core-sql'), '2025-04-01').outputs.serverFqdn.value]"
+      "value": "[reference('coreSql').outputs.serverFqdn.value]"
     },
     "phiSqlServerName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'phi-sql'), '2025-04-01').outputs.serverName.value]"
+      "value": "[reference('phiSql').outputs.serverName.value]"
     },
     "phiSqlServerFqdn": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'phi-sql'), '2025-04-01').outputs.serverFqdn.value]"
+      "value": "[reference('phiSql').outputs.serverFqdn.value]"
     },
     "appStorageAccountName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'app-storage'), '2025-04-01').outputs.storageAccountName.value]"
+      "value": "[reference('appStorage').outputs.storageAccountName.value]"
     },
     "appStorageBlobEndpoint": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'app-storage'), '2025-04-01').outputs.blobEndpoint.value]"
+      "value": "[reference('appStorage').outputs.blobEndpoint.value]"
     },
     "keyVaultName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'key-vault'), '2025-04-01').outputs.keyVaultName.value]"
+      "value": "[reference('keyVault').outputs.keyVaultName.value]"
     },
     "keyVaultUri": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'key-vault'), '2025-04-01').outputs.keyVaultUri.value]"
+      "value": "[reference('keyVault').outputs.keyVaultUri.value]"
+    },
+    "serviceBusNamespaceName": {
+      "type": "string",
+      "value": "[reference('serviceBus').outputs.namespaceName.value]"
+    },
+    "serviceBusTopicName": {
+      "type": "string",
+      "value": "[reference('serviceBus').outputs.aiAnalysisTopicName.value]"
+    },
+    "serviceBusConnectionSecretName": {
+      "type": "string",
+      "value": "[reference('serviceBusConnectionSecret').outputs.secretName.value]"
+    },
+    "daprPubSubComponentName": {
+      "type": "string",
+      "value": "[reference('daprPubSub').outputs.componentName.value]"
     }
   }
 }
