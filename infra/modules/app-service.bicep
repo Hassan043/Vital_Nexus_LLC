@@ -1,7 +1,5 @@
-// Linux App Service plan + web app for the VitalNexus backend API (.NET 8).
-// App Service was chosen over Container Apps: the API is a single code-deployed
-// ASP.NET Core app with no container images in the repo, so App Service keeps
-// the pipeline simple (no registry or image builds required).
+// Legacy module — superseded by Azure Container Apps hosting in main.bicep.
+// Retained for reference; not deployed by current infrastructure entry point.
 
 @description('Azure region for the plan and the web app.')
 param location string

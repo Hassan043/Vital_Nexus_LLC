@@ -1,7 +1,5 @@
-// Linux consumption Function App for VitalNexus background jobs
-// (.NET 8 isolated worker), with its dedicated storage account.
-// Functions run async, retryable work (AI analysis queue, retention scans,
-// exports, notifications) and must never log PHI.
+// Legacy module — superseded by Azure Container Apps hosting in main.bicep.
+// Retained for reference; not deployed by current infrastructure entry point.
 
 @description('Azure region for all resources in this module.')
 param location string
