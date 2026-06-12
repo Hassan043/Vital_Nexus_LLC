@@ -1,0 +1,106 @@
+name: "CI / AI Analysis Worker Container Build"
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - 'backend/src/Workers/VitalNexus.AiAnalysis.Worker/**'
+      - 'backend/src/Core/**'
+      - 'backend/src/Infrastructure/**'
+      - 'backend/.dockerignore'
+      - 'backend/Directory.Build.props'
+      - '.github/workflows/ai-analysis-worker-container-build.yml'
+  pull_request:
+    branches:
+      - dev
+      - main
+    paths:
+      - 'backend/src/Workers/VitalNexus.AiAnalysis.Worker/**'
+      - 'backend/src/Core/**'
+      - 'backend/src/Infrastructure/**'
+      - 'backend/.dockerignore'
+      - 'backend/Directory.Build.props'
+      - '.github/workflows/ai-analysis-worker-container-build.yml'
+
+env:
+  WORKER_PROJECT: backend/src/Workers/VitalNexus.AiAnalysis.Worker/VitalNexus.AiAnalysis.Worker.csproj
+  WORKER_DOCKERFILE: backend/src/Workers/VitalNexus.AiAnalysis.Worker/Dockerfile
+  IMAGE_REPOSITORY: vitalnexus-ai-analysis-worker
+
+jobs:
+  build-worker-container:
+    name: Build AI Analysis Worker container
+    runs-on: ubuntu-latest
+
+    outputs:
+      image-repository: ${{ steps.image-metadata.outputs.image-repository }}
+      image-tag: ${{ steps.image-metadata.outputs.image-tag }}
+      image-name: ${{ steps.image-metadata.outputs.image-name }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore AI Analysis Worker dependencies
+        run: dotnet restore "${{ env.WORKER_PROJECT }}"
+
+      - name: Build AI Analysis Worker
+        run: dotnet build "${{ env.WORKER_PROJECT }}" --configuration Release --no-restore
+
+      - name: Verify worker has no Azure Functions dependencies
+        run: |
+          set -euo pipefail
+
+          if grep -Eiq 'Azure\.Functions|Functions\.Worker' "${{ env.WORKER_PROJECT }}"; then
+            echo "Worker project must not reference Azure Functions packages."
+            exit 1
+          fi
+
+          if dotnet list "${{ env.WORKER_PROJECT }}" package --include-transitive | grep -Eiq 'Azure\.Functions|Functions\.Worker'; then
+            echo "Worker project must not depend on Azure Functions packages transitively."
+            exit 1
+          fi
+
+          echo "Confirmed: VitalNexus.AiAnalysis.Worker has no Azure Functions dependencies."
+
+      - name: Publish AI Analysis Worker for container packaging
+        run: dotnet publish "${{ env.WORKER_PROJECT }}" --configuration Release --no-restore --output "${{ runner.temp }}/worker-publish"
+
+      - name: Upload worker publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitalnexus-ai-analysis-worker-publish
+          path: ${{ runner.temp }}/worker-publish
+          if-no-files-found: error
+
+      - name: Set container image metadata outputs
+        id: image-metadata
+        run: |
+          echo "image-repository=${{ env.IMAGE_REPOSITORY }}" >> "$GITHUB_OUTPUT"
+          echo "image-tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+          echo "image-name=${{ env.IMAGE_REPOSITORY }}:${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - name: Build worker container image
+        if: hashFiles(env.WORKER_DOCKERFILE) != ''
+        run: docker build -f "${{ env.WORKER_DOCKERFILE }}" -t "${{ env.IMAGE_REPOSITORY }}:${GITHUB_SHA::12}" backend
+
+      - name: Upload worker container image artifact
+        if: hashFiles(env.WORKER_DOCKERFILE) != ''
+        run: |
+          docker save "${{ env.IMAGE_REPOSITORY }}:${GITHUB_SHA::12}" -o "${{ runner.temp }}/vitalnexus-ai-analysis-worker-image.tar"
+          echo "Saved container image to ${{ runner.temp }}/vitalnexus-ai-analysis-worker-image.tar"
+
+      - name: Upload worker container image tarball
+        if: hashFiles(env.WORKER_DOCKERFILE) != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitalnexus-ai-analysis-worker-image
+          path: ${{ runner.temp }}/vitalnexus-ai-analysis-worker-image.tar
+          if-no-files-found: error
