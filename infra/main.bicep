@@ -45,6 +45,7 @@ module apiAppService 'modules/app-service.bicep' = {
     planName: 'asp-${namePrefix}-api-${environmentName}'
     appName: 'app-${namePrefix}-api-${environmentName}-${uniqueString(resourceGroup().id)}'
     skuName: apiPlanSkuName
+    alwaysOn: apiPlanSkuName != 'F1'
     aspnetcoreEnvironment: environmentName == 'prod' ? 'Production' : 'Development'
   }
 }
