@@ -28,6 +28,7 @@
     <ProjectReference Include="..\..\src\Core\VitalNexus.Domain\VitalNexus.Domain.csproj" />
     <ProjectReference Include="..\..\src\Core\VitalNexus.Application\VitalNexus.Application.csproj" />
     <ProjectReference Include="..\..\src\Api\VitalNexus.Api\VitalNexus.Api.csproj" />
+    <ProjectReference Include="..\..\src\Functions\VitalNexus.Functions\VitalNexus.Functions.csproj" />
   </ItemGroup>
 
 </Project>
