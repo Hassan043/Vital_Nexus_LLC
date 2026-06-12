@@ -44,18 +44,21 @@ Local component file: `infra/dapr/components/local/pubsub.yaml`
 
 Deployed environments provision:
 
-- Azure Service Bus namespace (Standard tier — required for topics)
-- Initial topic: `ai-analysis-queue`
+- Azure Service Bus namespace (Standard tier — lowest tier that supports topics)
+- Background workflow topics (see `infra/service-bus/README.md`)
 - Key Vault secret: `servicebus-connection-string`
 - ACA Dapr component: `pubsub` (`pubsub.azure.servicebus.topics`)
+- Managed identity RBAC: Azure Service Bus Data Sender + Data Receiver
 
 Bicep modules:
 
 | Module | Purpose |
 | ------ | ------- |
-| `infra/modules/service-bus.bicep` | Namespace + initial topic |
+| `infra/modules/service-bus.bicep` | Namespace, workflow topics, managed identity RBAC |
 | `infra/modules/key-vault-secret.bicep` | Stores broker connection string |
 | `infra/modules/dapr-pubsub-component.bicep` | ACA Dapr pub/sub component |
+
+Topic and container usage details: `infra/service-bus/README.md`
 
 ### Scoped container apps
 
@@ -95,4 +98,4 @@ $env:SQL_ADMIN_PASSWORD = '<strong-password>'
 az deployment group create -g rg-vitalnexus-dev -f infra/main.bicep -p infra/main.dev.bicepparam
 ```
 
-Outputs include `serviceBusNamespaceName`, `daprPubSubComponentName`, and `keyVaultUri` (for secret retrieval).
+Outputs include `serviceBusNamespaceName`, `serviceBusTopicNames`, `daprPubSubComponentName`, and `keyVaultUri` (for secret retrieval).

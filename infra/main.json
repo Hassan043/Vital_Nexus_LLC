@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.44.1.10279",
-      "templateHash": "363233190217703251"
+      "templateHash": "5756650786938809159"
     }
   },
   "parameters": {
@@ -2346,8 +2346,16 @@
           "skuName": {
             "value": "[parameters('serviceBusSkuName')]"
           },
-          "aiAnalysisTopicName": {
-            "value": "[parameters('aiAnalysisTopicName')]"
+          "topicMessageTimeToLive": "[if(equals(parameters('environmentName'), 'prod'), createObject('value', 'P14D'), createObject('value', 'P7D'))]",
+          "dataSenderPrincipalIds": {
+            "value": [
+              "[reference('acaWorkloadIdentity').outputs.principalId.value]"
+            ]
+          },
+          "dataReceiverPrincipalIds": {
+            "value": [
+              "[reference('acaWorkloadIdentity').outputs.principalId.value]"
+            ]
           }
         },
         "template": {
@@ -2358,7 +2366,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.44.1.10279",
-              "templateHash": "11252902864181995019"
+              "templateHash": "8854385298645879607"
             }
           },
           "parameters": {
@@ -2389,16 +2397,49 @@
                 "Premium"
               ],
               "metadata": {
-                "description": "Service Bus SKU tier (Standard required for topics)."
+                "description": "Service Bus SKU tier (Standard is the lowest tier that supports topics)."
               }
             },
-            "aiAnalysisTopicName": {
+            "topicMessageTimeToLive": {
               "type": "string",
-              "defaultValue": "ai-analysis-queue",
+              "defaultValue": "P7D",
               "metadata": {
-                "description": "Initial Dapr pub/sub topic for AI analysis queue messages."
+                "description": "Default message time-to-live applied to background workflow topics."
+              }
+            },
+            "topicNames": {
+              "type": "array",
+              "defaultValue": [
+                "ai-analysis-queue",
+                "ai-analysis-completed",
+                "ai-analysis-failed",
+                "payment-event-received",
+                "notification-requested",
+                "export-requested",
+                "retention-scan-requested"
+              ],
+              "metadata": {
+                "description": "Dapr pub/sub topic names provisioned for background workflows."
+              }
+            },
+            "dataSenderPrincipalIds": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Managed identity principal IDs granted Azure Service Bus Data Sender on the namespace."
+              }
+            },
+            "dataReceiverPrincipalIds": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Managed identity principal IDs granted Azure Service Bus Data Receiver on the namespace."
               }
             }
+          },
+          "variables": {
+            "serviceBusDataSenderRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4ec4b6f8-8174-4080-8749-5d9e3ffdec2')]",
+            "serviceBusDataReceiverRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5d8b64ae-25b0-4163-ae76-ad7020dcb3e')]"
           },
           "resources": {
             "serviceBusNamespace": {
@@ -2413,15 +2454,57 @@
               },
               "properties": {
                 "minimumTlsVersion": "1.2",
-                "publicNetworkAccess": "Enabled"
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false
               }
             },
-            "aiAnalysisTopic": {
+            "backgroundTopics": {
+              "copy": {
+                "name": "backgroundTopics",
+                "count": "[length(parameters('topicNames'))]"
+              },
               "type": "Microsoft.ServiceBus/namespaces/topics",
               "apiVersion": "2022-10-01-preview",
-              "name": "[format('{0}/{1}', parameters('namespaceName'), parameters('aiAnalysisTopicName'))]",
+              "name": "[format('{0}/{1}', parameters('namespaceName'), parameters('topicNames')[copyIndex()])]",
               "properties": {
-                "enablePartitioning": false
+                "enablePartitioning": false,
+                "defaultMessageTimeToLive": "[parameters('topicMessageTimeToLive')]"
+              },
+              "dependsOn": [
+                "serviceBusNamespace"
+              ]
+            },
+            "dataSenderAssignments": {
+              "copy": {
+                "name": "dataSenderAssignments",
+                "count": "[length(parameters('dataSenderPrincipalIds'))]"
+              },
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaceName'))]",
+              "name": "[guid(resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaceName')), parameters('dataSenderPrincipalIds')[copyIndex()], variables('serviceBusDataSenderRoleId'), 'sender')]",
+              "properties": {
+                "roleDefinitionId": "[variables('serviceBusDataSenderRoleId')]",
+                "principalId": "[parameters('dataSenderPrincipalIds')[copyIndex()]]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "serviceBusNamespace"
+              ]
+            },
+            "dataReceiverAssignments": {
+              "copy": {
+                "name": "dataReceiverAssignments",
+                "count": "[length(parameters('dataReceiverPrincipalIds'))]"
+              },
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaceName'))]",
+              "name": "[guid(resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaceName')), parameters('dataReceiverPrincipalIds')[copyIndex()], variables('serviceBusDataReceiverRoleId'), 'receiver')]",
+              "properties": {
+                "roleDefinitionId": "[variables('serviceBusDataReceiverRoleId')]",
+                "principalId": "[parameters('dataReceiverPrincipalIds')[copyIndex()]]",
+                "principalType": "ServicePrincipal"
               },
               "dependsOn": [
                 "serviceBusNamespace"
@@ -2437,9 +2520,17 @@
               "type": "string",
               "value": "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaceName'))]"
             },
-            "aiAnalysisTopicName": {
+            "namespaceEndpoint": {
               "type": "string",
-              "value": "[parameters('aiAnalysisTopicName')]"
+              "value": "[reference('serviceBusNamespace').serviceBusEndpoint]"
+            },
+            "topicNames": {
+              "type": "array",
+              "value": "[parameters('topicNames')]"
+            },
+            "aiAnalysisRequestedTopicName": {
+              "type": "string",
+              "value": "ai-analysis-queue"
             },
             "primaryConnectionString": {
               "type": "securestring",
@@ -2447,7 +2538,10 @@
             }
           }
         }
-      }
+      },
+      "dependsOn": [
+        "acaWorkloadIdentity"
+      ]
     },
     "serviceBusConnectionSecret": {
       "type": "Microsoft.Resources/deployments",
@@ -2723,9 +2817,21 @@
       "type": "string",
       "value": "[reference('serviceBus').outputs.namespaceName.value]"
     },
+    "serviceBusNamespaceEndpoint": {
+      "type": "string",
+      "value": "[reference('serviceBus').outputs.namespaceEndpoint.value]"
+    },
+    "serviceBusTopicNames": {
+      "type": "array",
+      "value": "[reference('serviceBus').outputs.topicNames.value]"
+    },
+    "serviceBusAiAnalysisRequestedTopicName": {
+      "type": "string",
+      "value": "[reference('serviceBus').outputs.aiAnalysisRequestedTopicName.value]"
+    },
     "serviceBusTopicName": {
       "type": "string",
-      "value": "[reference('serviceBus').outputs.aiAnalysisTopicName.value]"
+      "value": "[reference('serviceBus').outputs.aiAnalysisRequestedTopicName.value]"
     },
     "serviceBusConnectionSecretName": {
       "type": "string",

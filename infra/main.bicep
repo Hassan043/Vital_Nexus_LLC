@@ -298,7 +298,13 @@ module serviceBus 'modules/service-bus.bicep' = {
     tags: tags
     namespaceName: 'sb-${namePrefix}-${environmentName}-${nameSuffix}'
     skuName: serviceBusSkuName
-    aiAnalysisTopicName: aiAnalysisTopicName
+    topicMessageTimeToLive: environmentName == 'prod' ? 'P14D' : 'P7D'
+    dataSenderPrincipalIds: [
+      acaWorkloadIdentity.outputs.principalId
+    ]
+    dataReceiverPrincipalIds: [
+      acaWorkloadIdentity.outputs.principalId
+    ]
   }
 }
 
@@ -344,6 +350,9 @@ output appStorageBlobEndpoint string = appStorage.outputs.blobEndpoint
 output keyVaultName string = keyVault.outputs.keyVaultName
 output keyVaultUri string = keyVault.outputs.keyVaultUri
 output serviceBusNamespaceName string = serviceBus.outputs.namespaceName
-output serviceBusTopicName string = serviceBus.outputs.aiAnalysisTopicName
+output serviceBusNamespaceEndpoint string = serviceBus.outputs.namespaceEndpoint
+output serviceBusTopicNames array = serviceBus.outputs.topicNames
+output serviceBusAiAnalysisRequestedTopicName string = serviceBus.outputs.aiAnalysisRequestedTopicName
+output serviceBusTopicName string = serviceBus.outputs.aiAnalysisRequestedTopicName
 output serviceBusConnectionSecretName string = serviceBusConnectionSecret.outputs.secretName
 output daprPubSubComponentName string = daprPubSub.outputs.componentName
