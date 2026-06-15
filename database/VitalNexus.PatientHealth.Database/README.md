@@ -57,6 +57,16 @@ See `PublishProfiles/ClinicPatients.publish.xml` for a publish-profile template.
 - Build produces a DACPAC artifact. Deploy with `sqlpackage` or CI/CD pipelines.
 - Seed and post-deploy scripts belong in `PostDeployment.sql` and `ReferenceData/` when needed.
 
+### Deploy via GitHub Actions
+
+Workflow: [`.github/workflows/deploy-patient-health-database.yml`](../../.github/workflows/deploy-patient-health-database.yml)
+
+Manual dispatch only. Select **dev**, **test**, or **prod**. The job runs on the **PHI SQL server** in the matching GitHub Environment (approval gates apply when configured). Defaults to the `PatientHealth` database; set `target_database_name` for clinic-specific tenant databases. Optionally pass a `dacpac_workflow_run_id` from **Generate DACPAC Artifacts** to deploy a pre-built package.
+
+Required environment secrets: `AZURE_CREDENTIALS`, `AZURE_SUBSCRIPTION_ID`, `SQL_ADMIN_PASSWORD`, and optionally `SQL_ADMIN_LOGIN` (defaults to `vnxadmin`).
+
+See also [`docs/DATABASE_DEPLOYMENT.md`](../../docs/DATABASE_DEPLOYMENT.md).
+
 ## Folder layout
 
 - `Tables/` — patient clinical entities

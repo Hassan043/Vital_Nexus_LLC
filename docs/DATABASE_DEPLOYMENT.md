@@ -40,6 +40,12 @@ Workflow: `.github/workflows/deploy-account-business-database.yml`
 
 Deploys only the Account Business DACPAC to the `Accounts` database on the core SQL server. Use this for the first non-PHI schema rollout or when account/business schema changes independently of other databases.
 
+### Patient Health (PatientHealth database)
+
+Workflow: `.github/workflows/deploy-patient-health-database.yml`
+
+Deploys only the Patient Health DACPAC to the PHI SQL server. Defaults to the `PatientHealth` database created by infrastructure; optionally supply a clinic-specific `target_database_name` for tenant databases provisioned from the same schema.
+
 ### All databases
 
 Workflow: `.github/workflows/deploy-databases.yml`

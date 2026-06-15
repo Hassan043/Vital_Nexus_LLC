@@ -65,4 +65,4 @@ Replace `test` with `dev` or `prod` and the matching parameter file as needed.
 
 Application components (frontend, API, Functions) are deployed separately — see [`docs/DEPLOYMENT_PIPELINES.md`](../docs/DEPLOYMENT_PIPELINES.md).
 
-Database schema is deployed via [`deploy-databases.yml`](../.github/workflows/deploy-databases.yml) or individually via [`deploy-account-business-database.yml`](../.github/workflows/deploy-account-business-database.yml), with GitHub Environment approval gates on test and prod — see [`docs/DATABASE_DEPLOYMENT.md`](../docs/DATABASE_DEPLOYMENT.md).
+Database schema is deployed via [`deploy-databases.yml`](../.github/workflows/deploy-databases.yml) or individually via [`deploy-account-business-database.yml`](../.github/workflows/deploy-account-business-database.yml) and [`deploy-patient-health-database.yml`](../.github/workflows/deploy-patient-health-database.yml), with GitHub Environment approval gates on test and prod — see [`docs/DATABASE_DEPLOYMENT.md`](../docs/DATABASE_DEPLOYMENT.md).
