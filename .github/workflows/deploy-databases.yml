@@ -130,11 +130,10 @@ jobs:
             fi
 
             echo "Publishing $database_name to $SERVER_FQDN from $dacpac"
-            sqlpackage /Action:Publish \
-              /SourceFile:"$dacpac" \
-              /TargetServerName:"$SERVER_FQDN" \
-              /TargetDatabaseName:"$database_name" \
-              /TargetUser:"$LOGIN" \
-              /TargetPassword:"$SQL_ADMIN_PASSWORD" \
-              /BlockOnPossibleDataLoss:True
+            bash database/scripts/publish-dacpac.sh \
+              "$dacpac" \
+              "$SERVER_FQDN" \
+              "$database_name" \
+              "$LOGIN" \
+              "$SQL_ADMIN_PASSWORD"
           done <<< "${{ env.SQL_PROJECTS }}"

@@ -61,7 +61,7 @@ The deploy service principal needs:
 ## Typical release order
 
 1. Deploy infrastructure (`deploy-infra.yml`) if not already provisioned.
-2. Deploy databases (`deploy-databases.yml`) after CI schema validation passes and environment approval (if configured).
+2. Deploy databases (`deploy-databases.yml`) after CI schema validation passes and environment approval (if configured). Deploy Account Business alone via `deploy-account-business-database.yml` when rolling out the `Accounts` schema first.
 3. Deploy API (`deploy-api.yml`).
 4. Deploy frontend (`deploy-frontend.yml`).
 5. Deploy Functions (`deploy-functions.yml`) when a Function App is available.

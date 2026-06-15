@@ -34,6 +34,14 @@ Add this workflow as a required status check on `dev` to block EF migrations as 
 
 ## Deployment (manual)
 
+### Account Business (Accounts database)
+
+Workflow: `.github/workflows/deploy-account-business-database.yml`
+
+Deploys only the Account Business DACPAC to the `Accounts` database on the core SQL server. Use this for the first non-PHI schema rollout or when account/business schema changes independently of other databases.
+
+### All databases
+
 Workflow: `.github/workflows/deploy-databases.yml`
 
 Manual dispatch only. Select **dev**, **test**, or **prod**. Optionally supply a `dacpac_workflow_run_id` from a **Generate DACPAC Artifacts** workflow run to deploy pre-built packages; leave empty to build from the checked-out source.
