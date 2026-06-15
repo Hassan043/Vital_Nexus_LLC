@@ -32,6 +32,26 @@ Runs when `database/` or `backend/` changes. It fails if EF Core `Migrations` fo
 
 Add this workflow as a required status check on `dev` to block EF migrations as a production schema path.
 
+## Schema drift detection
+
+Workflow: `.github/workflows/database-schema-drift.yml`
+
+Manual dispatch only. Compares the current DACPAC artifacts against live Azure SQL databases in the selected environment using `sqlpackage /Action:DeployReport`. The job fails when pending schema operations or alerts are reported, and uploads XML deploy reports for review.
+
+Run after deployments or on a regular cadence to confirm live databases still match source-controlled schema. Supports optional pre-built DACPAC artifacts via `dacpac_workflow_run_id` and an optional `patient_health_database_name` override.
+
+Local check:
+
+```bash
+bash database/scripts/detect-schema-drift.sh \
+  database/artifacts/dacpacs/VitalNexus.AccountBusiness.Database.dacpac \
+  sql-vnx-core-dev-<suffix>.database.windows.net \
+  Accounts \
+  vnxadmin \
+  '<password>' \
+  database/artifacts/drift-reports
+```
+
 ## Deployment (manual)
 
 ### Account Business (Accounts database)
@@ -91,6 +111,7 @@ Document reviewers and escalation in your team runbook. Do not store SQL passwor
 2. Confirm **Generate DACPAC Artifacts** succeeded on `dev` (or run it manually) and note the workflow run ID if deploying pre-built packages.
 3. Deploy infrastructure if servers do not exist.
 4. Run `deploy-databases.yml` for the target environment (after approval if required).
-5. Deploy application components (`deploy-api.yml`, etc.).
+5. Run `database-schema-drift.yml` to confirm live schema matches DACPACs.
+6. Deploy application components (`deploy-api.yml`, etc.).
 
 See also [`VitalNexus.Database.Shared/DeploymentRules.md`](../database/VitalNexus.Database.Shared/DeploymentRules.md) and [`DEPLOYMENT_PIPELINES.md`](DEPLOYMENT_PIPELINES.md).

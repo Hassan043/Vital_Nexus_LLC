@@ -66,4 +66,4 @@ The deploy service principal needs:
 4. Deploy frontend (`deploy-frontend.yml`).
 5. Deploy Functions (`deploy-functions.yml`) when a Function App is available.
 
-Database schema validation runs automatically on PRs via `database-schema-validation.yml`. SQL Database Projects are built on every PR via `database-build.yml`. Packaged DACPAC artifacts are generated on merge via `generate-dacpac-artifacts.yml`. See [`DATABASE_DEPLOYMENT.md`](DATABASE_DEPLOYMENT.md).
+Database schema validation runs automatically on PRs via `database-schema-validation.yml`. SQL Database Projects are built on every PR via `database-build.yml`. Packaged DACPAC artifacts are generated on merge via `generate-dacpac-artifacts.yml`. Schema drift against live Azure SQL is checked manually via `database-schema-drift.yml`. See [`DATABASE_DEPLOYMENT.md`](DATABASE_DEPLOYMENT.md).
