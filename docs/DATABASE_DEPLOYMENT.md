@@ -6,9 +6,23 @@ VitalNexus uses **SQL Database Projects** and **DACPAC** publishing as the only 
 
 Workflow: `.github/workflows/database-build.yml`
 
-Runs on every pull request and push to `dev`/`main`. It restores and builds `database/VitalNexus.Database.sln`, verifies each project produces a DACPAC, and uploads the DACPAC artifacts for downstream deployment or inspection.
+Runs on every pull request and push to `dev`/`main`. It calls `database/scripts/build-dacpacs.sh` to build `database/VitalNexus.Database.sln`, package normalized DACPAC files with a manifest, and upload the bundle for downstream deployment or inspection.
 
 Add **CI / Database Build** as a required status check on `dev` so schema projects cannot silently break.
+
+## DACPAC artifact generation
+
+Workflow: `.github/workflows/generate-dacpac-artifacts.yml`
+
+Runs on pushes to `dev`/`main` when `database/` changes and supports manual dispatch. It produces the same packaged artifact bundle as CI (`vitalnexus-dacpac-artifacts`) with a 90-day retention period and publishes the manifest to the workflow summary.
+
+Local generation:
+
+```bash
+bash database/scripts/build-dacpacs.sh database/artifacts/dacpacs
+```
+
+The output directory contains one `.dacpac` per project plus `dacpac-manifest.json` (commit SHA, database names, and server roles).
 
 ## Validation (CI)
 
@@ -22,7 +36,7 @@ Add this workflow as a required status check on `dev` to block EF migrations as 
 
 Workflow: `.github/workflows/deploy-databases.yml`
 
-Manual dispatch only. Select **dev**, **test**, or **prod**. The job runs in the matching **GitHub Environment**, which enforces approval gates when configured.
+Manual dispatch only. Select **dev**, **test**, or **prod**. Optionally supply a `dacpac_workflow_run_id` from a **Generate DACPAC Artifacts** workflow run to deploy pre-built packages; leave empty to build from the checked-out source.
 
 Publishes DACPACs to the environment SQL servers:
 
@@ -60,8 +74,9 @@ Document reviewers and escalation in your team runbook. Do not store SQL passwor
 ## Release order
 
 1. Merge schema changes after CI validation passes.
-2. Deploy infrastructure if servers do not exist.
-3. Run `deploy-databases.yml` for the target environment (after approval if required).
-4. Deploy application components (`deploy-api.yml`, etc.).
+2. Confirm **Generate DACPAC Artifacts** succeeded on `dev` (or run it manually) and note the workflow run ID if deploying pre-built packages.
+3. Deploy infrastructure if servers do not exist.
+4. Run `deploy-databases.yml` for the target environment (after approval if required).
+5. Deploy application components (`deploy-api.yml`, etc.).
 
 See also [`VitalNexus.Database.Shared/DeploymentRules.md`](../database/VitalNexus.Database.Shared/DeploymentRules.md) and [`DEPLOYMENT_PIPELINES.md`](DEPLOYMENT_PIPELINES.md).

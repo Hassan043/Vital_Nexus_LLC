@@ -1,0 +1,53 @@
+name: Generate DACPAC Artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - 'database/**'
+      - '.github/workflows/generate-dacpac-artifacts.yml'
+      - '.github/workflows/database-build.yml'
+
+permissions:
+  contents: read
+
+env:
+  DATABASE_SOLUTION: database/VitalNexus.Database.sln
+  DACPAC_OUTPUT_DIR: database/artifacts/dacpacs
+
+jobs:
+  generate:
+    name: Generate DACPAC artifacts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Generate DACPAC artifacts
+        run: bash database/scripts/build-dacpacs.sh "${{ env.DACPAC_OUTPUT_DIR }}"
+
+      - name: Upload DACPAC artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitalnexus-dacpac-artifacts
+          path: ${{ env.DACPAC_OUTPUT_DIR }}
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Publish artifact summary
+        run: |
+          set -euo pipefail
+          echo "### DACPAC artifacts" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat "${{ env.DACPAC_OUTPUT_DIR }}/dacpac-manifest.json" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

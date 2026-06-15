@@ -11,13 +11,22 @@ on:
           - dev
           - test
           - prod
+      dacpac_workflow_run_id:
+        description: Optional workflow run ID to deploy pre-built DACPAC artifacts (leave empty to build from source)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
 
 env:
   RESOURCE_GROUP: rg-vitalnexus-${{ github.event.inputs.environment }}
+  DACPAC_OUTPUT_DIR: database/artifacts/dacpacs
   SQL_PROJECTS: |
-    database/VitalNexus.AccountBusiness.Database/VitalNexus.AccountBusiness.Database.sqlproj|Accounts|core
-    database/VitalNexus.LabMarkersData.Database/VitalNexus.LabMarkersData.Database.sqlproj|LabMarkersData|core
-    database/VitalNexus.PatientHealth.Database/VitalNexus.PatientHealth.Database.sqlproj|PatientHealth|phi
+    VitalNexus.AccountBusiness.Database|Accounts|core
+    VitalNexus.LabMarkersData.Database|LabMarkersData|core
+    VitalNexus.PatientHealth.Database|PatientHealth|phi
 
 jobs:
   deploy:
@@ -29,19 +38,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download pre-built DACPAC artifacts
+        if: github.event.inputs.dacpac_workflow_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: vitalnexus-dacpac-artifacts
+          run-id: ${{ github.event.inputs.dacpac_workflow_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ env.DACPAC_OUTPUT_DIR }}
+
       - name: Setup .NET SDK
+        if: github.event.inputs.dacpac_workflow_run_id == ''
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Build SQL Database Projects
+      - name: Generate DACPAC artifacts from source
+        if: github.event.inputs.dacpac_workflow_run_id == ''
+        run: bash database/scripts/build-dacpacs.sh "${{ env.DACPAC_OUTPUT_DIR }}"
+
+      - name: Verify DACPAC manifest
         run: |
           set -euo pipefail
-
-          while IFS='|' read -r project _ _; do
-            [ -z "$project" ] && continue
-            dotnet build "$project" --configuration Release
-          done <<< "${{ env.SQL_PROJECTS }}"
+          manifest="${{ env.DACPAC_OUTPUT_DIR }}/dacpac-manifest.json"
+          if [ ! -f "$manifest" ]; then
+            echo "Missing DACPAC manifest at $manifest"
+            exit 1
+          fi
+          cat "$manifest"
 
       - name: Install SqlPackage
         run: |
@@ -90,8 +114,8 @@ jobs:
 
           LOGIN="${SQL_ADMIN_LOGIN:-vnxadmin}"
 
-          while IFS='|' read -r project database_name server_role; do
-            [ -z "$project" ] && continue
+          while IFS='|' read -r project_name database_name server_role; do
+            [ -z "$project_name" ] && continue
 
             if [ "$server_role" = "core" ]; then
               SERVER_FQDN="${{ steps.sql.outputs.core_fqdn }}"
@@ -99,13 +123,13 @@ jobs:
               SERVER_FQDN="${{ steps.sql.outputs.phi_fqdn }}"
             fi
 
-            dacpac=$(find "$(dirname "$project")/bin/Release" -name '*.dacpac' -print -quit)
-            if [ -z "$dacpac" ]; then
-              echo "DACPAC not found for $project"
+            dacpac="${{ env.DACPAC_OUTPUT_DIR }}/${project_name}.dacpac"
+            if [ ! -f "$dacpac" ]; then
+              echo "DACPAC not found for $project_name at $dacpac"
               exit 1
             fi
 
-            echo "Publishing $database_name to $SERVER_FQDN"
+            echo "Publishing $database_name to $SERVER_FQDN from $dacpac"
             sqlpackage /Action:Publish \
               /SourceFile:"$dacpac" \
               /TargetServerName:"$SERVER_FQDN" \
