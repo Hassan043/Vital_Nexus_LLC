@@ -64,3 +64,5 @@ Replace `test` with `dev` or `prod` and the matching parameter file as needed.
 4. Run the deploy workflow for each environment.
 
 Application components (frontend, API, Functions) are deployed separately — see [`docs/DEPLOYMENT_PIPELINES.md`](../docs/DEPLOYMENT_PIPELINES.md).
+
+Database schema is deployed via [`deploy-databases.yml`](../.github/workflows/deploy-databases.yml) with GitHub Environment approval gates on test and prod — see [`docs/DATABASE_DEPLOYMENT.md`](../docs/DATABASE_DEPLOYMENT.md).
