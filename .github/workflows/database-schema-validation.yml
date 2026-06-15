@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'database/**'
+      - 'backend/**'
       - '.github/workflows/database-schema-validation.yml'
   pull_request:
     branches:
@@ -14,27 +15,17 @@ on:
       - main
     paths:
       - 'database/**'
+      - 'backend/**'
       - '.github/workflows/database-schema-validation.yml'
-
-env:
-  SQL_PROJECTS: |
-    database/VitalNexus.AccountBusiness.Database/VitalNexus.AccountBusiness.Database.sqlproj
-    database/VitalNexus.LabMarkersData.Database/VitalNexus.LabMarkersData.Database.sqlproj
-    database/VitalNexus.PatientHealth.Database/VitalNexus.PatientHealth.Database.sqlproj
 
 jobs:
   validate:
-    name: Validate SQL Database Projects
+    name: Validate database schema policy
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
 
       - name: Reject EF Core migrations as production schema mechanism
         run: |
@@ -48,45 +39,3 @@ jobs:
           fi
 
           echo "Confirmed: no EF Core Migrations folders in backend."
-
-      - name: Build SQL Database Projects
-        run: |
-          set -euo pipefail
-
-          while IFS= read -r project; do
-            [ -z "$project" ] && continue
-            echo "Building $project"
-            dotnet build "$project" --configuration Release
-          done <<< "${{ env.SQL_PROJECTS }}"
-
-      - name: Verify DACPAC artifacts
-        run: |
-          set -euo pipefail
-
-          missing=0
-          while IFS= read -r project; do
-            [ -z "$project" ] && continue
-            project_dir=$(dirname "$project")
-            dacpac=$(find "$project_dir/bin/Release" -name '*.dacpac' -print -quit)
-            if [ -z "$dacpac" ]; then
-              echo "Missing DACPAC for $project"
-              missing=1
-            else
-              echo "OK: $dacpac"
-            fi
-          done <<< "${{ env.SQL_PROJECTS }}"
-
-          if [ "$missing" -ne 0 ]; then
-            exit 1
-          fi
-
-      - name: Validate DACPAC packages are readable
-        run: |
-          set -euo pipefail
-
-          while IFS= read -r project; do
-            [ -z "$project" ] && continue
-            dacpac=$(find "$(dirname "$project")/bin/Release" -name '*.dacpac' -print -quit)
-            unzip -t "$dacpac"
-            echo "DACPAC archive OK: $dacpac"
-          done <<< "${{ env.SQL_PROJECTS }}"

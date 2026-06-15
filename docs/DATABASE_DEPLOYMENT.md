@@ -2,17 +2,21 @@
 
 VitalNexus uses **SQL Database Projects** and **DACPAC** publishing as the only production schema mechanism. EF Core migrations are not used for Azure SQL deployment.
 
+## CI build
+
+Workflow: `.github/workflows/database-build.yml`
+
+Runs on every pull request and push to `dev`/`main`. It restores and builds `database/VitalNexus.Database.sln`, verifies each project produces a DACPAC, and uploads the DACPAC artifacts for downstream deployment or inspection.
+
+Add **CI / Database Build** as a required status check on `dev` so schema projects cannot silently break.
+
 ## Validation (CI)
 
 Workflow: `.github/workflows/database-schema-validation.yml`
 
-Runs on pull requests and pushes to `dev`/`main` when `database/` changes. It:
+Runs when `database/` or `backend/` changes. It fails if EF Core `Migrations` folders exist under `backend/` (production schema must be DACPAC-based).
 
-1. Fails if EF Core `Migrations` folders exist under `backend/` (production schema must be DACPAC-based).
-2. Builds all SQL Database Projects to DACPAC artifacts.
-3. Verifies each DACPAC is present and readable (archive integrity check).
-
-Add this workflow as a required status check on `dev` to block schema changes that do not build.
+Add this workflow as a required status check on `dev` to block EF migrations as a production schema path.
 
 ## Deployment (manual)
 

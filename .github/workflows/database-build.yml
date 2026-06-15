@@ -1,0 +1,68 @@
+name: CI / Database Build
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  pull_request:
+    branches:
+      - dev
+      - main
+
+env:
+  DATABASE_SOLUTION: database/VitalNexus.Database.sln
+  SQL_PROJECTS: |
+    database/VitalNexus.AccountBusiness.Database/VitalNexus.AccountBusiness.Database.sqlproj
+    database/VitalNexus.LabMarkersData.Database/VitalNexus.LabMarkersData.Database.sqlproj
+    database/VitalNexus.PatientHealth.Database/VitalNexus.PatientHealth.Database.sqlproj
+
+jobs:
+  build:
+    name: Build SQL Database Projects
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore SQL Database Projects
+        run: dotnet restore "${{ env.DATABASE_SOLUTION }}"
+
+      - name: Build SQL Database Projects
+        run: dotnet build "${{ env.DATABASE_SOLUTION }}" --configuration Release --no-restore
+
+      - name: Verify DACPAC artifacts
+        run: |
+          set -euo pipefail
+
+          missing=0
+          while IFS= read -r project; do
+            [ -z "$project" ] && continue
+            dacpac=$(find "$(dirname "$project")/bin/Release" -name '*.dacpac' -print -quit)
+            if [ -z "$dacpac" ]; then
+              echo "Missing DACPAC for $project"
+              missing=1
+            else
+              echo "OK: $dacpac"
+            fi
+          done <<< "${{ env.SQL_PROJECTS }}"
+
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Upload DACPAC artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitalnexus-database-dacpacs
+          path: |
+            database/VitalNexus.AccountBusiness.Database/bin/Release/*.dacpac
+            database/VitalNexus.LabMarkersData.Database/bin/Release/*.dacpac
+            database/VitalNexus.PatientHealth.Database/bin/Release/*.dacpac
+          if-no-files-found: error
