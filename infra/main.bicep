@@ -5,6 +5,7 @@
 @description('Deployment environment (matches the bicepparam files and the deploy workflow).')
 @allowed([
   'dev'
+  'test'
   'prod'
 ])
 param environmentName string
