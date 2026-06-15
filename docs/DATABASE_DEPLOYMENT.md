@@ -93,15 +93,24 @@ Infrastructure must exist (`deploy-infra.yml`) before running database deploymen
 
 ## Approval gates
 
+Production database deployments require **two** independent gates:
+
+1. **Typed workflow confirmation** — set `confirm_production_deploy` to `approve-prod-db` when dispatching a deploy workflow with `environment=prod`. Dispatch must run from the **main** branch.
+2. **GitHub Environment approval** — the deploy job binds to `environment: prod` and waits for configured reviewers before Azure login or `sqlpackage` publish steps run.
+
+DACPAC preparation runs in a separate job so reviewers can inspect the prepared artifacts before approving the deploy job.
+
+Setup guide: [`.github/environments/database-deployment-approval.md`](../.github/environments/database-deployment-approval.md)
+
 Configure GitHub Environments under **Settings → Environments**:
 
 | Environment | Recommended gate |
 |-------------|------------------|
 | **dev** | Optional auto-deploy; no required reviewers for schema experiments |
 | **test** | Required reviewers before database publish |
-| **prod** | Required reviewers + wait timer; restrict to release managers |
+| **prod** | Required reviewers + wait timer; restrict deployment branches to `main` |
 
-When `deploy-databases.yml` runs, GitHub waits for environment approval before any sqlpackage publish step executes. This is separate from branch protection — it gates **runtime deployment**, not merge.
+When a database deploy workflow runs against prod, GitHub waits for environment approval after typed confirmation passes and before any sqlpackage publish step executes. This is separate from branch protection — it gates **runtime deployment**, not merge.
 
 Document reviewers and escalation in your team runbook. Do not store SQL passwords in workflow files; use environment-scoped secrets only.
 
@@ -110,7 +119,7 @@ Document reviewers and escalation in your team runbook. Do not store SQL passwor
 1. Merge schema changes after CI validation passes.
 2. Confirm **Generate DACPAC Artifacts** succeeded on `dev` (or run it manually) and note the workflow run ID if deploying pre-built packages.
 3. Deploy infrastructure if servers do not exist.
-4. Run `deploy-databases.yml` for the target environment (after approval if required).
+4. Run `deploy-databases.yml` for the target environment (after approval if required). For **prod**, dispatch from `main` with `confirm_production_deploy=approve-prod-db` and wait for GitHub Environment reviewers to approve the deploy job.
 5. Run `database-schema-drift.yml` to confirm live schema matches DACPACs.
 6. Deploy application components (`deploy-api.yml`, etc.).
 

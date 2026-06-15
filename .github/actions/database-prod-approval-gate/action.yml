@@ -1,0 +1,38 @@
+name: Database production approval gate
+description: Enforces typed confirmation and main-branch dispatch before production database deployment.
+
+inputs:
+  environment:
+    description: Target deployment environment
+    required: true
+  confirm_production_deploy:
+    description: Typed confirmation for production deployments
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Enforce production database deployment approval
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        if [ "${{ inputs.environment }}" != "prod" ]; then
+          echo "Non-production deployment (${{ inputs.environment }}): approval gate not required."
+          exit 0
+        fi
+
+        if [ "${{ inputs.confirm_production_deploy }}" != "approve-prod-db" ]; then
+          echo "Production database deployments require confirm_production_deploy=approve-prod-db."
+          echo "Dispatch this workflow from the main branch after test deployment and drift checks pass."
+          exit 1
+        fi
+
+        if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+          echo "Production database deployments must be dispatched while GitHub Actions is running on the main branch."
+          echo "Current ref: ${GITHUB_REF}"
+          exit 1
+        fi
+
+        echo "Production database deployment approval confirmed."

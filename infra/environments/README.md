@@ -58,7 +58,7 @@ Replace `test` with `dev` or `prod` and the matching parameter file as needed.
 
 ## First-time setup checklist
 
-1. Create GitHub Environments: `dev`, `test`, `prod` (add required reviewers on `test` and `prod` if desired).
+1. Create GitHub Environments: `dev`, `test`, `prod` (add required reviewers on `test` and `prod`; see [`.github/environments/database-deployment-approval.md`](../.github/environments/database-deployment-approval.md) for production database gates).
 2. Create Azure resource groups: `rg-vitalnexus-dev`, `rg-vitalnexus-test`, `rg-vitalnexus-prod`.
 3. Configure Azure service principal credentials in GitHub secrets.
 4. Run the deploy workflow for each environment.

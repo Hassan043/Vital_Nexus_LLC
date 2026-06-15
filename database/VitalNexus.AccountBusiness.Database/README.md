@@ -16,7 +16,7 @@ Infrastructure (`deploy-infra.yml`) creates the empty `Accounts` database. Schem
 
 Workflow: [`.github/workflows/deploy-account-business-database.yml`](../../.github/workflows/deploy-account-business-database.yml)
 
-Manual dispatch only. Select **dev**, **test**, or **prod**. The job runs in the matching GitHub Environment (approval gates apply when configured). Optionally pass a `dacpac_workflow_run_id` from **Generate DACPAC Artifacts** to deploy a pre-built package.
+Manual dispatch only. Select **dev**, **test**, or **prod**. For **prod**, dispatch from `main` and set `confirm_production_deploy` to `approve-prod-db`. The job runs in the matching GitHub Environment, which enforces reviewer approval before publish when configured. Optionally pass a `dacpac_workflow_run_id` from **Generate DACPAC Artifacts** to deploy a pre-built package.
 
 Required environment secrets: `AZURE_CREDENTIALS`, `AZURE_SUBSCRIPTION_ID`, `SQL_ADMIN_PASSWORD`, and optionally `SQL_ADMIN_LOGIN` (defaults to `vnxadmin`).
 

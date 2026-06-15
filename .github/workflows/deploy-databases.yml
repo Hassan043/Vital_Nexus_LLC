@@ -11,6 +11,10 @@ on:
           - dev
           - test
           - prod
+      confirm_production_deploy:
+        description: Required for prod — type "approve-prod-db" to confirm production database deployment
+        required: false
+        type: string
       dacpac_workflow_run_id:
         description: Optional workflow run ID to deploy pre-built DACPAC artifacts (leave empty to build from source)
         required: false
@@ -29,10 +33,9 @@ env:
     VitalNexus.PatientHealth.Database|PatientHealth|phi
 
 jobs:
-  deploy:
-    name: Deploy databases to ${{ github.event.inputs.environment }}
+  prepare:
+    name: Prepare DACPAC artifacts
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
 
     steps:
       - name: Checkout repository
@@ -66,6 +69,35 @@ jobs:
             exit 1
           fi
           cat "$manifest"
+
+      - name: Upload prepared DACPAC artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-databases-dacpacs-${{ github.run_id }}
+          path: ${{ env.DACPAC_OUTPUT_DIR }}
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy databases to ${{ github.event.inputs.environment }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Enforce production approval gate
+        uses: ./.github/actions/database-prod-approval-gate
+        with:
+          environment: ${{ github.event.inputs.environment }}
+          confirm_production_deploy: ${{ github.event.inputs.confirm_production_deploy }}
+
+      - name: Download prepared DACPAC artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-databases-dacpacs-${{ github.run_id }}
+          path: ${{ env.DACPAC_OUTPUT_DIR }}
 
       - name: Install SqlPackage
         run: |
@@ -137,3 +169,11 @@ jobs:
               "$LOGIN" \
               "$SQL_ADMIN_PASSWORD"
           done <<< "${{ env.SQL_PROJECTS }}"
+
+      - name: Publish deployment summary
+        run: |
+          echo "### Database deployment complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Environment: \`${{ github.event.inputs.environment }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Core server: \`${{ steps.sql.outputs.core_fqdn }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- PHI server: \`${{ steps.sql.outputs.phi_fqdn }}\`" >> "$GITHUB_STEP_SUMMARY"
