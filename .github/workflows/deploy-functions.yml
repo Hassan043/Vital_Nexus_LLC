@@ -1,0 +1,70 @@
+name: Deploy Azure Functions
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+
+env:
+  RESOURCE_GROUP: rg-vitalnexus-${{ github.event.inputs.environment }}
+  FUNCTIONS_PROJECT: backend/src/Functions/VitalNexus.Functions/VitalNexus.Functions.csproj
+
+jobs:
+  deploy:
+    name: Deploy Functions to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish Azure Functions
+        run: dotnet publish "${{ env.FUNCTIONS_PROJECT }}" --configuration Release --output "${{ runner.temp }}/functions-publish"
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set Azure subscription
+        run: az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Resolve Function App name
+        id: targets
+        run: |
+          set -euo pipefail
+
+          if [ -n "${{ secrets.AZURE_FUNCTION_APP_NAME }}" ]; then
+            echo "function_app_name=${{ secrets.AZURE_FUNCTION_APP_NAME }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          FUNCTION_APP_NAME=$(az functionapp list -g "${{ env.RESOURCE_GROUP }}" \
+            --query "[?starts_with(name, 'func-vnx-${{ github.event.inputs.environment }}')].name | [0]" -o tsv)
+
+          if [ -z "$FUNCTION_APP_NAME" ]; then
+            echo "No Function App found. Set AZURE_FUNCTION_APP_NAME in the GitHub Environment or deploy a Function App to ${{ env.RESOURCE_GROUP }}."
+            exit 1
+          fi
+
+          echo "function_app_name=$FUNCTION_APP_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy Function App package
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ steps.targets.outputs.function_app_name }}
+          package: ${{ runner.temp }}/functions-publish
+          respect-funcignore: true

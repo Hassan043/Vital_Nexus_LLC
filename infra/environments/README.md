@@ -62,3 +62,5 @@ Replace `test` with `dev` or `prod` and the matching parameter file as needed.
 2. Create Azure resource groups: `rg-vitalnexus-dev`, `rg-vitalnexus-test`, `rg-vitalnexus-prod`.
 3. Configure Azure service principal credentials in GitHub secrets.
 4. Run the deploy workflow for each environment.
+
+Application components (frontend, API, Functions) are deployed separately — see [`docs/DEPLOYMENT_PIPELINES.md`](../docs/DEPLOYMENT_PIPELINES.md).

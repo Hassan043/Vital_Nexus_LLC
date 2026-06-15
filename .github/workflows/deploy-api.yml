@@ -1,0 +1,94 @@
+name: Deploy API
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+      image_tag:
+        description: Container image tag (defaults to commit SHA)
+        required: false
+        type: string
+
+env:
+  RESOURCE_GROUP: rg-vitalnexus-${{ github.event.inputs.environment }}
+  ENVIRONMENT: ${{ github.event.inputs.environment }}
+  IMAGE_REPOSITORY: vitalnexus-api
+  DOCKERFILE: backend/src/Api/VitalNexus.Api/Dockerfile
+  DOCKER_CONTEXT: backend
+  CONTAINER_APP_PREFIX: ca-vnx-api-${{ github.event.inputs.environment }}
+
+jobs:
+  deploy:
+    name: Deploy API to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set Azure subscription
+        run: az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Resolve deployment targets
+        id: targets
+        run: |
+          set -euo pipefail
+
+          ACR_NAME=$(az acr list -g "${{ env.RESOURCE_GROUP }}" --query "[0].name" -o tsv)
+          if [ -z "$ACR_NAME" ]; then
+            echo "No ACR found in ${{ env.RESOURCE_GROUP }}. Deploy infrastructure first."
+            exit 1
+          fi
+
+          ACR_LOGIN_SERVER=$(az acr show -n "$ACR_NAME" -g "${{ env.RESOURCE_GROUP }}" --query loginServer -o tsv)
+          CONTAINER_APP_NAME=$(az containerapp list -g "${{ env.RESOURCE_GROUP }}" \
+            --query "[?starts_with(name, '${{ env.CONTAINER_APP_PREFIX }}')].name | [0]" -o tsv)
+
+          if [ -z "$CONTAINER_APP_NAME" ]; then
+            echo "No API container app found with prefix ${{ env.CONTAINER_APP_PREFIX }}."
+            exit 1
+          fi
+
+          TAG="${{ github.event.inputs.image_tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${GITHUB_SHA::12}"
+          fi
+
+          echo "acr_name=$ACR_NAME" >> "$GITHUB_OUTPUT"
+          echo "acr_login_server=$ACR_LOGIN_SERVER" >> "$GITHUB_OUTPUT"
+          echo "container_app_name=$CONTAINER_APP_NAME" >> "$GITHUB_OUTPUT"
+          echo "image_tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push API image
+        run: |
+          set -euo pipefail
+
+          IMAGE="${{ steps.targets.outputs.acr_login_server }}/${{ env.IMAGE_REPOSITORY }}:${{ steps.targets.outputs.image_tag }}"
+          az acr login --name "${{ steps.targets.outputs.acr_name }}"
+          docker build -f "${{ env.DOCKERFILE }}" -t "$IMAGE" "${{ env.DOCKER_CONTEXT }}"
+          docker push "$IMAGE"
+
+      - name: Update API container app
+        run: |
+          set -euo pipefail
+
+          IMAGE="${{ steps.targets.outputs.acr_login_server }}/${{ env.IMAGE_REPOSITORY }}:${{ steps.targets.outputs.image_tag }}"
+          az containerapp update \
+            -g "${{ env.RESOURCE_GROUP }}" \
+            -n "${{ steps.targets.outputs.container_app_name }}" \
+            --image "$IMAGE"
+
+          echo "Deployed $IMAGE to ${{ steps.targets.outputs.container_app_name }}"
