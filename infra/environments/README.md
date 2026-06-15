@@ -12,6 +12,8 @@ VitalNexus uses three isolated Azure deployment environments. Each environment i
 
 All environments deploy the same `infra/main.bicep` template. The `environmentName` parameter drives resource naming (`-<env>` suffix), tags, and environment-specific defaults (for example prod uses higher replica counts and longer Service Bus message TTL).
 
+Each environment also receives **dedicated SQL servers, databases, Key Vault secrets, and Service Bus namespace** — nothing is shared across dev, test, or prod. See [`secrets-and-databases.md`](secrets-and-databases.md) for the full isolation model and required GitHub secrets.
+
 ## Deploy
 
 ### GitHub Actions (recommended)
@@ -20,11 +22,13 @@ Run **Deploy Infrastructure** (`.github/workflows/deploy-infra.yml`) manually an
 
 Each job targets the matching GitHub Environment (`dev`, `test`, or `prod`) for secrets and optional approval gates. Configure these environments in GitHub repository settings before first deploy.
 
-Required secrets (per environment or repository):
+Required secrets (configure **separately** in each GitHub Environment — do not share prod credentials with dev or test):
 - `AZURE_CREDENTIALS`
 - `AZURE_SUBSCRIPTION_ID`
+- `SQL_ADMIN_PASSWORD` (unique per environment)
+- `SQL_ADMIN_LOGIN` (optional; defaults to `vnxadmin`)
 
-Set `SQL_ADMIN_PASSWORD` (and optionally `SQL_ADMIN_LOGIN`) in the workflow or environment secrets before deploying SQL resources.
+The deploy workflow injects SQL credentials at deploy time. See [`secrets-and-databases.md`](secrets-and-databases.md) for the full secrets and database isolation model.
 
 ### Local / CLI
 
