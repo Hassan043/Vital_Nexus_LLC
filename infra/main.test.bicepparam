@@ -2,7 +2,6 @@ using './main.bicep'
 
 param environmentName = 'test'
 param namePrefix = 'vnx'
-param sqlAdministratorLogin = 'vnxadmin'
 param acrSkuName = 'Standard'
 param sqlDatabaseSkuName = 'S0'
 param logAnalyticsRetentionInDays = 60
@@ -18,4 +17,5 @@ param aiAnalysisTopicName = 'ai-analysis-queue'
 //                $env:SQL_ADMIN_PASSWORD = '<strong-password>'
 //   bash:        export SQL_ADMIN_LOGIN='vnxadmin'
 //                export SQL_ADMIN_PASSWORD='<strong-password>'
+param sqlAdministratorLogin = readEnvironmentVariable('SQL_ADMIN_LOGIN', 'vnxadmin')
 param sqlAdministratorPassword = readEnvironmentVariable('SQL_ADMIN_PASSWORD', '')

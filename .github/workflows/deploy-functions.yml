@@ -12,6 +12,9 @@ on:
           - test
           - prod
 
+permissions:
+  contents: read
+
 env:
   RESOURCE_GROUP: rg-vitalnexus-${{ github.event.inputs.environment }}
   FUNCTIONS_PROJECT: backend/src/Functions/VitalNexus.Functions/VitalNexus.Functions.csproj
@@ -44,11 +47,13 @@ jobs:
 
       - name: Resolve Function App name
         id: targets
+        env:
+          AZURE_FUNCTION_APP_NAME: ${{ secrets.AZURE_FUNCTION_APP_NAME }}
         run: |
           set -euo pipefail
 
-          if [ -n "${{ secrets.AZURE_FUNCTION_APP_NAME }}" ]; then
-            echo "function_app_name=${{ secrets.AZURE_FUNCTION_APP_NAME }}" >> "$GITHUB_OUTPUT"
+          if [ -n "${AZURE_FUNCTION_APP_NAME:-}" ]; then
+            echo "function_app_name=$AZURE_FUNCTION_APP_NAME" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -56,7 +61,8 @@ jobs:
             --query "[?starts_with(name, 'func-vnx-${{ github.event.inputs.environment }}')].name | [0]" -o tsv)
 
           if [ -z "$FUNCTION_APP_NAME" ]; then
-            echo "No Function App found. Set AZURE_FUNCTION_APP_NAME in the GitHub Environment or deploy a Function App to ${{ env.RESOURCE_GROUP }}."
+            echo "No Function App found in ${{ env.RESOURCE_GROUP }}."
+            echo "infra/main.bicep does not provision a Function App — set AZURE_FUNCTION_APP_NAME in the GitHub Environment or add Function App hosting to Bicep first."
             exit 1
           fi
 

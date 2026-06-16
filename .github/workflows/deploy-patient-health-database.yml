@@ -66,6 +66,10 @@ jobs:
           dotnet build "${{ env.SQL_PROJECT }}" --configuration Release
           mkdir -p "${{ env.DACPAC_OUTPUT_DIR }}"
           dacpac=$(find "$(dirname "${{ env.SQL_PROJECT }}")/bin/Release" -name '*.dacpac' -print -quit)
+          if [ -z "$dacpac" ]; then
+            echo "Missing Patient Health DACPAC after build"
+            exit 1
+          fi
           cp "$dacpac" "${{ env.DACPAC_OUTPUT_DIR }}/${{ env.PROJECT_NAME }}.dacpac"
 
       - name: Verify Patient Health DACPAC

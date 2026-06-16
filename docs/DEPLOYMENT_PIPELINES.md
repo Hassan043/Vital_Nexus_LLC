@@ -10,6 +10,7 @@ Infrastructure must be deployed first (`.github/workflows/deploy-infra.yml`).
 |----------|-----------|--------|
 | `deploy-frontend.yml` | React frontend (nginx container) | Azure Container App |
 | `deploy-api.yml` | ASP.NET Core API | Azure Container App |
+| `deploy-ai-analysis-worker.yml` | AI Analysis Worker | Azure Container App |
 | `deploy-functions.yml` | Azure Functions (isolated worker) | Azure Function App |
 
 All three are **workflow_dispatch** only — select the environment when running the workflow.
@@ -27,6 +28,7 @@ Default image tag is the 12-character commit SHA. Override with the optional `im
 |-----------|----------------|------------|
 | Frontend | `vitalnexus-frontend` | `frontend/Dockerfile` |
 | API | `vitalnexus-api` | `backend/src/Api/VitalNexus.Api/Dockerfile` |
+| AI Analysis Worker | `vitalnexus-ai-analysis-worker` | `backend/src/Workers/VitalNexus.AiAnalysis.Worker/Dockerfile` |
 
 See also [`CONTAINER_BUILDS.md`](CONTAINER_BUILDS.md) for local build commands.
 
@@ -63,7 +65,8 @@ The deploy service principal needs:
 1. Deploy infrastructure (`deploy-infra.yml`) if not already provisioned.
 2. Deploy databases (`deploy-databases.yml`) after CI schema validation passes and environment approval (if configured). Deploy Account Business alone via `deploy-account-business-database.yml` or Patient Health via `deploy-patient-health-database.yml` when rolling out schemas independently.
 3. Deploy API (`deploy-api.yml`).
-4. Deploy frontend (`deploy-frontend.yml`).
-5. Deploy Functions (`deploy-functions.yml`) when a Function App is available.
+4. Deploy AI Analysis Worker (`deploy-ai-analysis-worker.yml`).
+5. Deploy frontend (`deploy-frontend.yml`).
+6. Deploy Functions (`deploy-functions.yml`) when a Function App is available.
 
 Database schema validation runs automatically on PRs via `database-schema-validation.yml`. SQL Database Projects are built on every PR via `database-build.yml`. Packaged DACPAC artifacts are generated on merge via `generate-dacpac-artifacts.yml`. Schema drift against live Azure SQL is checked manually via `database-schema-drift.yml`. See [`DATABASE_DEPLOYMENT.md`](DATABASE_DEPLOYMENT.md).
