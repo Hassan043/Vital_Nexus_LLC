@@ -1,0 +1,185 @@
+name: Database Schema Drift Detection
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment to compare against live Azure SQL
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+      patient_health_database_name:
+        description: Patient Health target database name (defaults to PatientHealth)
+        required: false
+        type: string
+        default: PatientHealth
+      dacpac_workflow_run_id:
+        description: Optional workflow run ID to compare pre-built DACPAC artifacts (leave empty to build from source)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  RESOURCE_GROUP: rg-vitalnexus-${{ github.event.inputs.environment }}
+  DACPAC_OUTPUT_DIR: database/artifacts/dacpacs
+  DRIFT_REPORT_DIR: database/artifacts/drift-reports
+  SQL_DATABASES: |
+    VitalNexus.AccountBusiness.Database|Accounts|core
+    VitalNexus.LabMarkersData.Database|LabMarkersData|core
+    VitalNexus.PatientHealth.Database|${{ github.event.inputs.patient_health_database_name }}|phi
+
+jobs:
+  detect-drift:
+    name: Detect schema drift in ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download pre-built DACPAC artifacts
+        if: github.event.inputs.dacpac_workflow_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: vitalnexus-dacpac-artifacts
+          run-id: ${{ github.event.inputs.dacpac_workflow_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ env.DACPAC_OUTPUT_DIR }}
+
+      - name: Setup .NET SDK
+        if: github.event.inputs.dacpac_workflow_run_id == ''
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Generate DACPAC artifacts from source
+        if: github.event.inputs.dacpac_workflow_run_id == ''
+        run: bash database/scripts/build-dacpacs.sh "${{ env.DACPAC_OUTPUT_DIR }}"
+
+      - name: Verify DACPAC manifest
+        run: |
+          set -euo pipefail
+          manifest="${{ env.DACPAC_OUTPUT_DIR }}/dacpac-manifest.json"
+          if [ ! -f "$manifest" ]; then
+            echo "Missing DACPAC manifest at $manifest"
+            exit 1
+          fi
+          cat "$manifest"
+
+      - name: Install SqlPackage
+        run: |
+          set -euo pipefail
+          curl -sSL -o /tmp/sqlpackage.zip https://aka.ms/sqlpackage-linux
+          unzip -q /tmp/sqlpackage.zip -d /tmp/sqlpackage
+          sudo mv /tmp/sqlpackage/sqlpackage /usr/local/bin/sqlpackage
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set Azure subscription
+        run: az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Resolve SQL servers
+        id: sql
+        run: |
+          set -euo pipefail
+
+          CORE_FQDN=$(az sql server list -g "${{ env.RESOURCE_GROUP }}" \
+            --query "[?contains(name, '-core-')].fullyQualifiedDomainName | [0]" -o tsv)
+          PHI_FQDN=$(az sql server list -g "${{ env.RESOURCE_GROUP }}" \
+            --query "[?contains(name, '-phi-')].fullyQualifiedDomainName | [0]" -o tsv)
+
+          if [ -z "$CORE_FQDN" ] || [ -z "$PHI_FQDN" ]; then
+            echo "Could not resolve core/phi SQL servers in ${{ env.RESOURCE_GROUP }}."
+            exit 1
+          fi
+
+          echo "core_fqdn=$CORE_FQDN" >> "$GITHUB_OUTPUT"
+          echo "phi_fqdn=$PHI_FQDN" >> "$GITHUB_OUTPUT"
+
+      - name: Detect schema drift
+        id: drift
+        env:
+          SQL_ADMIN_LOGIN: ${{ secrets.SQL_ADMIN_LOGIN }}
+          SQL_ADMIN_PASSWORD: ${{ secrets.SQL_ADMIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SQL_ADMIN_PASSWORD:-}" ]; then
+            echo "SQL_ADMIN_PASSWORD is required in the GitHub Environment secrets."
+            exit 1
+          fi
+
+          LOGIN="${SQL_ADMIN_LOGIN:-vnxadmin}"
+          drift_found=0
+
+          while IFS='|' read -r project_name database_name server_role; do
+            [ -z "$project_name" ] && continue
+
+            if [ "$server_role" = "core" ]; then
+              SERVER_FQDN="${{ steps.sql.outputs.core_fqdn }}"
+            else
+              SERVER_FQDN="${{ steps.sql.outputs.phi_fqdn }}"
+            fi
+
+            dacpac="${{ env.DACPAC_OUTPUT_DIR }}/${project_name}.dacpac"
+            if [ ! -f "$dacpac" ]; then
+              echo "DACPAC not found for $project_name at $dacpac"
+              exit 1
+            fi
+
+            if bash database/scripts/detect-schema-drift.sh \
+              "$dacpac" \
+              "$SERVER_FQDN" \
+              "$database_name" \
+              "$LOGIN" \
+              "$SQL_ADMIN_PASSWORD" \
+              "${{ env.DRIFT_REPORT_DIR }}" \
+              "$project_name"; then
+              echo "OK: $project_name ($database_name) matches DACPAC"
+            else
+              echo "DRIFT: $project_name ($database_name) differs from DACPAC"
+              drift_found=1
+            fi
+          done <<< "${{ env.SQL_DATABASES }}"
+
+          if [ "$drift_found" -ne 0 ]; then
+            echo "drift_detected=true" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+          echo "drift_detected=false" >> "$GITHUB_OUTPUT"
+
+      - name: Upload drift reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitalnexus-schema-drift-reports-${{ github.event.inputs.environment }}
+          path: ${{ env.DRIFT_REPORT_DIR }}
+          if-no-files-found: ignore
+
+      - name: Publish drift summary
+        if: always()
+        run: |
+          echo "### Schema drift detection" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Environment: \`${{ github.event.inputs.environment }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Core server: \`${{ steps.sql.outputs.core_fqdn }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- PHI server: \`${{ steps.sql.outputs.phi_fqdn }}\`" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ steps.drift.outputs.drift_detected }}" = "true" ]; then
+            echo "- Result: **Drift detected** — review uploaded deploy reports." >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ steps.drift.outputs.drift_detected }}" = "false" ]; then
+            echo "- Result: **No drift detected** — live databases match DACPACs." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- Result: Drift check did not complete successfully." >> "$GITHUB_STEP_SUMMARY"
+          fi

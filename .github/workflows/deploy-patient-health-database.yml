@@ -1,0 +1,186 @@
+name: Deploy Patient Health Database
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+      confirm_production_deploy:
+        description: Required for prod — type "approve-prod-db" to confirm production database deployment
+        required: false
+        type: string
+      target_database_name:
+        description: Target database name (defaults to PatientHealth; use a clinic-specific name for tenant databases)
+        required: false
+        type: string
+        default: PatientHealth
+      dacpac_workflow_run_id:
+        description: Optional workflow run ID to deploy pre-built DACPAC artifacts (leave empty to build from source)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  RESOURCE_GROUP: rg-vitalnexus-${{ github.event.inputs.environment }}
+  SQL_PROJECT: database/VitalNexus.PatientHealth.Database/VitalNexus.PatientHealth.Database.sqlproj
+  PROJECT_NAME: VitalNexus.PatientHealth.Database
+  DACPAC_OUTPUT_DIR: database/artifacts/dacpacs
+
+jobs:
+  prepare:
+    name: Prepare Patient Health DACPAC
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download pre-built DACPAC artifacts
+        if: github.event.inputs.dacpac_workflow_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: vitalnexus-dacpac-artifacts
+          run-id: ${{ github.event.inputs.dacpac_workflow_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ env.DACPAC_OUTPUT_DIR }}
+
+      - name: Setup .NET SDK
+        if: github.event.inputs.dacpac_workflow_run_id == ''
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build Patient Health DACPAC from source
+        if: github.event.inputs.dacpac_workflow_run_id == ''
+        run: |
+          set -euo pipefail
+          dotnet build "${{ env.SQL_PROJECT }}" --configuration Release
+          mkdir -p "${{ env.DACPAC_OUTPUT_DIR }}"
+          dacpac=$(find "$(dirname "${{ env.SQL_PROJECT }}")/bin/Release" -name '*.dacpac' -print -quit)
+          cp "$dacpac" "${{ env.DACPAC_OUTPUT_DIR }}/${{ env.PROJECT_NAME }}.dacpac"
+
+      - name: Verify Patient Health DACPAC
+        run: |
+          set -euo pipefail
+          dacpac="${{ env.DACPAC_OUTPUT_DIR }}/${{ env.PROJECT_NAME }}.dacpac"
+          if [ ! -f "$dacpac" ]; then
+            echo "Missing Patient Health DACPAC at $dacpac"
+            exit 1
+          fi
+          unzip -t "$dacpac"
+          echo "Patient Health DACPAC verified: $dacpac"
+
+      - name: Upload prepared DACPAC artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-patient-health-dacpac-${{ github.run_id }}
+          path: ${{ env.DACPAC_OUTPUT_DIR }}/${{ env.PROJECT_NAME }}.dacpac
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy Patient Health to ${{ github.event.inputs.environment }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Enforce production approval gate
+        uses: ./.github/actions/database-prod-approval-gate
+        with:
+          environment: ${{ github.event.inputs.environment }}
+          confirm_production_deploy: ${{ github.event.inputs.confirm_production_deploy }}
+
+      - name: Download prepared DACPAC artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-patient-health-dacpac-${{ github.run_id }}
+          path: ${{ env.DACPAC_OUTPUT_DIR }}
+
+      - name: Install SqlPackage
+        run: |
+          set -euo pipefail
+          curl -sSL -o /tmp/sqlpackage.zip https://aka.ms/sqlpackage-linux
+          unzip -q /tmp/sqlpackage.zip -d /tmp/sqlpackage
+          sudo mv /tmp/sqlpackage/sqlpackage /usr/local/bin/sqlpackage
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set Azure subscription
+        run: az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Resolve PHI SQL server
+        id: sql
+        run: |
+          set -euo pipefail
+
+          PHI_SERVER=$(az sql server list -g "${{ env.RESOURCE_GROUP }}" \
+            --query "[?contains(name, '-phi-')].name | [0]" -o tsv)
+          PHI_FQDN=$(az sql server list -g "${{ env.RESOURCE_GROUP }}" \
+            --query "[?contains(name, '-phi-')].fullyQualifiedDomainName | [0]" -o tsv)
+
+          if [ -z "$PHI_SERVER" ] || [ -z "$PHI_FQDN" ]; then
+            echo "Could not resolve PHI SQL server in ${{ env.RESOURCE_GROUP }}."
+            exit 1
+          fi
+
+          echo "phi_server=$PHI_SERVER" >> "$GITHUB_OUTPUT"
+          echo "phi_fqdn=$PHI_FQDN" >> "$GITHUB_OUTPUT"
+
+      - name: Verify target database exists
+        env:
+          TARGET_DATABASE: ${{ github.event.inputs.target_database_name }}
+        run: |
+          set -euo pipefail
+          az sql db show \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --server "${{ steps.sql.outputs.phi_server }}" \
+            --name "$TARGET_DATABASE" \
+            --output none
+          echo "Target database $TARGET_DATABASE exists on ${{ steps.sql.outputs.phi_fqdn }}"
+
+      - name: Publish Patient Health DACPAC
+        env:
+          SQL_ADMIN_LOGIN: ${{ secrets.SQL_ADMIN_LOGIN }}
+          SQL_ADMIN_PASSWORD: ${{ secrets.SQL_ADMIN_PASSWORD }}
+          TARGET_DATABASE: ${{ github.event.inputs.target_database_name }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SQL_ADMIN_PASSWORD:-}" ]; then
+            echo "SQL_ADMIN_PASSWORD is required in the GitHub Environment secrets."
+            exit 1
+          fi
+
+          LOGIN="${SQL_ADMIN_LOGIN:-vnxadmin}"
+          bash database/scripts/publish-dacpac.sh \
+            "${{ env.DACPAC_OUTPUT_DIR }}/${{ env.PROJECT_NAME }}.dacpac" \
+            "${{ steps.sql.outputs.phi_fqdn }}" \
+            "$TARGET_DATABASE" \
+            "$LOGIN" \
+            "$SQL_ADMIN_PASSWORD"
+
+      - name: Publish deployment summary
+        env:
+          TARGET_DATABASE: ${{ github.event.inputs.target_database_name }}
+        run: |
+          echo "### Patient Health database deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Environment: \`${{ github.event.inputs.environment }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Server: \`${{ steps.sql.outputs.phi_fqdn }}\` (PHI)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Database: \`$TARGET_DATABASE\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- DACPAC: \`${{ env.PROJECT_NAME }}.dacpac\`" >> "$GITHUB_STEP_SUMMARY"

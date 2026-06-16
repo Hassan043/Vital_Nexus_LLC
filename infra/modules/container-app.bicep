@@ -49,6 +49,9 @@ param environmentVariables array = []
 @description('Container app secrets (referenced by secret-backed environment variables).')
 param secrets array = []
 
+@description('Secrets resolved from Key Vault using the user-assigned managed identity.')
+param keyVaultSecrets array = []
+
 @description('Environment variables backed by container app secrets.')
 param secretEnvironmentVariables array = []
 
@@ -63,6 +66,23 @@ param daprAppPort int = 8080
 
 @description('Optional HTTP health probe path.')
 param healthProbePath string = ''
+
+var valueBasedSecrets = [
+  for secret in secrets: {
+    name: secret.name
+    value: secret.value
+  }
+]
+
+var keyVaultBasedSecrets = [
+  for kvSecret in keyVaultSecrets: {
+    name: kvSecret.name
+    keyVaultUrl: kvSecret.keyVaultUrl
+    identity: kvSecret.identity
+  }
+]
+
+var containerAppSecrets = concat(valueBasedSecrets, keyVaultBasedSecrets)
 
 var plainEnvironmentVariables = [for item in environmentVariables: {
   name: item.name
@@ -132,12 +152,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             allowInsecure: false
           }
         : null
-      secrets: [
-        for secret in secrets: {
-          name: secret.name
-          value: secret.value
-        }
-      ]
+      secrets: containerAppSecrets
       registries: registryConfiguration
       dapr: daprEnabled
         ? {

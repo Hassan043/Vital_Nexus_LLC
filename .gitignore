@@ -33,6 +33,7 @@ Thumbs.db
 *.db
 *.db-shm
 *.db-wal
+database/artifacts/
 
 # Logs
 *.log

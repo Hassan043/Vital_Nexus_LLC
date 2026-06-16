@@ -1,0 +1,41 @@
+name: Database Schema Validation
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - 'database/**'
+      - 'backend/**'
+      - '.github/workflows/database-schema-validation.yml'
+  pull_request:
+    branches:
+      - dev
+      - main
+    paths:
+      - 'database/**'
+      - 'backend/**'
+      - '.github/workflows/database-schema-validation.yml'
+
+jobs:
+  validate:
+    name: Validate database schema policy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Reject EF Core migrations as production schema mechanism
+        run: |
+          set -euo pipefail
+
+          if find backend -type d -name Migrations 2>/dev/null | grep -q .; then
+            echo "EF Core Migrations folders detected under backend/."
+            echo "Production schema must come from SQL Database Projects (DACPAC), not EF migrations."
+            find backend -type d -name Migrations
+            exit 1
+          fi
+
+          echo "Confirmed: no EF Core Migrations folders in backend."

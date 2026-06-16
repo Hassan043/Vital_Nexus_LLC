@@ -1,6 +1,6 @@
 # Container Builds
 
-Dockerfiles for VitalNexus application components targeting Azure Container Apps and Azure Container Registry (ACR). Deployment to ACA is handled in a later issue.
+Dockerfiles for VitalNexus application components targeting Azure Container Apps and Azure Container Registry (ACR). Deployment pipelines are in `.github/workflows/deploy-frontend.yml` and `deploy-api.yml` — see [`DEPLOYMENT_PIPELINES.md`](DEPLOYMENT_PIPELINES.md).
 
 ## Image names (ACR)
 

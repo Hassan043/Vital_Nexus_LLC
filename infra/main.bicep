@@ -5,6 +5,7 @@
 @description('Deployment environment (matches the bicepparam files and the deploy workflow).')
 @allowed([
   'dev'
+  'test'
   'prod'
 ])
 param environmentName string
@@ -77,6 +78,39 @@ var daprConfigurationEnvironmentVariables = [
   {
     name: 'Dapr__AiAnalysisTopicName'
     value: aiAnalysisTopicName
+  }
+]
+
+var apiDatabaseKeyVaultSecretRefs = [
+  {
+    name: 'accounts-db-connection-string'
+    keyVaultUrl: '${keyVault.outputs.keyVaultUri}secrets/accounts-db-connection-string'
+    identity: acaWorkloadIdentity.outputs.identityId
+  }
+  {
+    name: 'lab-markers-data-db-connection-string'
+    keyVaultUrl: '${keyVault.outputs.keyVaultUri}secrets/lab-markers-data-db-connection-string'
+    identity: acaWorkloadIdentity.outputs.identityId
+  }
+  {
+    name: 'patient-health-db-connection-string'
+    keyVaultUrl: '${keyVault.outputs.keyVaultUri}secrets/patient-health-db-connection-string'
+    identity: acaWorkloadIdentity.outputs.identityId
+  }
+]
+
+var apiDatabaseSecretEnvironmentVariables = [
+  {
+    name: 'ConnectionStrings__Accounts'
+    secretName: 'accounts-db-connection-string'
+  }
+  {
+    name: 'ConnectionStrings__LabMarkersData'
+    secretName: 'lab-markers-data-db-connection-string'
+  }
+  {
+    name: 'ConnectionStrings__PatientHealth'
+    secretName: 'patient-health-db-connection-string'
   }
 ]
 
@@ -170,8 +204,19 @@ module apiApp 'modules/container-app.bicep' = {
         name: 'ASPNETCORE_URLS'
         value: 'http://+:8080'
       }
+      {
+        name: 'KeyVault__VaultUri'
+        value: keyVault.outputs.keyVaultUri
+      }
     ])
+    keyVaultSecrets: apiDatabaseKeyVaultSecretRefs
+    secretEnvironmentVariables: apiDatabaseSecretEnvironmentVariables
   }
+  dependsOn: [
+    accountsDbConnectionSecret
+    labMarkersDataDbConnectionSecret
+    patientHealthDbConnectionSecret
+  ]
 }
 
 module aiAnalysisWorkerApp 'modules/container-app.bicep' = {
@@ -317,6 +362,33 @@ module serviceBusConnectionSecret 'modules/key-vault-secret.bicep' = {
   }
 }
 
+module accountsDbConnectionSecret 'modules/key-vault-secret.bicep' = {
+  name: 'accounts-db-connection-secret'
+  params: {
+    keyVaultName: keyVault.outputs.keyVaultName
+    secretName: 'accounts-db-connection-string'
+    secretValue: 'Server=tcp:${coreSql.outputs.serverFqdn},1433;Initial Catalog=Accounts;Persist Security Info=False;User ID=${sqlAdministratorLogin};Password=${sqlAdministratorPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+  }
+}
+
+module labMarkersDataDbConnectionSecret 'modules/key-vault-secret.bicep' = {
+  name: 'lab-markers-data-db-connection-secret'
+  params: {
+    keyVaultName: keyVault.outputs.keyVaultName
+    secretName: 'lab-markers-data-db-connection-string'
+    secretValue: 'Server=tcp:${coreSql.outputs.serverFqdn},1433;Initial Catalog=LabMarkersData;Persist Security Info=False;User ID=${sqlAdministratorLogin};Password=${sqlAdministratorPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+  }
+}
+
+module patientHealthDbConnectionSecret 'modules/key-vault-secret.bicep' = {
+  name: 'patient-health-db-connection-secret'
+  params: {
+    keyVaultName: keyVault.outputs.keyVaultName
+    secretName: 'patient-health-db-connection-string'
+    secretValue: 'Server=tcp:${phiSql.outputs.serverFqdn},1433;Initial Catalog=PatientHealth;Persist Security Info=False;User ID=${sqlAdministratorLogin};Password=${sqlAdministratorPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+  }
+}
+
 module daprPubSub 'modules/dapr-pubsub-component.bicep' = {
   name: 'dapr-pubsub-component'
   params: {
@@ -355,4 +427,7 @@ output serviceBusTopicNames array = serviceBus.outputs.topicNames
 output serviceBusAiAnalysisRequestedTopicName string = serviceBus.outputs.aiAnalysisRequestedTopicName
 output serviceBusTopicName string = serviceBus.outputs.aiAnalysisRequestedTopicName
 output serviceBusConnectionSecretName string = serviceBusConnectionSecret.outputs.secretName
+output accountsDbConnectionSecretName string = accountsDbConnectionSecret.outputs.secretName
+output labMarkersDataDbConnectionSecretName string = labMarkersDataDbConnectionSecret.outputs.secretName
+output patientHealthDbConnectionSecretName string = patientHealthDbConnectionSecret.outputs.secretName
 output daprPubSubComponentName string = daprPubSub.outputs.componentName

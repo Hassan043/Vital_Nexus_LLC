@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.44.1.10279",
-      "templateHash": "5756650786938809159"
+      "templateHash": "14354798009315657032"
     }
   },
   "parameters": {
@@ -14,6 +14,7 @@
       "type": "string",
       "allowedValues": [
         "dev",
+        "test",
         "prod"
       ],
       "metadata": {
@@ -134,6 +135,20 @@
       {
         "name": "Dapr__AiAnalysisTopicName",
         "value": "[parameters('aiAnalysisTopicName')]"
+      }
+    ],
+    "apiDatabaseSecretEnvironmentVariables": [
+      {
+        "name": "ConnectionStrings__Accounts",
+        "secretName": "accounts-db-connection-string"
+      },
+      {
+        "name": "ConnectionStrings__LabMarkersData",
+        "secretName": "lab-markers-data-db-connection-string"
+      },
+      {
+        "name": "ConnectionStrings__PatientHealth",
+        "secretName": "patient-health-db-connection-string"
       }
     ]
   },
@@ -554,7 +569,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.44.1.10279",
-              "templateHash": "5097148160382813481"
+              "templateHash": "7202224660954614369"
             }
           },
           "parameters": {
@@ -665,6 +680,13 @@
                 "description": "Container app secrets (referenced by secret-backed environment variables)."
               }
             },
+            "keyVaultSecrets": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Secrets resolved from Key Vault using the user-assigned managed identity."
+              }
+            },
             "secretEnvironmentVariables": {
               "type": "array",
               "defaultValue": [],
@@ -704,6 +726,23 @@
           "variables": {
             "copy": [
               {
+                "name": "valueBasedSecrets",
+                "count": "[length(parameters('secrets'))]",
+                "input": {
+                  "name": "[parameters('secrets')[copyIndex('valueBasedSecrets')].name]",
+                  "value": "[parameters('secrets')[copyIndex('valueBasedSecrets')].value]"
+                }
+              },
+              {
+                "name": "keyVaultBasedSecrets",
+                "count": "[length(parameters('keyVaultSecrets'))]",
+                "input": {
+                  "name": "[parameters('keyVaultSecrets')[copyIndex('keyVaultBasedSecrets')].name]",
+                  "keyVaultUrl": "[parameters('keyVaultSecrets')[copyIndex('keyVaultBasedSecrets')].keyVaultUrl]",
+                  "identity": "[parameters('keyVaultSecrets')[copyIndex('keyVaultBasedSecrets')].identity]"
+                }
+              },
+              {
                 "name": "plainEnvironmentVariables",
                 "count": "[length(parameters('environmentVariables'))]",
                 "input": {
@@ -720,6 +759,7 @@
                 }
               }
             ],
+            "containerAppSecrets": "[concat(variables('valueBasedSecrets'), variables('keyVaultBasedSecrets'))]",
             "containerEnvironmentVariables": "[concat(variables('plainEnvironmentVariables'), variables('secretBackedEnvironmentVariables'))]",
             "registryConfiguration": "[if(empty(parameters('acrLoginServer')), createArray(), createArray(createObject('server', parameters('acrLoginServer'), 'identity', parameters('userAssignedIdentityResourceId'))))]",
             "healthProbes": "[if(empty(parameters('healthProbePath')), createArray(), createArray(createObject('type', 'Liveness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 10, 'periodSeconds', 30), createObject('type', 'Readiness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 5, 'periodSeconds', 10)))]"
@@ -740,18 +780,9 @@
               "properties": {
                 "managedEnvironmentId": "[parameters('managedEnvironmentId')]",
                 "configuration": {
-                  "copy": [
-                    {
-                      "name": "secrets",
-                      "count": "[length(parameters('secrets'))]",
-                      "input": {
-                        "name": "[parameters('secrets')[copyIndex('secrets')].name]",
-                        "value": "[parameters('secrets')[copyIndex('secrets')].value]"
-                      }
-                    }
-                  ],
                   "activeRevisionsMode": "Single",
                   "ingress": "[if(parameters('ingressEnabled'), createObject('external', parameters('externalIngress'), 'targetPort', parameters('targetPort'), 'transport', 'auto', 'allowInsecure', false()), null())]",
+                  "secrets": "[variables('containerAppSecrets')]",
                   "registries": "[variables('registryConfiguration')]",
                   "dapr": "[if(parameters('daprEnabled'), createObject('enabled', true(), 'appId', parameters('daprAppId'), 'appPort', parameters('daprAppPort')), null())]"
                 },
@@ -861,7 +892,29 @@
             "value": 8080
           },
           "environmentVariables": {
-            "value": "[concat(variables('daprConfigurationEnvironmentVariables'), createArray(createObject('name', 'ASPNETCORE_ENVIRONMENT', 'value', variables('aspnetcoreEnvironment')), createObject('name', 'ASPNETCORE_URLS', 'value', 'http://+:8080')))]"
+            "value": "[concat(variables('daprConfigurationEnvironmentVariables'), createArray(createObject('name', 'ASPNETCORE_ENVIRONMENT', 'value', variables('aspnetcoreEnvironment')), createObject('name', 'ASPNETCORE_URLS', 'value', 'http://+:8080'), createObject('name', 'KeyVault__VaultUri', 'value', reference('keyVault').outputs.keyVaultUri.value)))]"
+          },
+          "keyVaultSecrets": {
+            "value": [
+              {
+                "name": "accounts-db-connection-string",
+                "keyVaultUrl": "[format('{0}secrets/accounts-db-connection-string', reference('keyVault').outputs.keyVaultUri.value)]",
+                "identity": "[reference('acaWorkloadIdentity').outputs.identityId.value]"
+              },
+              {
+                "name": "lab-markers-data-db-connection-string",
+                "keyVaultUrl": "[format('{0}secrets/lab-markers-data-db-connection-string', reference('keyVault').outputs.keyVaultUri.value)]",
+                "identity": "[reference('acaWorkloadIdentity').outputs.identityId.value]"
+              },
+              {
+                "name": "patient-health-db-connection-string",
+                "keyVaultUrl": "[format('{0}secrets/patient-health-db-connection-string', reference('keyVault').outputs.keyVaultUri.value)]",
+                "identity": "[reference('acaWorkloadIdentity').outputs.identityId.value]"
+              }
+            ]
+          },
+          "secretEnvironmentVariables": {
+            "value": "[variables('apiDatabaseSecretEnvironmentVariables')]"
           }
         },
         "template": {
@@ -871,7 +924,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.44.1.10279",
-              "templateHash": "5097148160382813481"
+              "templateHash": "7202224660954614369"
             }
           },
           "parameters": {
@@ -982,6 +1035,13 @@
                 "description": "Container app secrets (referenced by secret-backed environment variables)."
               }
             },
+            "keyVaultSecrets": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Secrets resolved from Key Vault using the user-assigned managed identity."
+              }
+            },
             "secretEnvironmentVariables": {
               "type": "array",
               "defaultValue": [],
@@ -1021,6 +1081,23 @@
           "variables": {
             "copy": [
               {
+                "name": "valueBasedSecrets",
+                "count": "[length(parameters('secrets'))]",
+                "input": {
+                  "name": "[parameters('secrets')[copyIndex('valueBasedSecrets')].name]",
+                  "value": "[parameters('secrets')[copyIndex('valueBasedSecrets')].value]"
+                }
+              },
+              {
+                "name": "keyVaultBasedSecrets",
+                "count": "[length(parameters('keyVaultSecrets'))]",
+                "input": {
+                  "name": "[parameters('keyVaultSecrets')[copyIndex('keyVaultBasedSecrets')].name]",
+                  "keyVaultUrl": "[parameters('keyVaultSecrets')[copyIndex('keyVaultBasedSecrets')].keyVaultUrl]",
+                  "identity": "[parameters('keyVaultSecrets')[copyIndex('keyVaultBasedSecrets')].identity]"
+                }
+              },
+              {
                 "name": "plainEnvironmentVariables",
                 "count": "[length(parameters('environmentVariables'))]",
                 "input": {
@@ -1037,6 +1114,7 @@
                 }
               }
             ],
+            "containerAppSecrets": "[concat(variables('valueBasedSecrets'), variables('keyVaultBasedSecrets'))]",
             "containerEnvironmentVariables": "[concat(variables('plainEnvironmentVariables'), variables('secretBackedEnvironmentVariables'))]",
             "registryConfiguration": "[if(empty(parameters('acrLoginServer')), createArray(), createArray(createObject('server', parameters('acrLoginServer'), 'identity', parameters('userAssignedIdentityResourceId'))))]",
             "healthProbes": "[if(empty(parameters('healthProbePath')), createArray(), createArray(createObject('type', 'Liveness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 10, 'periodSeconds', 30), createObject('type', 'Readiness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 5, 'periodSeconds', 10)))]"
@@ -1057,18 +1135,9 @@
               "properties": {
                 "managedEnvironmentId": "[parameters('managedEnvironmentId')]",
                 "configuration": {
-                  "copy": [
-                    {
-                      "name": "secrets",
-                      "count": "[length(parameters('secrets'))]",
-                      "input": {
-                        "name": "[parameters('secrets')[copyIndex('secrets')].name]",
-                        "value": "[parameters('secrets')[copyIndex('secrets')].value]"
-                      }
-                    }
-                  ],
                   "activeRevisionsMode": "Single",
                   "ingress": "[if(parameters('ingressEnabled'), createObject('external', parameters('externalIngress'), 'targetPort', parameters('targetPort'), 'transport', 'auto', 'allowInsecure', false()), null())]",
+                  "secrets": "[variables('containerAppSecrets')]",
                   "registries": "[variables('registryConfiguration')]",
                   "dapr": "[if(parameters('daprEnabled'), createObject('enabled', true(), 'appId', parameters('daprAppId'), 'appPort', parameters('daprAppPort')), null())]"
                 },
@@ -1116,7 +1185,11 @@
       "dependsOn": [
         "acaEnvironment",
         "acaWorkloadIdentity",
-        "acr"
+        "accountsDbConnectionSecret",
+        "acr",
+        "keyVault",
+        "labMarkersDataDbConnectionSecret",
+        "patientHealthDbConnectionSecret"
       ]
     },
     "aiAnalysisWorkerApp": {
@@ -1179,7 +1252,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.44.1.10279",
-              "templateHash": "5097148160382813481"
+              "templateHash": "7202224660954614369"
             }
           },
           "parameters": {
@@ -1290,6 +1363,13 @@
                 "description": "Container app secrets (referenced by secret-backed environment variables)."
               }
             },
+            "keyVaultSecrets": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Secrets resolved from Key Vault using the user-assigned managed identity."
+              }
+            },
             "secretEnvironmentVariables": {
               "type": "array",
               "defaultValue": [],
@@ -1329,6 +1409,23 @@
           "variables": {
             "copy": [
               {
+                "name": "valueBasedSecrets",
+                "count": "[length(parameters('secrets'))]",
+                "input": {
+                  "name": "[parameters('secrets')[copyIndex('valueBasedSecrets')].name]",
+                  "value": "[parameters('secrets')[copyIndex('valueBasedSecrets')].value]"
+                }
+              },
+              {
+                "name": "keyVaultBasedSecrets",
+                "count": "[length(parameters('keyVaultSecrets'))]",
+                "input": {
+                  "name": "[parameters('keyVaultSecrets')[copyIndex('keyVaultBasedSecrets')].name]",
+                  "keyVaultUrl": "[parameters('keyVaultSecrets')[copyIndex('keyVaultBasedSecrets')].keyVaultUrl]",
+                  "identity": "[parameters('keyVaultSecrets')[copyIndex('keyVaultBasedSecrets')].identity]"
+                }
+              },
+              {
                 "name": "plainEnvironmentVariables",
                 "count": "[length(parameters('environmentVariables'))]",
                 "input": {
@@ -1345,6 +1442,7 @@
                 }
               }
             ],
+            "containerAppSecrets": "[concat(variables('valueBasedSecrets'), variables('keyVaultBasedSecrets'))]",
             "containerEnvironmentVariables": "[concat(variables('plainEnvironmentVariables'), variables('secretBackedEnvironmentVariables'))]",
             "registryConfiguration": "[if(empty(parameters('acrLoginServer')), createArray(), createArray(createObject('server', parameters('acrLoginServer'), 'identity', parameters('userAssignedIdentityResourceId'))))]",
             "healthProbes": "[if(empty(parameters('healthProbePath')), createArray(), createArray(createObject('type', 'Liveness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 10, 'periodSeconds', 30), createObject('type', 'Readiness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 5, 'periodSeconds', 10)))]"
@@ -1365,18 +1463,9 @@
               "properties": {
                 "managedEnvironmentId": "[parameters('managedEnvironmentId')]",
                 "configuration": {
-                  "copy": [
-                    {
-                      "name": "secrets",
-                      "count": "[length(parameters('secrets'))]",
-                      "input": {
-                        "name": "[parameters('secrets')[copyIndex('secrets')].name]",
-                        "value": "[parameters('secrets')[copyIndex('secrets')].value]"
-                      }
-                    }
-                  ],
                   "activeRevisionsMode": "Single",
                   "ingress": "[if(parameters('ingressEnabled'), createObject('external', parameters('externalIngress'), 'targetPort', parameters('targetPort'), 'transport', 'auto', 'allowInsecure', false()), null())]",
+                  "secrets": "[variables('containerAppSecrets')]",
                   "registries": "[variables('registryConfiguration')]",
                   "dapr": "[if(parameters('daprEnabled'), createObject('enabled', true(), 'appId', parameters('daprAppId'), 'appPort', parameters('daprAppPort')), null())]"
                 },
@@ -1488,7 +1577,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.44.1.10279",
-              "templateHash": "5097148160382813481"
+              "templateHash": "7202224660954614369"
             }
           },
           "parameters": {
@@ -1599,6 +1688,13 @@
                 "description": "Container app secrets (referenced by secret-backed environment variables)."
               }
             },
+            "keyVaultSecrets": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Secrets resolved from Key Vault using the user-assigned managed identity."
+              }
+            },
             "secretEnvironmentVariables": {
               "type": "array",
               "defaultValue": [],
@@ -1638,6 +1734,23 @@
           "variables": {
             "copy": [
               {
+                "name": "valueBasedSecrets",
+                "count": "[length(parameters('secrets'))]",
+                "input": {
+                  "name": "[parameters('secrets')[copyIndex('valueBasedSecrets')].name]",
+                  "value": "[parameters('secrets')[copyIndex('valueBasedSecrets')].value]"
+                }
+              },
+              {
+                "name": "keyVaultBasedSecrets",
+                "count": "[length(parameters('keyVaultSecrets'))]",
+                "input": {
+                  "name": "[parameters('keyVaultSecrets')[copyIndex('keyVaultBasedSecrets')].name]",
+                  "keyVaultUrl": "[parameters('keyVaultSecrets')[copyIndex('keyVaultBasedSecrets')].keyVaultUrl]",
+                  "identity": "[parameters('keyVaultSecrets')[copyIndex('keyVaultBasedSecrets')].identity]"
+                }
+              },
+              {
                 "name": "plainEnvironmentVariables",
                 "count": "[length(parameters('environmentVariables'))]",
                 "input": {
@@ -1654,6 +1767,7 @@
                 }
               }
             ],
+            "containerAppSecrets": "[concat(variables('valueBasedSecrets'), variables('keyVaultBasedSecrets'))]",
             "containerEnvironmentVariables": "[concat(variables('plainEnvironmentVariables'), variables('secretBackedEnvironmentVariables'))]",
             "registryConfiguration": "[if(empty(parameters('acrLoginServer')), createArray(), createArray(createObject('server', parameters('acrLoginServer'), 'identity', parameters('userAssignedIdentityResourceId'))))]",
             "healthProbes": "[if(empty(parameters('healthProbePath')), createArray(), createArray(createObject('type', 'Liveness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 10, 'periodSeconds', 30), createObject('type', 'Readiness', 'httpGet', createObject('path', parameters('healthProbePath'), 'port', parameters('targetPort'), 'scheme', 'HTTP'), 'initialDelaySeconds', 5, 'periodSeconds', 10)))]"
@@ -1674,18 +1788,9 @@
               "properties": {
                 "managedEnvironmentId": "[parameters('managedEnvironmentId')]",
                 "configuration": {
-                  "copy": [
-                    {
-                      "name": "secrets",
-                      "count": "[length(parameters('secrets'))]",
-                      "input": {
-                        "name": "[parameters('secrets')[copyIndex('secrets')].name]",
-                        "value": "[parameters('secrets')[copyIndex('secrets')].value]"
-                      }
-                    }
-                  ],
                   "activeRevisionsMode": "Single",
                   "ingress": "[if(parameters('ingressEnabled'), createObject('external', parameters('externalIngress'), 'targetPort', parameters('targetPort'), 'transport', 'auto', 'allowInsecure', false()), null())]",
+                  "secrets": "[variables('containerAppSecrets')]",
                   "registries": "[variables('registryConfiguration')]",
                   "dapr": "[if(parameters('daprEnabled'), createObject('enabled', true(), 'appId', parameters('daprAppId'), 'appPort', parameters('daprAppPort')), null())]"
                 },
@@ -2620,6 +2725,237 @@
         "serviceBus"
       ]
     },
+    "accountsDbConnectionSecret": {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "accounts-db-connection-secret",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "keyVaultName": {
+            "value": "[reference('keyVault').outputs.keyVaultName.value]"
+          },
+          "secretName": {
+            "value": "accounts-db-connection-string"
+          },
+          "secretValue": {
+            "value": "[format('Server=tcp:{0},1433;Initial Catalog=Accounts;Persist Security Info=False;User ID={1};Password={2};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;', reference('coreSql').outputs.serverFqdn.value, parameters('sqlAdministratorLogin'), parameters('sqlAdministratorPassword'))]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.44.1.10279",
+              "templateHash": "13873121172465225906"
+            }
+          },
+          "parameters": {
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the existing Key Vault."
+              }
+            },
+            "secretName": {
+              "type": "string",
+              "metadata": {
+                "description": "Secret name (Key Vault secret identifier)."
+              }
+            },
+            "secretValue": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Secret value to store."
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2023-07-01",
+              "name": "[format('{0}/{1}', parameters('keyVaultName'), parameters('secretName'))]",
+              "properties": {
+                "value": "[parameters('secretValue')]"
+              }
+            }
+          ],
+          "outputs": {
+            "secretName": {
+              "type": "string",
+              "value": "[parameters('secretName')]"
+            },
+            "secretUri": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('secretName')), '2023-07-01').secretUri]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "coreSql",
+        "keyVault"
+      ]
+    },
+    "labMarkersDataDbConnectionSecret": {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "lab-markers-data-db-connection-secret",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "keyVaultName": {
+            "value": "[reference('keyVault').outputs.keyVaultName.value]"
+          },
+          "secretName": {
+            "value": "lab-markers-data-db-connection-string"
+          },
+          "secretValue": {
+            "value": "[format('Server=tcp:{0},1433;Initial Catalog=LabMarkersData;Persist Security Info=False;User ID={1};Password={2};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;', reference('coreSql').outputs.serverFqdn.value, parameters('sqlAdministratorLogin'), parameters('sqlAdministratorPassword'))]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.44.1.10279",
+              "templateHash": "13873121172465225906"
+            }
+          },
+          "parameters": {
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the existing Key Vault."
+              }
+            },
+            "secretName": {
+              "type": "string",
+              "metadata": {
+                "description": "Secret name (Key Vault secret identifier)."
+              }
+            },
+            "secretValue": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Secret value to store."
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2023-07-01",
+              "name": "[format('{0}/{1}', parameters('keyVaultName'), parameters('secretName'))]",
+              "properties": {
+                "value": "[parameters('secretValue')]"
+              }
+            }
+          ],
+          "outputs": {
+            "secretName": {
+              "type": "string",
+              "value": "[parameters('secretName')]"
+            },
+            "secretUri": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('secretName')), '2023-07-01').secretUri]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "coreSql",
+        "keyVault"
+      ]
+    },
+    "patientHealthDbConnectionSecret": {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "patient-health-db-connection-secret",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "keyVaultName": {
+            "value": "[reference('keyVault').outputs.keyVaultName.value]"
+          },
+          "secretName": {
+            "value": "patient-health-db-connection-string"
+          },
+          "secretValue": {
+            "value": "[format('Server=tcp:{0},1433;Initial Catalog=PatientHealth;Persist Security Info=False;User ID={1};Password={2};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;', reference('phiSql').outputs.serverFqdn.value, parameters('sqlAdministratorLogin'), parameters('sqlAdministratorPassword'))]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.44.1.10279",
+              "templateHash": "13873121172465225906"
+            }
+          },
+          "parameters": {
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the existing Key Vault."
+              }
+            },
+            "secretName": {
+              "type": "string",
+              "metadata": {
+                "description": "Secret name (Key Vault secret identifier)."
+              }
+            },
+            "secretValue": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Secret value to store."
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2023-07-01",
+              "name": "[format('{0}/{1}', parameters('keyVaultName'), parameters('secretName'))]",
+              "properties": {
+                "value": "[parameters('secretValue')]"
+              }
+            }
+          ],
+          "outputs": {
+            "secretName": {
+              "type": "string",
+              "value": "[parameters('secretName')]"
+            },
+            "secretUri": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('secretName')), '2023-07-01').secretUri]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "keyVault",
+        "phiSql"
+      ]
+    },
     "daprPubSub": {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
@@ -2836,6 +3172,18 @@
     "serviceBusConnectionSecretName": {
       "type": "string",
       "value": "[reference('serviceBusConnectionSecret').outputs.secretName.value]"
+    },
+    "accountsDbConnectionSecretName": {
+      "type": "string",
+      "value": "[reference('accountsDbConnectionSecret').outputs.secretName.value]"
+    },
+    "labMarkersDataDbConnectionSecretName": {
+      "type": "string",
+      "value": "[reference('labMarkersDataDbConnectionSecret').outputs.secretName.value]"
+    },
+    "patientHealthDbConnectionSecretName": {
+      "type": "string",
+      "value": "[reference('patientHealthDbConnectionSecret').outputs.secretName.value]"
     },
     "daprPubSubComponentName": {
       "type": "string",

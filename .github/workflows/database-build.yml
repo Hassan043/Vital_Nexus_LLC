@@ -1,0 +1,38 @@
+name: CI / Database Build
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  pull_request:
+    branches:
+      - dev
+      - main
+
+env:
+  DACPAC_OUTPUT_DIR: database/artifacts/dacpacs
+
+jobs:
+  build:
+    name: Build SQL Database Projects
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Generate DACPAC artifacts
+        run: bash database/scripts/build-dacpacs.sh "${{ env.DACPAC_OUTPUT_DIR }}"
+
+      - name: Upload DACPAC artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitalnexus-database-dacpacs
+          path: ${{ env.DACPAC_OUTPUT_DIR }}
+          if-no-files-found: error
