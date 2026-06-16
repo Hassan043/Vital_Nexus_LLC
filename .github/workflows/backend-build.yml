@@ -20,12 +20,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore backend dependencies
-        run: dotnet restore backend/src/Api/VitalNexus.Api/VitalNexus.Api.csproj
+      - name: Restore backend solution
+        run: dotnet restore backend/VitalNexus.sln
 
-      - name: Build backend
-        run: dotnet build backend/src/Api/VitalNexus.Api/VitalNexus.Api.csproj --configuration Release --no-restore
+      - name: Build backend solution
+        run: dotnet build backend/VitalNexus.sln --configuration Release --no-restore

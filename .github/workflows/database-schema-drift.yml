@@ -16,6 +16,10 @@ on:
         required: false
         type: string
         default: PatientHealth
+      confirm_production_deploy:
+        description: Required for prod — type "approve-prod-db" to confirm production schema drift check
+        required: false
+        type: string
       dacpac_workflow_run_id:
         description: Optional workflow run ID to compare pre-built DACPAC artifacts (leave empty to build from source)
         required: false
@@ -43,6 +47,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Enforce production approval gate
+        uses: ./.github/actions/database-prod-approval-gate
+        with:
+          environment: ${{ github.event.inputs.environment }}
+          confirm_production_deploy: ${{ github.event.inputs.confirm_production_deploy }}
 
       - name: Download pre-built DACPAC artifacts
         if: github.event.inputs.dacpac_workflow_run_id != ''
