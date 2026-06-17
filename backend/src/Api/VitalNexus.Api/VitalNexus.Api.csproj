@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\VitalNexus.Application\VitalNexus.Application.csproj" />
+    <ProjectReference Include="..\..\Core\VitalNexus.Contracts\VitalNexus.Contracts.csproj" />
     <ProjectReference Include="..\..\Infrastructure\VitalNexus.Infrastructure\VitalNexus.Infrastructure.csproj" />
   </ItemGroup>
 
