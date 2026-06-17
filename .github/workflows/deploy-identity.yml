@@ -1,0 +1,90 @@
+name: Deploy Identity (Entra External ID Tenant)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment for Entra External ID tenant deployment
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+      key_vault_name:
+        description: Optional Key Vault name to store b2c-tenant-domain secret
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Entra External ID tenant to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set Azure subscription
+        run: az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Ensure resource group exists
+        env:
+          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+        run: |
+          set -euo pipefail
+          rg="rg-vitalnexus-${{ github.event.inputs.environment }}"
+          location="${AZURE_LOCATION:-eastus}"
+          if ! az group show --name "$rg" >/dev/null 2>&1; then
+            echo "Creating resource group $rg in $location"
+            az group create --name "$rg" --location "$location"
+          else
+            echo "Resource group $rg already exists"
+          fi
+
+      - name: Deploy Entra External ID tenant
+        run: |
+          set -euo pipefail
+
+          envFile="infra/identity/main.${{ github.event.inputs.environment }}.bicepparam"
+          if [ ! -f "$envFile" ]; then
+            echo "Parameter file $envFile not found"
+            exit 1
+          fi
+
+          rg="rg-vitalnexus-${{ github.event.inputs.environment }}"
+          kvName="${{ github.event.inputs.key_vault_name }}"
+
+          if [ -n "$kvName" ]; then
+            az deployment group create \
+              --resource-group "$rg" \
+              --template-file infra/identity/main.bicep \
+              --parameters "$envFile" \
+              --parameters keyVaultName="$kvName"
+          else
+            az deployment group create \
+              --resource-group "$rg" \
+              --template-file infra/identity/main.bicep \
+              --parameters "$envFile"
+          fi
+
+      - name: Show deployment outputs
+        run: |
+          set -euo pipefail
+          rg="rg-vitalnexus-${{ github.event.inputs.environment }}"
+          az deployment group show \
+            --resource-group "$rg" \
+            --name main \
+            --query properties.outputs \
+            -o json
