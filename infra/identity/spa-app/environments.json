@@ -1,0 +1,23 @@
+{
+  "dev": {
+    "displayName": "VitalNexus Frontend Dev",
+    "redirectUris": [
+      "http://localhost:5173/"
+    ],
+    "resolveDeployedFrontendUri": true
+  },
+  "test": {
+    "displayName": "VitalNexus Frontend Test",
+    "redirectUris": [
+      "http://localhost:5173/"
+    ],
+    "resolveDeployedFrontendUri": true
+  },
+  "prod": {
+    "displayName": "VitalNexus Frontend",
+    "redirectUris": [
+      "https://app.vitalnexus.com/"
+    ],
+    "resolveDeployedFrontendUri": false
+  }
+}

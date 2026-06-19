@@ -35,6 +35,7 @@ Each environment has its own **Microsoft Entra External ID external tenant** dep
 | Key Vault secret (optional) | Purpose |
 |-----------------------------|---------|
 | `b2c-tenant-domain` | Tenant domain (`<prefix>.onmicrosoft.com`) |
+| `b2c-spa-client-id` | React frontend SPA application (client) ID (F3.T1.2) |
 
 The B2C tenant GUID is not returned by the Bicep resource type. After deploy, resolve it with:
 
@@ -48,6 +49,8 @@ Store the resolved tenant ID in Key Vault manually or in F3.T1.5 application con
 
 Deploy with [`.github/workflows/deploy-identity.yml`](../../.github/workflows/deploy-identity.yml). Pass the environment Key Vault name to persist tenant metadata after core infra exists.
 
+Register the React frontend SPA app with [`.github/workflows/configure-b2c-spa-app.yml`](../../.github/workflows/configure-b2c-spa-app.yml) or [`scripts/register-b2c-spa-app.ps1`](../../scripts/register-b2c-spa-app.ps1). See [`infra/identity/spa-app/README.md`](../identity/spa-app/README.md).
+
 **Never store user passwords, MFA secrets, or refresh tokens in VitalNexus databases.** Authentication is delegated to Microsoft Entra External ID.
 
 ## GitHub Environment secrets
@@ -60,6 +63,10 @@ Configure **separate secrets for each GitHub Environment** (`dev`, `test`, `prod
 | `SQL_ADMIN_LOGIN` | Per environment (optional) | Defaults to `vnxadmin` in Bicepparam if omitted |
 | `AZURE_CREDENTIALS` | Per environment or repo | Service principal JSON for deployment |
 | `AZURE_SUBSCRIPTION_ID` | Per environment or repo | Target subscription |
+| `B2C_TENANT_ID` | Per environment | Entra External ID tenant GUID |
+| `B2C_MANAGEMENT_CLIENT_ID` | Per environment | Graph management app client ID |
+| `B2C_MANAGEMENT_CLIENT_SECRET` | Per environment | Graph management app client secret |
+| `B2C_SPA_CLIENT_ID` | Per environment | React frontend SPA client ID (output of F3.T1.2) |
 
 The deploy workflow (`.github/workflows/deploy-infra.yml`) runs in the selected GitHub Environment and passes `SQL_ADMIN_LOGIN` / `SQL_ADMIN_PASSWORD` into Bicep at deploy time.
 
@@ -71,5 +78,6 @@ After deploying an environment, confirm isolation:
 2. SQL servers in the resource group match the `<env>` suffix.
 3. API Container App environment variables reference connection strings via Key Vault secret refs, not plain-text values.
 4. Entra External ID tenant domain and tenant ID match the environment's `infra/identity/main.<env>.bicepparam` deployment outputs.
+5. SPA app registration exists with required redirect URIs (`scripts/verify-b2c-spa-app.ps1`).
 
 See [`README.md`](README.md) for environment overview and deploy steps.
