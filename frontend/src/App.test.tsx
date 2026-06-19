@@ -1,20 +1,15 @@
-import { describe, expect, it } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { render, screen } from '@testing-library/react'
 import App from './App'
 
 describe('App', () => {
-  it('renders the get started heading', () => {
+  it('shows Entra configuration instructions when MSAL env vars are missing', () => {
+    vi.stubEnv('VITE_B2C_CLIENT_ID', '')
+    vi.stubEnv('VITE_B2C_TENANT_ID', '')
+
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: 'Get started' })).toBeTruthy()
-  })
-
-  it('increments the counter when the button is clicked', () => {
-    render(<App />)
-
-    const button = screen.getByRole('button', { name: /count is 0/i })
-    fireEvent.click(button)
-
-    expect(screen.getByRole('button', { name: /count is 1/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Configure Entra External ID' })).toBeTruthy()
+    expect(screen.getByText(/VITE_B2C_CLIENT_ID/i)).toBeTruthy()
   })
 })

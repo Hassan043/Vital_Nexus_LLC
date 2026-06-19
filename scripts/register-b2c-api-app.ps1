@@ -187,13 +187,16 @@ if ($null -ne $existingApiApp) {
     $objectId = $existingApiApp.id
     $clientId = $existingApiApp.appId
     Write-Host "Updating existing API registration: $displayName"
+    Invoke-B2cGraphApi -AccessToken $accessToken -Method Patch -Path "applications/$objectId" -Body @{
+        signInAudience = 'AzureADMyOrg'
+    } -ApiVersion v1.0 | Out-Null
     Set-ApiApplicationConfiguration -ObjectId $objectId -IdentifierUris @($applicationIdUri) -Scopes $oauth2PermissionScopes -ExistingIdentifierUris $existingIdentifierUris
 }
 else {
     Write-Host "Creating API registration: $displayName"
     $created = Invoke-B2cGraphApi -AccessToken $accessToken -Method Post -Path 'applications' -Body @{
         displayName    = $displayName
-        signInAudience = 'AzureADandPersonalMicrosoftAccount'
+        signInAudience = 'AzureADMyOrg'
     } -ApiVersion v1.0
 
     $objectId = $created.id
