@@ -1,27 +1,74 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi.Models;
+using VitalNexus.Api.Configuration;
+using VitalNexus.Infrastructure.Configuration;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-// Application Insights baseline. No-ops locally until APPLICATIONINSIGHTS_CONNECTION_STRING
-// (or ApplicationInsights:ConnectionString) is configured in Azure.
-// IMPORTANT: never log PHI, raw lab values, AI prompts/responses, or clinical notes to telemetry.
+var entraOptions = builder.Configuration.BindEntraExternalIdOptions();
+if (entraOptions.IsConfigured)
+{
+    builder.Services.AddEntraExternalIdAuthentication(entraOptions);
+    builder.Services.AddVitalNexusCors(entraOptions);
+}
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "VitalNexus API", Version = "v1" });
+
+    if (entraOptions.IsConfigured)
+    {
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "Entra External ID access token. Scope: access_as_user",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = JwtBearerDefaults.AuthenticationScheme,
+            BearerFormat = "JWT",
+        });
+
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer",
+                    },
+                },
+                Array.Empty<string>()
+            },
+        });
+    }
+});
+
 builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+if (entraOptions.IsConfigured && entraOptions.AllowedOrigins.Length > 0)
+{
+    app.UseCors("Spa");
+}
+
 app.UseHttpsRedirection();
+
+if (entraOptions.IsConfigured)
+{
+    app.UseAuthentication();
+}
 
 app.UseAuthorization();
 

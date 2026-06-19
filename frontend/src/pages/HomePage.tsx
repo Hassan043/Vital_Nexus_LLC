@@ -1,39 +1,92 @@
-import { SignInButton } from '../components/SignInButton'
+import { useEffect, useState } from 'react'
 import { SignOutButton } from '../components/SignOutButton'
 import { WelcomeUser } from '../components/WelcomeUser'
+import { AppLayout } from '../components/AppLayout'
 import { useVitalNexusAuth } from '../auth/useVitalNexusAuth'
+import { useApiClient } from '../api/useApiClient'
+import { getCurrentAccount, type AccountProfile } from '../api/accountApi'
+import { ApiError } from '../api/apiClient'
+import { getApiBaseUrl } from '../api/config'
 
 export function HomePage() {
-  const { account, isAuthenticated, isLoading } = useVitalNexusAuth()
+  const { account, isLoading } = useVitalNexusAuth()
+  const api = useApiClient()
+  const [profile, setProfile] = useState<AccountProfile | null>(null)
+  const [apiError, setApiError] = useState('')
+  const [apiLoading, setApiLoading] = useState(false)
+
+  useEffect(() => {
+    if (!account) {
+      setProfile(null)
+      setApiError('')
+      return
+    }
+
+    let cancelled = false
+    setApiLoading(true)
+    setApiError('')
+
+    getCurrentAccount(api)
+      .then((result) => {
+        if (!cancelled) {
+          setProfile(result)
+        }
+      })
+      .catch((error: unknown) => {
+        if (cancelled) {
+          return
+        }
+
+        if (error instanceof ApiError) {
+          setApiError(`API ${error.status}: ${error.body || error.message}`)
+          return
+        }
+
+        setApiError(error instanceof Error ? error.message : 'API request failed.')
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setApiLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [account, api])
 
   return (
-    <main className="app-shell">
-      <header className="app-header">
-        <div>
-          <p className="eyebrow">VitalNexus</p>
-          <h1>Functional medicine lab intelligence</h1>
-          <p className="lede">
-            Customer sign-in is handled by Microsoft Entra External ID. VitalNexus does not store
-            passwords or MFA secrets.
-          </p>
-        </div>
-      </header>
+    <AppLayout showAuthLinks={false}>
+      <div className="flow-header">
+        <p className="eyebrow">Clinic workspace</p>
+        <h1>Functional medicine lab intelligence</h1>
+        <p className="lede">Your VitalNexus account is ready. More product features will appear here.</p>
+      </div>
 
       <section className="auth-panel" aria-live="polite">
         {isLoading ? (
-          <p className="auth-status">Completing sign-in…</p>
-        ) : isAuthenticated && account ? (
+          <p className="auth-status">Loading your session…</p>
+        ) : account ? (
           <>
             <WelcomeUser account={account} />
+            <div className="api-status">
+              <p className="welcome-label">Authenticated API</p>
+              {apiLoading ? (
+                <p className="auth-status">Calling {getApiBaseUrl()}/api/me…</p>
+              ) : profile ? (
+                <>
+                  <p className="auth-status">API confirmed your access token.</p>
+                  <p className="welcome-email">API scopes: {profile.scopes ?? 'none'}</p>
+                </>
+              ) : null}
+              {apiError ? <p className="field-error">{apiError}</p> : null}
+            </div>
             <SignOutButton />
           </>
         ) : (
-          <>
-            <p className="auth-status">Sign in to continue to your clinic workspace.</p>
-            <SignInButton />
-          </>
+          <p className="auth-status">No active session.</p>
         )}
       </section>
-    </main>
+    </AppLayout>
   )
 }
