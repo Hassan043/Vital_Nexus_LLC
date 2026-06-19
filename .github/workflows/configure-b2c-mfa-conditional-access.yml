@@ -1,0 +1,69 @@
+name: Configure B2C MFA Conditional Access
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment for customer MFA Conditional Access
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+      report_only:
+        description: Create/update policy as disabled (report-only)
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  configure:
+    name: Configure MFA (${{ github.event.inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure MFA Conditional Access
+        shell: pwsh
+        env:
+          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
+          B2C_MANAGEMENT_CLIENT_ID: ${{ secrets.B2C_MANAGEMENT_CLIENT_ID }}
+          B2C_MANAGEMENT_CLIENT_SECRET: ${{ secrets.B2C_MANAGEMENT_CLIENT_SECRET }}
+          B2C_SPA_CLIENT_ID: ${{ secrets.B2C_SPA_CLIENT_ID }}
+        run: |
+          if (-not $env:B2C_TENANT_ID -or -not $env:B2C_MANAGEMENT_CLIENT_ID -or -not $env:B2C_MANAGEMENT_CLIENT_SECRET) {
+            throw 'Configure B2C_TENANT_ID, B2C_MANAGEMENT_CLIENT_ID, and B2C_MANAGEMENT_CLIENT_SECRET in the GitHub Environment secrets.'
+          }
+          if (-not $env:B2C_SPA_CLIENT_ID) {
+            throw 'Configure B2C_SPA_CLIENT_ID in the GitHub Environment secrets.'
+          }
+
+          $args = @('-Environment', '${{ github.event.inputs.environment }}')
+          if ('${{ github.event.inputs.report_only }}' -eq 'true') {
+            $args += '-ReportOnly'
+          }
+
+          ./scripts/configure-b2c-mfa-conditional-access.ps1 @args
+
+      - name: Verify MFA Conditional Access
+        shell: pwsh
+        env:
+          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
+          B2C_MANAGEMENT_CLIENT_ID: ${{ secrets.B2C_MANAGEMENT_CLIENT_ID }}
+          B2C_MANAGEMENT_CLIENT_SECRET: ${{ secrets.B2C_MANAGEMENT_CLIENT_SECRET }}
+          B2C_SPA_CLIENT_ID: ${{ secrets.B2C_SPA_CLIENT_ID }}
+        run: |
+          $verifyArgs = @('-Environment', '${{ github.event.inputs.environment }}')
+          if ('${{ github.event.inputs.report_only }}' -eq 'true') {
+            $verifyArgs += '-AllowDisabledPolicy'
+          }
+
+          ./scripts/verify-b2c-mfa-conditional-access.ps1 @verifyArgs

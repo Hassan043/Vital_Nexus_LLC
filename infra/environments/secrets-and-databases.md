@@ -63,6 +63,8 @@ Configure branded authentication pages with [`.github/workflows/configure-b2c-au
 
 Configure customer password recovery with [`.github/workflows/configure-b2c-password-recovery.yml`](../../.github/workflows/configure-b2c-password-recovery.yml) or [`scripts/configure-b2c-password-recovery.ps1`](../../scripts/configure-b2c-password-recovery.ps1). See [`infra/identity/password-recovery/README.md`](../identity/password-recovery/README.md).
 
+Configure customer MFA with [`.github/workflows/configure-b2c-mfa-conditional-access.yml`](../../.github/workflows/configure-b2c-mfa-conditional-access.yml) or [`scripts/configure-b2c-mfa-conditional-access.ps1`](../../scripts/configure-b2c-mfa-conditional-access.ps1). See [`infra/identity/mfa/README.md`](../identity/mfa/README.md).
+
 **Never store user passwords, MFA secrets, or refresh tokens in VitalNexus databases.** Authentication is delegated to Microsoft Entra External ID.
 
 ## GitHub Environment secrets

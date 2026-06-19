@@ -5,7 +5,7 @@
 #   $env:B2C_TENANT_ID = '<tenant-guid>'
 #   $env:B2C_MANAGEMENT_CLIENT_ID = '<management-app-client-id>'
 #   $env:B2C_MANAGEMENT_CLIENT_SECRET = '<management-app-secret>'
-#   $env:B2C_SPA_CLIENT_ID = '<spa-client-id>'   # optional; links SPA app to CIAM flow
+#   $env:B2C_SPA_CLIENT_ID = '<spa-client-id>'   # links SPA app to CIAM user flow (required for dev CIAM)
 #   .\scripts\configure-b2c-signup-signin-flow.ps1 -Environment dev
 
 param(
@@ -47,6 +47,17 @@ Write-Host "User flow:    $userFlowDisplayName"
 Write-Host ''
 
 $accessToken = Get-B2cGraphAccessToken -TenantId $TenantId -ClientId $ManagementClientId -ClientSecret $ManagementClientSecret
+
+if ($tenantKind -eq 'ciam') {
+    $SpaClientId = Resolve-B2cSpaClientId `
+        -AccessToken $accessToken `
+        -Environment $Environment `
+        -SpaClientId $SpaClientId `
+        -ManagementClientId $ManagementClientId `
+        -RepoRoot $repoRoot
+    Write-Host "SPA client ID:  $SpaClientId"
+    Write-Host ''
+}
 
 if ($tenantKind -eq 'ciam') {
     $flow = New-CiamUserFlowIfMissing -AccessToken $accessToken -DisplayName $userFlowDisplayName -SpaClientId $SpaClientId

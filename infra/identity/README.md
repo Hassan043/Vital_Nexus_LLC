@@ -11,13 +11,14 @@ Each deployment environment (`dev`, `test`, `prod`) owns a **dedicated external 
 | `Microsoft.AzureActiveDirectory/b2cDirectories` | Environment-specific external tenant |
 | Key Vault secrets (optional) | `b2c-tenant-domain` |
 
-User flows, MFA policies, and additional app configuration are configured in follow-on issues (F3.T1.7+). App registrations, user flows, branding, and password recovery:
+User flows and additional app configuration are configured in follow-on issues (F3.T1.8+). App registrations, user flows, branding, password recovery, and MFA:
 
 - **F3.T1.2** — React frontend SPA — [`spa-app/README.md`](spa-app/README.md)
 - **F3.T1.3** — Backend API and scopes — [`api-app/README.md`](api-app/README.md)
 - **F3.T1.4** — Customer sign-up/sign-in user flow — [`user-flows/README.md`](user-flows/README.md)
 - **F3.T1.5** — Branded authentication experience — [`branding/README.md`](branding/README.md)
 - **F3.T1.6** — Password recovery (SSPR) — [`password-recovery/README.md`](password-recovery/README.md)
+- **F3.T1.7** — MFA via Conditional Access — [`mfa/README.md`](mfa/README.md)
 
 ## Prerequisites
 
@@ -91,6 +92,7 @@ After the tenant resource exists:
 6. Proceed to **F3.T1.4** (customer sign-up/sign-in user flow) — [`user-flows/README.md`](user-flows/README.md).
 7. Proceed to **F3.T1.5** (branded authentication experience) — [`branding/README.md`](branding/README.md).
 8. Proceed to **F3.T1.6** (password recovery) — [`password-recovery/README.md`](password-recovery/README.md).
+9. Proceed to **F3.T1.7** (MFA via Conditional Access) — [`mfa/README.md`](mfa/README.md).
 
 ## Limitations
 

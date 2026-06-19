@@ -86,7 +86,7 @@ Per-environment settings are in [`environments.json`](environments.json).
 
 | `B2C_MANAGEMENT_CLIENT_SECRET` | Management app secret |
 
-| `B2C_SPA_CLIENT_ID` | Optional; links SPA app to CIAM flow on create |
+| `B2C_SPA_CLIENT_ID` | **Required for CIAM** — links VitalNexus Frontend to the user flow |
 
 
 
@@ -102,7 +102,7 @@ $env:B2C_MANAGEMENT_CLIENT_ID = '<management-app-client-id>'
 
 $env:B2C_MANAGEMENT_CLIENT_SECRET = '<management-app-secret>'
 
-$env:B2C_SPA_CLIENT_ID = '<spa-client-id>'   # optional for CIAM
+$env:B2C_SPA_CLIENT_ID = '<spa-client-id>'   # required for CIAM (links Frontend app)
 
 
 
@@ -112,7 +112,7 @@ $env:B2C_SPA_CLIENT_ID = '<spa-client-id>'   # optional for CIAM
 
 
 
-The script is **idempotent**: it creates the user flow if missing. Legacy B2C tenants also enable English language customization.
+The script is **idempotent**: it creates the user flow if missing and **links the SPA app** to the flow (CIAM). Re-run after F3.T1.2 if the flow was created before the SPA existed. Legacy B2C tenants also enable English language customization.
 
 
 
@@ -180,7 +180,7 @@ Manual dispatch → select environment. Requires B2C management secrets in that 
 
 3. Name: `VitalNexus Dev Sign Up Sign In` → identity provider **Email with password**
 
-4. **Create** → optionally assign the VitalNexus Frontend app
+4. **Create** → assign **VitalNexus Frontend Dev** under Applications (or re-run the configure script to link via Graph)
 
 5. Optional: **Company branding** and page layout customization
 
@@ -222,7 +222,9 @@ Manual dispatch → select environment. Requires B2C management secrets in that 
 
 - **F3.T1.6** — Password recovery — [`../password-recovery/README.md`](../password-recovery/README.md)
 
-- **F3.T1.7+** — MFA, environment settings / Key Vault sync
+- **F3.T1.7** — MFA via Conditional Access — [`../mfa/README.md`](../mfa/README.md)
+
+- **F3.T1.8+** — environment settings / Key Vault sync
 
 - **F3.T2.x** — MSAL frontend and backend JWT validation targeting this user flow
 

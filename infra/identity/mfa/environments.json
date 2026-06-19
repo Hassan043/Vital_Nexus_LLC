@@ -1,0 +1,26 @@
+{
+  "dev": {
+    "conditionalAccessPolicyDisplayName": "VitalNexus Dev Require MFA",
+    "policyState": "enabled",
+    "emailOtpMethod": "enabled",
+    "targetSpaApplication": true,
+    "includeAllUsers": true,
+    "grantBuiltInControls": ["mfa"]
+  },
+  "test": {
+    "conditionalAccessPolicyDisplayName": "VitalNexus Test Require MFA",
+    "policyState": "enabled",
+    "emailOtpMethod": "enabled",
+    "targetSpaApplication": true,
+    "includeAllUsers": true,
+    "grantBuiltInControls": ["mfa"]
+  },
+  "prod": {
+    "conditionalAccessPolicyDisplayName": "VitalNexus Require MFA",
+    "policyState": "enabled",
+    "emailOtpMethod": "enabled",
+    "targetSpaApplication": true,
+    "includeAllUsers": true,
+    "grantBuiltInControls": ["mfa"]
+  }
+}

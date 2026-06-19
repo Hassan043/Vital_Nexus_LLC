@@ -53,6 +53,18 @@ function Invoke-B2cGraphApi {
         if ($null -ne $response) {
             $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
             $details = $reader.ReadToEnd()
+            if ($details -match 'Authorization_RequestDenied|AccessDenied|accessDenied' -and $Path -match 'conditionalAccess') {
+                throw @"
+Graph API $Method $Path failed: insufficient privileges for Conditional Access.
+In vitalnexusexternal: App registrations -> VitalNexus B2C Management Dev -> API permissions -> add ALL THREE application permissions, then Grant admin consent:
+  - Policy.Read.All
+  - Policy.ReadWrite.ConditionalAccess
+  - Application.Read.All
+Microsoft requires all three for app-only Conditional Access read/write. Wait 2-5 minutes after consent, then re-run.
+Details: $details
+"@
+            }
+
             if ($details -match 'Authorization_RequestDenied|accessDenied' -and $Path -match 'authenticationMethodsPolicy') {
                 throw @"
 Graph API $Method $Path failed: insufficient privileges.
@@ -65,6 +77,16 @@ Details: $details
                 throw @"
 Graph API $Method $Path failed: insufficient privileges.
 In the EXTERNAL tenant: add OrganizationalBranding.ReadWrite.All (application) to the management app and grant admin consent.
+Details: $details
+"@
+            }
+
+            if ($details -match 'Security Defaults is enabled') {
+                throw @"
+Graph API $Method $Path failed: Security Defaults is enabled in this tenant.
+Conditional Access policies cannot be created until Security Defaults is disabled.
+Re-run configure script (it disables Security Defaults automatically), or in Entra portal:
+  Entra ID -> Properties -> Manage security defaults -> Disabled
 Details: $details
 "@
             }
@@ -114,6 +136,83 @@ function Get-CiamUserFlowByDisplayName {
     return $flows | Where-Object { $_.displayName -eq $DisplayName } | Select-Object -First 1
 }
 
+function Get-CiamUserFlowById {
+    param(
+        [string]$AccessToken,
+        [string]$FlowId
+    )
+
+    return Invoke-B2cGraphApi -AccessToken $AccessToken -Method Get -Path "identity/authenticationEventsFlows/$FlowId" -ApiVersion v1.0
+}
+
+function Get-CiamUserFlowLinkedAppIds {
+    param(
+        [string]$AccessToken,
+        [string]$FlowId
+    )
+
+    $flow = Get-CiamUserFlowById -AccessToken $AccessToken -FlowId $FlowId
+    $linkedApps = @()
+    if ($null -ne $flow.conditions -and $null -ne $flow.conditions.applications -and $null -ne $flow.conditions.applications.includeApplications) {
+        $linkedApps = @($flow.conditions.applications.includeApplications | ForEach-Object { $_.appId })
+    }
+
+    return @($linkedApps | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+}
+
+function Add-CiamUserFlowIncludeApplication {
+    param(
+        [string]$AccessToken,
+        [string]$FlowId,
+        [string]$SpaClientId
+    )
+
+    $body = @{
+        '@odata.type' = '#microsoft.graph.authenticationConditionApplication'
+        appId         = $SpaClientId.Trim()
+    }
+
+    try {
+        Invoke-B2cGraphApi -AccessToken $AccessToken -Method Post -Path "identity/authenticationEventsFlows/$FlowId/conditions/applications/includeApplications" -Body $body -ApiVersion v1.0 | Out-Null
+        return $true
+    }
+    catch {
+        if ($_.Exception.Message -match 'already exists|ObjectConflict|conflict') {
+            return $false
+        }
+
+        throw
+    }
+}
+
+function Ensure-CiamUserFlowSpaLink {
+    param(
+        [string]$AccessToken,
+        [string]$FlowId,
+        [string]$DisplayName,
+        [string]$SpaClientId
+    )
+
+    if ([string]::IsNullOrWhiteSpace($SpaClientId)) {
+        throw 'B2C_SPA_CLIENT_ID is required to link the VitalNexus Frontend app to the CIAM user flow.'
+    }
+
+    $linkedAppIds = Get-CiamUserFlowLinkedAppIds -AccessToken $AccessToken -FlowId $FlowId
+    if ($linkedAppIds -contains $SpaClientId.Trim()) {
+        Write-Host "SPA already linked to user flow: $DisplayName ($FlowId)"
+        return
+    }
+
+    Write-Host "Linking SPA $SpaClientId to user flow: $DisplayName ($FlowId)"
+    $added = Add-CiamUserFlowIncludeApplication -AccessToken $AccessToken -FlowId $FlowId -SpaClientId $SpaClientId
+    if ($added) {
+        Write-Host 'SPA linked to user flow.' -ForegroundColor Green
+    }
+    else {
+        Write-Host 'SPA link already present (Graph reported conflict).' -ForegroundColor Green
+    }
+}
+
 function New-CiamUserFlowIfMissing {
     param(
         [string]$AccessToken,
@@ -124,6 +223,9 @@ function New-CiamUserFlowIfMissing {
     $existing = Get-CiamUserFlowByDisplayName -AccessToken $AccessToken -DisplayName $DisplayName
     if ($null -ne $existing) {
         Write-Host "User flow already exists: $DisplayName ($($existing.id))"
+        if (-not [string]::IsNullOrWhiteSpace($SpaClientId)) {
+            Ensure-CiamUserFlowSpaLink -AccessToken $AccessToken -FlowId $existing.id -DisplayName $DisplayName -SpaClientId $SpaClientId
+        }
         return $existing
     }
 
@@ -155,6 +257,9 @@ function New-CiamUserFlowIfMissing {
     Write-Host "Creating CIAM user flow: $DisplayName"
     $created = Invoke-B2cGraphApi -AccessToken $AccessToken -Method Post -Path 'identity/authenticationEventsFlows' -Body $flowBody -ApiVersion v1.0
     Write-Host "Created CIAM user flow: $DisplayName ($($created.id))"
+    if (-not [string]::IsNullOrWhiteSpace($SpaClientId)) {
+        Ensure-CiamUserFlowSpaLink -AccessToken $AccessToken -FlowId $created.id -DisplayName $DisplayName -SpaClientId $SpaClientId
+    }
     return $created
 }
 
@@ -440,6 +545,63 @@ function Set-B2cUserFlowLanguageOverridePageContent {
     Invoke-B2cGraphApi -AccessToken $AccessToken -Method Patch -Path "identity/b2cUserFlows/$UserFlowId/languages/$LanguageId/overridesPages/$PageId" -Body $body -ApiVersion beta | Out-Null
 }
 
+function Get-B2cApplicationByDisplayName {
+    param(
+        [string]$AccessToken,
+        [string]$DisplayName,
+        [string]$ExcludeAppId = ''
+    )
+
+    $filter = [uri]::EscapeDataString("displayName eq '$DisplayName'")
+    $existingApps = Invoke-B2cGraphApi -AccessToken $AccessToken -Method Get -Path "applications?`$filter=$filter" -ApiVersion v1.0
+    $apps = @($existingApps.value)
+
+    if (-not [string]::IsNullOrWhiteSpace($ExcludeAppId)) {
+        $apps = @($apps | Where-Object { $_.appId -ne $ExcludeAppId.Trim() })
+    }
+
+    return $apps | Select-Object -First 1
+}
+
+function Resolve-B2cSpaClientId {
+    param(
+        [string]$AccessToken,
+        [string]$Environment,
+        [string]$SpaClientId = '',
+        [string]$ManagementClientId = '',
+        [string]$RepoRoot = ''
+    )
+
+    $SpaClientId = $SpaClientId.Trim()
+    if (-not [string]::IsNullOrWhiteSpace($SpaClientId)) {
+        return $SpaClientId
+    }
+
+    if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
+        throw @"
+B2C_SPA_CLIENT_ID is not set.
+Add to .env from your F3.T1.2 VitalNexus Frontend app registration (Application client ID), reload env, and re-run.
+"@
+    }
+
+    $spaConfigPath = Join-Path $RepoRoot 'infra/identity/spa-app/environments.json'
+    $spaConfig = (Get-Content $spaConfigPath -Raw | ConvertFrom-Json).$Environment
+    $displayName = $spaConfig.displayName
+
+    Write-Host "B2C_SPA_CLIENT_ID not set; resolving SPA app by display name: $displayName"
+    $spaApp = Get-B2cApplicationByDisplayName -AccessToken $AccessToken -DisplayName $displayName -ExcludeAppId $ManagementClientId
+
+    if ($null -eq $spaApp -or [string]::IsNullOrWhiteSpace($spaApp.appId)) {
+        throw @"
+Could not resolve SPA client ID for '$displayName'.
+Set B2C_SPA_CLIENT_ID in .env or run .\scripts\register-b2c-spa-app.ps1 -Environment $Environment first.
+"@
+    }
+
+    Write-Host "Resolved SPA client ID: $($spaApp.appId)"
+    return [string]$spaApp.appId
+}
+
 function Get-EmailOtpAuthenticationMethodConfiguration {
     param(
         [string]$AccessToken
@@ -448,16 +610,17 @@ function Get-EmailOtpAuthenticationMethodConfiguration {
     return Invoke-B2cGraphApi -AccessToken $AccessToken -Method Get -Path 'policies/authenticationMethodsPolicy/authenticationMethodConfigurations/email' -ApiVersion v1.0
 }
 
-function Enable-ExternalIdEmailOtpForPasswordReset {
+function Enable-ExternalIdEmailOtpAuthenticationMethod {
     param(
-        [string]$AccessToken
+        [string]$AccessToken,
+        [string]$Purpose = 'authentication and MFA'
     )
 
     $body = @{
-        '@odata.type'               = '#microsoft.graph.emailAuthenticationMethodConfiguration'
-        state                       = 'enabled'
+        '@odata.type'                = '#microsoft.graph.emailAuthenticationMethodConfiguration'
+        state                        = 'enabled'
         allowExternalIdToUseEmailOtp = 'enabled'
-        includeTargets              = @(
+        includeTargets               = @(
             @{
                 targetType = 'group'
                 id         = 'all_users'
@@ -465,8 +628,24 @@ function Enable-ExternalIdEmailOtpForPasswordReset {
         )
     }
 
-    Write-Host 'Enabling Email OTP authentication method for password recovery...'
+    Write-Host "Enabling Email OTP authentication method for $Purpose..."
     Invoke-B2cGraphApi -AccessToken $AccessToken -Method Patch -Path 'policies/authenticationMethodsPolicy/authenticationMethodConfigurations/email' -Body $body -ApiVersion v1.0 | Out-Null
+}
+
+function Enable-ExternalIdEmailOtpForPasswordRecovery {
+    param(
+        [string]$AccessToken
+    )
+
+    Enable-ExternalIdEmailOtpAuthenticationMethod -AccessToken $AccessToken -Purpose 'password recovery and MFA'
+}
+
+function Enable-ExternalIdEmailOtpForPasswordReset {
+    param(
+        [string]$AccessToken
+    )
+
+    Enable-ExternalIdEmailOtpForPasswordRecovery -AccessToken $AccessToken
 }
 
 function Set-PasswordResetLinkBranding {
@@ -517,4 +696,135 @@ function New-B2cPasswordResetUserFlowIfMissing {
     Write-Host "Creating password reset user flow: $UserFlowId"
     Invoke-B2cGraphApi -AccessToken $AccessToken -Method Post -Path 'identity/b2cUserFlows' -Body $FlowTemplate -ApiVersion beta | Out-Null
     Write-Host "Created password reset user flow: $UserFlowId"
+}
+
+function Get-IdentitySecurityDefaultsPolicy {
+    param(
+        [string]$AccessToken
+    )
+
+    return Invoke-B2cGraphApi -AccessToken $AccessToken -Method Get -Path 'policies/identitySecurityDefaultsEnforcementPolicy' -ApiVersion v1.0
+}
+
+function Disable-IdentitySecurityDefaultsIfEnabled {
+    param(
+        [string]$AccessToken,
+        [int]$MaxWaitSeconds = 60
+    )
+
+    $policy = Get-IdentitySecurityDefaultsPolicy -AccessToken $AccessToken
+    if ($policy.isEnabled -ne $true) {
+        Write-Host 'Security Defaults already disabled.'
+        return
+    }
+
+    Write-Host 'Security Defaults is enabled; disabling so Conditional Access policies can be used...' -ForegroundColor Yellow
+    Invoke-B2cGraphApi -AccessToken $AccessToken -Method Patch -Path 'policies/identitySecurityDefaultsEnforcementPolicy' -Body @{
+        isEnabled = $false
+    } -ApiVersion v1.0 | Out-Null
+
+    $deadline = (Get-Date).AddSeconds($MaxWaitSeconds)
+    do {
+        Start-Sleep -Seconds 3
+        $policy = Get-IdentitySecurityDefaultsPolicy -AccessToken $AccessToken
+        if ($policy.isEnabled -ne $true) {
+            Write-Host 'Security Defaults disabled.' -ForegroundColor Green
+            return
+        }
+    } while ((Get-Date) -lt $deadline)
+
+    throw 'Security Defaults PATCH succeeded but tenant still reports isEnabled=true. Wait 1-2 minutes and re-run configure.'
+}
+
+function Get-ConditionalAccessPolicies {
+    param(
+        [string]$AccessToken
+    )
+
+    $response = Invoke-B2cGraphApi -AccessToken $AccessToken -Method Get -Path 'identity/conditionalAccess/policies' -ApiVersion v1.0
+    return @($response.value)
+}
+
+function Get-ConditionalAccessPolicyByDisplayName {
+    param(
+        [string]$AccessToken,
+        [string]$DisplayName
+    )
+
+    $policies = Get-ConditionalAccessPolicies -AccessToken $AccessToken
+    return $policies | Where-Object { $_.displayName -eq $DisplayName } | Select-Object -First 1
+}
+
+function New-ConditionalAccessMfaPolicyBody {
+    param(
+        [string]$DisplayName,
+        [string]$SpaClientId,
+        [string[]]$BuiltInControls = @('mfa'),
+        [string]$PolicyState = 'enabled',
+        [bool]$IncludeAllUsers = $true,
+        [bool]$TargetSpaApplication = $true
+    )
+
+    $applications = @{}
+    if ($TargetSpaApplication) {
+        if ([string]::IsNullOrWhiteSpace($SpaClientId)) {
+            throw 'B2C_SPA_CLIENT_ID is required when targetSpaApplication is true.'
+        }
+
+        $applications.includeApplications = @($SpaClientId.Trim())
+    }
+    else {
+        $applications.includeApplications = @('All')
+    }
+
+    $users = @{}
+    if ($IncludeAllUsers) {
+        $users.includeUsers = @('All')
+    }
+
+    return @{
+        displayName   = $DisplayName
+        state         = $PolicyState
+        conditions    = @{
+            clientAppTypes = @('browser', 'mobileAppsAndDesktopClients')
+            users          = $users
+            applications   = $applications
+        }
+        grantControls = @{
+            operator          = 'OR'
+            builtInControls   = @($BuiltInControls)
+        }
+    }
+}
+
+function Set-ConditionalAccessMfaPolicyForApplication {
+    param(
+        [string]$AccessToken,
+        [string]$DisplayName,
+        [string]$SpaClientId,
+        [string[]]$BuiltInControls = @('mfa'),
+        [string]$PolicyState = 'enabled',
+        [bool]$IncludeAllUsers = $true,
+        [bool]$TargetSpaApplication = $true
+    )
+
+    $policyBody = New-ConditionalAccessMfaPolicyBody `
+        -DisplayName $DisplayName `
+        -SpaClientId $SpaClientId `
+        -BuiltInControls $BuiltInControls `
+        -PolicyState $PolicyState `
+        -IncludeAllUsers $IncludeAllUsers `
+        -TargetSpaApplication $TargetSpaApplication
+
+    $existing = Get-ConditionalAccessPolicyByDisplayName -AccessToken $AccessToken -DisplayName $DisplayName
+    if ($null -ne $existing) {
+        Write-Host "Updating Conditional Access policy: $DisplayName ($($existing.id))"
+        Invoke-B2cGraphApi -AccessToken $AccessToken -Method Patch -Path "identity/conditionalAccess/policies/$($existing.id)" -Body $policyBody -ApiVersion v1.0 | Out-Null
+        return $existing.id
+    }
+
+    Write-Host "Creating Conditional Access policy: $DisplayName"
+    $created = Invoke-B2cGraphApi -AccessToken $AccessToken -Method Post -Path 'identity/conditionalAccess/policies' -Body $policyBody -ApiVersion v1.0
+    Write-Host "Created Conditional Access policy: $DisplayName ($($created.id))"
+    return $created.id
 }

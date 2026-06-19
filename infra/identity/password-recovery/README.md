@@ -77,5 +77,6 @@ Manual test: open the app sign-in page → enter email → **Forgot password?** 
 
 ## Next steps
 
-- **F3.T1.7+** — MFA, SPA→API permission grant, Key Vault settings sync
+- **F3.T1.7** — MFA via Conditional Access — [`../mfa/README.md`](../mfa/README.md)
+- **F3.T1.8+** — SPA→API permission grant, Key Vault settings sync
 - **F3.T2.x** — MSAL; legacy B2C may pass `passwordReset` user flow id to MSAL
