@@ -36,6 +36,10 @@ Each environment has its own **Microsoft Entra External ID external tenant** dep
 |-----------------------------|---------|
 | `b2c-tenant-domain` | Tenant domain (`<prefix>.onmicrosoft.com`) |
 | `b2c-spa-client-id` | React frontend SPA application (client) ID (F3.T1.2) |
+| `b2c-api-client-id` | Backend API application (client) ID (F3.T1.3) |
+| `b2c-api-application-id-uri` | API Application ID URI |
+| `b2c-api-scope` | Primary delegated scope name (e.g. `access_as_user`) |
+| `b2c-api-scope-uri` | Full scope URI for MSAL / token requests |
 
 The B2C tenant GUID is not returned by the Bicep resource type. After deploy, resolve it with:
 
@@ -50,6 +54,8 @@ Store the resolved tenant ID in Key Vault manually or in F3.T1.5 application con
 Deploy with [`.github/workflows/deploy-identity.yml`](../../.github/workflows/deploy-identity.yml). Pass the environment Key Vault name to persist tenant metadata after core infra exists.
 
 Register the React frontend SPA app with [`.github/workflows/configure-b2c-spa-app.yml`](../../.github/workflows/configure-b2c-spa-app.yml) or [`scripts/register-b2c-spa-app.ps1`](../../scripts/register-b2c-spa-app.ps1). See [`infra/identity/spa-app/README.md`](../identity/spa-app/README.md).
+
+Register the backend API and scopes with [`.github/workflows/configure-b2c-api-app.yml`](../../.github/workflows/configure-b2c-api-app.yml) or [`scripts/register-b2c-api-app.ps1`](../../scripts/register-b2c-api-app.ps1). See [`infra/identity/api-app/README.md`](../identity/api-app/README.md).
 
 **Never store user passwords, MFA secrets, or refresh tokens in VitalNexus databases.** Authentication is delegated to Microsoft Entra External ID.
 
@@ -66,7 +72,8 @@ Configure **separate secrets for each GitHub Environment** (`dev`, `test`, `prod
 | `B2C_TENANT_ID` | Per environment | Entra External ID tenant GUID |
 | `B2C_MANAGEMENT_CLIENT_ID` | Per environment | Graph management app client ID |
 | `B2C_MANAGEMENT_CLIENT_SECRET` | Per environment | Graph management app client secret |
-| `B2C_SPA_CLIENT_ID` | Per environment | React frontend SPA client ID (output of F3.T1.2) |
+| `B2C_SPA_CLIENT_ID` | Per environment | React frontend SPA client ID (F3.T1.2) |
+| `B2C_API_CLIENT_ID` | Per environment | Backend API client ID (F3.T1.3) |
 
 The deploy workflow (`.github/workflows/deploy-infra.yml`) runs in the selected GitHub Environment and passes `SQL_ADMIN_LOGIN` / `SQL_ADMIN_PASSWORD` into Bicep at deploy time.
 
@@ -79,5 +86,6 @@ After deploying an environment, confirm isolation:
 3. API Container App environment variables reference connection strings via Key Vault secret refs, not plain-text values.
 4. Entra External ID tenant domain and tenant ID match the environment's `infra/identity/main.<env>.bicepparam` deployment outputs.
 5. SPA app registration exists with required redirect URIs (`scripts/verify-b2c-spa-app.ps1`).
+6. API app registration exposes required scopes (`scripts/verify-b2c-api-app.ps1`).
 
 See [`README.md`](README.md) for environment overview and deploy steps.

@@ -1,0 +1,71 @@
+name: Configure B2C API App Registration
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment for backend API app registration and scopes
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+      key_vault_name:
+        description: Optional Key Vault name to store b2c-api-* secrets
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  configure:
+    name: Register API app (${{ github.event.inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set Azure subscription
+        run: az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Register backend API app and scopes
+        shell: pwsh
+        env:
+          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
+          B2C_MANAGEMENT_CLIENT_ID: ${{ secrets.B2C_MANAGEMENT_CLIENT_ID }}
+          B2C_MANAGEMENT_CLIENT_SECRET: ${{ secrets.B2C_MANAGEMENT_CLIENT_SECRET }}
+        run: |
+          if (-not $env:B2C_TENANT_ID -or -not $env:B2C_MANAGEMENT_CLIENT_ID -or -not $env:B2C_MANAGEMENT_CLIENT_SECRET) {
+            throw 'Configure B2C_TENANT_ID, B2C_MANAGEMENT_CLIENT_ID, and B2C_MANAGEMENT_CLIENT_SECRET in the GitHub Environment secrets.'
+          }
+
+          $params = @{
+            Environment = '${{ github.event.inputs.environment }}'
+          }
+
+          $kvName = '${{ github.event.inputs.key_vault_name }}'
+          if ($kvName) {
+            $params.KeyVaultName = $kvName
+          }
+
+          ./scripts/register-b2c-api-app.ps1 @params
+
+      - name: Verify API app registration
+        shell: pwsh
+        env:
+          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
+          B2C_MANAGEMENT_CLIENT_ID: ${{ secrets.B2C_MANAGEMENT_CLIENT_ID }}
+          B2C_MANAGEMENT_CLIENT_SECRET: ${{ secrets.B2C_MANAGEMENT_CLIENT_SECRET }}
+        run: |
+          ./scripts/verify-b2c-api-app.ps1 -Environment '${{ github.event.inputs.environment }}'

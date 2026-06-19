@@ -42,7 +42,7 @@ function Invoke-B2cGraphApi {
 
     if ($null -ne $Body) {
         $params.ContentType = 'application/json'
-        $params.Body = ($Body | ConvertTo-Json -Depth 10)
+        $params.Body = ($Body | ConvertTo-Json -Depth 10 -Compress)
     }
 
     try {
