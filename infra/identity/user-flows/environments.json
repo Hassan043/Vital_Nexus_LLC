@@ -1,0 +1,35 @@
+{
+  "dev": {
+    "tenantKind": "ciam",
+    "tenantDomainPrefix": "vitalnexusexternal",
+    "userFlowId": "B2C_1_VitalNexusSignUpSignIn",
+    "userFlowShortId": "VitalNexusSignUpSignIn",
+    "userFlowDisplayName": "VitalNexus Dev Sign Up Sign In",
+    "displayName": "VitalNexus Dev",
+    "signInPageTitle": "Sign in to VitalNexus",
+    "signUpPageTitle": "Create your VitalNexus account",
+    "welcomeMessage": "Functional medicine lab intelligence for your clinic."
+  },
+  "test": {
+    "tenantKind": "b2c",
+    "tenantDomainPrefix": "vitalnexustest",
+    "userFlowId": "B2C_1_VitalNexusSignUpSignIn",
+    "userFlowShortId": "VitalNexusSignUpSignIn",
+    "userFlowDisplayName": "VitalNexus Test Sign Up Sign In",
+    "displayName": "VitalNexus Test",
+    "signInPageTitle": "Sign in to VitalNexus Test",
+    "signUpPageTitle": "Create your VitalNexus Test account",
+    "welcomeMessage": "Functional medicine lab intelligence for your clinic."
+  },
+  "prod": {
+    "tenantKind": "b2c",
+    "tenantDomainPrefix": "vitalnexusprod",
+    "userFlowId": "B2C_1_VitalNexusSignUpSignIn",
+    "userFlowShortId": "VitalNexusSignUpSignIn",
+    "userFlowDisplayName": "VitalNexus Sign Up Sign In",
+    "displayName": "VitalNexus",
+    "signInPageTitle": "Sign in to VitalNexus",
+    "signUpPageTitle": "Create your VitalNexus account",
+    "welcomeMessage": "Functional medicine lab intelligence for your clinic."
+  }
+}

@@ -9,9 +9,12 @@ on:
       - 'scripts/verify-b2c-spa-app.ps1'
       - 'scripts/register-b2c-api-app.ps1'
       - 'scripts/verify-b2c-api-app.ps1'
+      - 'scripts/configure-b2c-signup-signin-flow.ps1'
+      - 'scripts/verify-b2c-user-flow.ps1'
       - '.github/workflows/identity-build.yml'
       - '.github/workflows/configure-b2c-spa-app.yml'
       - '.github/workflows/configure-b2c-api-app.yml'
+      - '.github/workflows/configure-b2c-user-flow.yml'
   push:
     branches:
       - dev
@@ -23,9 +26,12 @@ on:
       - 'scripts/verify-b2c-spa-app.ps1'
       - 'scripts/register-b2c-api-app.ps1'
       - 'scripts/verify-b2c-api-app.ps1'
+      - 'scripts/configure-b2c-signup-signin-flow.ps1'
+      - 'scripts/verify-b2c-user-flow.ps1'
       - '.github/workflows/identity-build.yml'
       - '.github/workflows/configure-b2c-spa-app.yml'
       - '.github/workflows/configure-b2c-api-app.yml'
+      - '.github/workflows/configure-b2c-user-flow.yml'
   workflow_dispatch:
 
 permissions:
@@ -77,3 +83,18 @@ jobs:
             }
           }
           Write-Host "api-app/environments.json is valid."
+
+      - name: Validate user flow environment config
+        shell: pwsh
+        run: |
+          $config = Get-Content infra/identity/user-flows/environments.json -Raw | ConvertFrom-Json
+          foreach ($envName in @('dev', 'test', 'prod')) {
+            if (-not $config.$envName.tenantDomainPrefix) {
+              throw "user-flows/environments.json missing tenantDomainPrefix for $envName"
+            }
+            if (-not $config.$envName.userFlowId) {
+              throw "user-flows/environments.json missing userFlowId for $envName"
+            }
+          }
+          Get-Content infra/identity/user-flows/signup-signin.flow.json -Raw | ConvertFrom-Json | Out-Null
+          Write-Host "user-flows configuration is valid."

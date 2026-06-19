@@ -1,0 +1,52 @@
+name: Configure B2C Sign-Up Sign-In User Flow
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment for customer sign-up/sign-in user flow
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+
+permissions:
+  contents: read
+
+jobs:
+  configure:
+    name: Configure user flow (${{ github.event.inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure sign-up/sign-in user flow
+        shell: pwsh
+        env:
+          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
+          B2C_MANAGEMENT_CLIENT_ID: ${{ secrets.B2C_MANAGEMENT_CLIENT_ID }}
+          B2C_MANAGEMENT_CLIENT_SECRET: ${{ secrets.B2C_MANAGEMENT_CLIENT_SECRET }}
+          B2C_SPA_CLIENT_ID: ${{ secrets.B2C_SPA_CLIENT_ID }}
+        run: |
+          if (-not $env:B2C_TENANT_ID -or -not $env:B2C_MANAGEMENT_CLIENT_ID -or -not $env:B2C_MANAGEMENT_CLIENT_SECRET) {
+            throw 'Configure B2C_TENANT_ID, B2C_MANAGEMENT_CLIENT_ID, and B2C_MANAGEMENT_CLIENT_SECRET in the GitHub Environment secrets.'
+          }
+
+          ./scripts/configure-b2c-signup-signin-flow.ps1 `
+            -Environment '${{ github.event.inputs.environment }}' `
+            -SkipBrandingPortalReminder
+
+      - name: Verify user flow metadata endpoint
+        shell: pwsh
+        env:
+          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
+          B2C_MANAGEMENT_CLIENT_ID: ${{ secrets.B2C_MANAGEMENT_CLIENT_ID }}
+          B2C_MANAGEMENT_CLIENT_SECRET: ${{ secrets.B2C_MANAGEMENT_CLIENT_SECRET }}
+        run: |
+          ./scripts/verify-b2c-user-flow.ps1 -Environment '${{ github.event.inputs.environment }}'

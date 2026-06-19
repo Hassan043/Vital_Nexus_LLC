@@ -1,0 +1,16 @@
+{
+  "@odata.type": "#microsoft.graph.externalUsersSelfServiceSignUpEventsFlow",
+  "displayName": "VitalNexus Dev Sign Up Sign In",
+  "onAuthenticationMethodLoadStart": {
+    "@odata.type": "#microsoft.graph.onAuthenticationMethodLoadStartExternalUsersSelfServiceSignUp",
+    "identityProviders": [
+      {
+        "id": "EmailPassword-OAUTH"
+      }
+    ]
+  },
+  "onInteractiveAuthFlowStart": {
+    "@odata.type": "#microsoft.graph.onInteractiveAuthFlowStartExternalUsersSelfServiceSignUp",
+    "isSignUpAllowed": true
+  }
+}

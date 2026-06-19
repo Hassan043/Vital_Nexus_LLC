@@ -57,6 +57,8 @@ Register the React frontend SPA app with [`.github/workflows/configure-b2c-spa-a
 
 Register the backend API and scopes with [`.github/workflows/configure-b2c-api-app.yml`](../../.github/workflows/configure-b2c-api-app.yml) or [`scripts/register-b2c-api-app.ps1`](../../scripts/register-b2c-api-app.ps1). See [`infra/identity/api-app/README.md`](../identity/api-app/README.md).
 
+Configure the customer sign-up/sign-in user flow with [`.github/workflows/configure-b2c-user-flow.yml`](../../.github/workflows/configure-b2c-user-flow.yml) or [`scripts/configure-b2c-signup-signin-flow.ps1`](../../scripts/configure-b2c-signup-signin-flow.ps1). See [`infra/identity/user-flows/README.md`](../identity/user-flows/README.md).
+
 **Never store user passwords, MFA secrets, or refresh tokens in VitalNexus databases.** Authentication is delegated to Microsoft Entra External ID.
 
 ## GitHub Environment secrets
@@ -87,5 +89,6 @@ After deploying an environment, confirm isolation:
 4. Entra External ID tenant domain and tenant ID match the environment's `infra/identity/main.<env>.bicepparam` deployment outputs.
 5. SPA app registration exists with required redirect URIs (`scripts/verify-b2c-spa-app.ps1`).
 6. API app registration exposes required scopes (`scripts/verify-b2c-api-app.ps1`).
+7. Sign-up/sign-in user flow exposes OpenID metadata (`scripts/verify-b2c-user-flow.ps1`).
 
 See [`README.md`](README.md) for environment overview and deploy steps.
