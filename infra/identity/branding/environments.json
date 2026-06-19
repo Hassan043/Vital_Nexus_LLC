@@ -1,0 +1,56 @@
+{
+  "dev": {
+    "locale": "en",
+    "backgroundColor": "#FFFFFF",
+    "headerBackgroundColor": "#08060d",
+    "signInPageText": "Functional medicine lab intelligence for your clinic.",
+    "usernameHintText": "Email address",
+    "contentCustomization": {
+      "SignIn_Title": "Sign in to VitalNexus",
+      "SignUp_Title": "Create your VitalNexus account",
+      "SignIn_Description": "Functional medicine lab intelligence for your clinic.",
+      "SignUp_Description": "Create your account to access lab intelligence for your clinic."
+    },
+    "assets": {
+      "bannerLogo": "assets/banner-logo.png",
+      "squareLogo": "assets/square-logo.png",
+      "favicon": "assets/favicon.png"
+    }
+  },
+  "test": {
+    "locale": "en",
+    "backgroundColor": "#FFFFFF",
+    "headerBackgroundColor": "#08060d",
+    "signInPageText": "Functional medicine lab intelligence for your clinic.",
+    "usernameHintText": "Email address",
+    "contentCustomization": {
+      "SignIn_Title": "Sign in to VitalNexus Test",
+      "SignUp_Title": "Create your VitalNexus Test account",
+      "SignIn_Description": "Functional medicine lab intelligence for your clinic.",
+      "SignUp_Description": "Create your test account to access lab intelligence for your clinic."
+    },
+    "assets": {
+      "bannerLogo": "assets/banner-logo.png",
+      "squareLogo": "assets/square-logo.png",
+      "favicon": "assets/favicon.png"
+    }
+  },
+  "prod": {
+    "locale": "en",
+    "backgroundColor": "#FFFFFF",
+    "headerBackgroundColor": "#08060d",
+    "signInPageText": "Functional medicine lab intelligence for your clinic.",
+    "usernameHintText": "Email address",
+    "contentCustomization": {
+      "SignIn_Title": "Sign in to VitalNexus",
+      "SignUp_Title": "Create your VitalNexus account",
+      "SignIn_Description": "Functional medicine lab intelligence for your clinic.",
+      "SignUp_Description": "Create your account to access lab intelligence for your clinic."
+    },
+    "assets": {
+      "bannerLogo": "assets/banner-logo.png",
+      "squareLogo": "assets/square-logo.png",
+      "favicon": "assets/favicon.png"
+    }
+  }
+}

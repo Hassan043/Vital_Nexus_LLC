@@ -1,0 +1,51 @@
+name: Configure B2C Authentication Branding
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment for authentication branding
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+
+permissions:
+  contents: read
+
+jobs:
+  configure:
+    name: Configure auth branding (${{ github.event.inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure authentication branding
+        shell: pwsh
+        env:
+          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
+          B2C_MANAGEMENT_CLIENT_ID: ${{ secrets.B2C_MANAGEMENT_CLIENT_ID }}
+          B2C_MANAGEMENT_CLIENT_SECRET: ${{ secrets.B2C_MANAGEMENT_CLIENT_SECRET }}
+        run: |
+          if (-not $env:B2C_TENANT_ID -or -not $env:B2C_MANAGEMENT_CLIENT_ID -or -not $env:B2C_MANAGEMENT_CLIENT_SECRET) {
+            throw 'Configure B2C_TENANT_ID, B2C_MANAGEMENT_CLIENT_ID, and B2C_MANAGEMENT_CLIENT_SECRET in the GitHub Environment secrets.'
+          }
+
+          ./scripts/configure-b2c-auth-branding.ps1 `
+            -Environment '${{ github.event.inputs.environment }}' `
+            -SkipAssetUpload
+
+      - name: Verify authentication branding
+        shell: pwsh
+        env:
+          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
+          B2C_MANAGEMENT_CLIENT_ID: ${{ secrets.B2C_MANAGEMENT_CLIENT_ID }}
+          B2C_MANAGEMENT_CLIENT_SECRET: ${{ secrets.B2C_MANAGEMENT_CLIENT_SECRET }}
+        run: |
+          ./scripts/verify-b2c-auth-branding.ps1 -Environment '${{ github.event.inputs.environment }}'

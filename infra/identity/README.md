@@ -11,11 +11,12 @@ Each deployment environment (`dev`, `test`, `prod`) owns a **dedicated external 
 | `Microsoft.AzureActiveDirectory/b2cDirectories` | Environment-specific external tenant |
 | Key Vault secrets (optional) | `b2c-tenant-domain` |
 
-User flows, MFA policies, and additional app configuration are configured in follow-on issues (F3.T1.5+). App registrations and user flows:
+User flows, MFA policies, and additional app configuration are configured in follow-on issues (F3.T1.6+). App registrations, user flows, and branding:
 
 - **F3.T1.2** — React frontend SPA — [`spa-app/README.md`](spa-app/README.md)
 - **F3.T1.3** — Backend API and scopes — [`api-app/README.md`](api-app/README.md)
 - **F3.T1.4** — Customer sign-up/sign-in user flow — [`user-flows/README.md`](user-flows/README.md)
+- **F3.T1.5** — Branded authentication experience — [`branding/README.md`](branding/README.md)
 
 ## Prerequisites
 
@@ -87,6 +88,7 @@ After the tenant resource exists:
 4. Proceed to **F3.T1.2** (register React frontend SPA app) — [`spa-app/README.md`](spa-app/README.md).
 5. Proceed to **F3.T1.3** (register backend API and expose scopes) — [`api-app/README.md`](api-app/README.md).
 6. Proceed to **F3.T1.4** (customer sign-up/sign-in user flow) — [`user-flows/README.md`](user-flows/README.md).
+7. Proceed to **F3.T1.5** (branded authentication experience) — [`branding/README.md`](branding/README.md).
 
 ## Limitations
 
