@@ -1,21 +1,27 @@
 import type { ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
+import { consumeAuthReturnUrl } from '../auth/returnUrl'
 import { useVitalNexusAuth } from '../auth/useVitalNexusAuth'
+import { AuthLoadingScreen } from './AuthLoadingScreen'
 
 type RequireGuestProps = {
-  children: ReactNode
+  children?: ReactNode
 }
 
 export function RequireGuest({ children }: RequireGuestProps) {
   const { isAuthenticated, isLoading } = useVitalNexusAuth()
 
   if (isLoading) {
-    return <p className="auth-status">Loading…</p>
+    return <AuthLoadingScreen message="Loading sign-in…" />
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />
+    return <Navigate to={consumeAuthReturnUrl() ?? '/'} replace />
   }
 
-  return children
+  if (children) {
+    return children
+  }
+
+  return <Outlet />
 }

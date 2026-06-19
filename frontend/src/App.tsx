@@ -5,6 +5,7 @@ import { initializeMsal } from './auth/msalInstance'
 import type { PublicClientApplication } from '@azure/msal-browser'
 import { AuthSetupPage } from './pages/AuthSetupPage'
 import { AppRoutes } from './AppRoutes'
+import { AuthLoadingScreen } from './components/AuthLoadingScreen'
 
 function App() {
   const [msalInstance, setMsalInstance] = useState<PublicClientApplication | null>(null)
@@ -39,13 +40,7 @@ function App() {
   }
 
   if (!msalInstance) {
-    return (
-      <main className="app-shell">
-        <section className="auth-panel">
-          <p className="auth-status">Loading authentication…</p>
-        </section>
-      </main>
-    )
+    return <AuthLoadingScreen message="Loading authentication…" />
   }
 
   return (

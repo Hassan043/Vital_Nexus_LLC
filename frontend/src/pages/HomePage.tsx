@@ -1,7 +1,4 @@
 import { useEffect, useState } from 'react'
-import { SignOutButton } from '../components/SignOutButton'
-import { WelcomeUser } from '../components/WelcomeUser'
-import { AppLayout } from '../components/AppLayout'
 import { useVitalNexusAuth } from '../auth/useVitalNexusAuth'
 import { useApiClient } from '../api/useApiClient'
 import { getCurrentAccount, type AccountProfile } from '../api/accountApi'
@@ -9,7 +6,7 @@ import { ApiError } from '../api/apiClient'
 import { getApiBaseUrl } from '../api/config'
 
 export function HomePage() {
-  const { account, isLoading } = useVitalNexusAuth()
+  const { account } = useVitalNexusAuth()
   const api = useApiClient()
   const [profile, setProfile] = useState<AccountProfile | null>(null)
   const [apiError, setApiError] = useState('')
@@ -56,37 +53,27 @@ export function HomePage() {
   }, [account, api])
 
   return (
-    <AppLayout showAuthLinks={false}>
+    <>
       <div className="flow-header">
         <p className="eyebrow">Clinic workspace</p>
         <h1>Functional medicine lab intelligence</h1>
-        <p className="lede">Your VitalNexus account is ready. More product features will appear here.</p>
+        <p className="lede">Your VitalNexus session is active. Protected routes and API calls use your Entra access token.</p>
       </div>
 
       <section className="auth-panel" aria-live="polite">
-        {isLoading ? (
-          <p className="auth-status">Loading your session…</p>
-        ) : account ? (
-          <>
-            <WelcomeUser account={account} />
-            <div className="api-status">
-              <p className="welcome-label">Authenticated API</p>
-              {apiLoading ? (
-                <p className="auth-status">Calling {getApiBaseUrl()}/api/me…</p>
-              ) : profile ? (
-                <>
-                  <p className="auth-status">API confirmed your access token.</p>
-                  <p className="welcome-email">API scopes: {profile.scopes ?? 'none'}</p>
-                </>
-              ) : null}
-              {apiError ? <p className="field-error">{apiError}</p> : null}
-            </div>
-            <SignOutButton />
-          </>
-        ) : (
-          <p className="auth-status">No active session.</p>
-        )}
+        <div className="api-status">
+          <p className="welcome-label">Session check</p>
+          {apiLoading ? (
+            <p className="auth-status">Calling {getApiBaseUrl()}/api/me…</p>
+          ) : profile ? (
+            <>
+              <p className="auth-status">API confirmed your access token.</p>
+              <p className="welcome-email">API scopes: {profile.scopes ?? 'none'}</p>
+            </>
+          ) : null}
+          {apiError ? <p className="field-error">{apiError}</p> : null}
+        </div>
       </section>
-    </AppLayout>
+    </>
   )
 }

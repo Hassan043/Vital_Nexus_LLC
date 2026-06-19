@@ -1,13 +1,28 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { AppLayout } from '../components/AppLayout'
 import { useVitalNexusAuth } from '../auth/useVitalNexusAuth'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+function getReturnPath(from: unknown): string | null {
+  if (!from || typeof from !== 'object' || !('pathname' in from)) {
+    return null
+  }
+
+  const location = from as { pathname?: string; search?: string }
+  if (!location.pathname) {
+    return null
+  }
+
+  return `${location.pathname}${location.search ?? ''}`
+}
+
 export function SignInPage() {
   const { signIn, isLoading } = useVitalNexusAuth()
+  const location = useLocation()
   const [email, setEmail] = useState('')
+  const returnPath = getReturnPath(location.state?.from)
 
   async function handleSignIn() {
     const trimmedEmail = email.trim()
@@ -23,6 +38,9 @@ export function SignInPage() {
       </div>
 
       <section className="auth-panel">
+        {returnPath ? (
+          <p className="auth-status">Sign in to continue to <strong>{returnPath}</strong>.</p>
+        ) : null}
         <label className="field-label" htmlFor="signin-email">
           Email address (optional)
         </label>
