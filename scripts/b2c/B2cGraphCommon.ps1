@@ -53,6 +53,14 @@ function Invoke-B2cGraphApi {
         if ($null -ne $response) {
             $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
             $details = $reader.ReadToEnd()
+            if ($details -match 'Authorization_RequestDenied|accessDenied' -and $Path -match 'authenticationMethodsPolicy') {
+                throw @"
+Graph API $Method $Path failed: insufficient privileges.
+In the EXTERNAL tenant: add Microsoft Graph application permission Policy.ReadWrite.AuthenticationMethod to VitalNexus B2C Management Dev, grant admin consent, wait 1-2 minutes, then re-run.
+Details: $details
+"@
+            }
+
             if ($details -match 'Authorization_RequestDenied' -and $Path -match 'branding') {
                 throw @"
 Graph API $Method $Path failed: insufficient privileges.
@@ -430,4 +438,83 @@ function Set-B2cUserFlowLanguageOverridePageContent {
     }
 
     Invoke-B2cGraphApi -AccessToken $AccessToken -Method Patch -Path "identity/b2cUserFlows/$UserFlowId/languages/$LanguageId/overridesPages/$PageId" -Body $body -ApiVersion beta | Out-Null
+}
+
+function Get-EmailOtpAuthenticationMethodConfiguration {
+    param(
+        [string]$AccessToken
+    )
+
+    return Invoke-B2cGraphApi -AccessToken $AccessToken -Method Get -Path 'policies/authenticationMethodsPolicy/authenticationMethodConfigurations/email' -ApiVersion v1.0
+}
+
+function Enable-ExternalIdEmailOtpForPasswordReset {
+    param(
+        [string]$AccessToken
+    )
+
+    $body = @{
+        '@odata.type'               = '#microsoft.graph.emailAuthenticationMethodConfiguration'
+        state                       = 'enabled'
+        allowExternalIdToUseEmailOtp = 'enabled'
+        includeTargets              = @(
+            @{
+                targetType = 'group'
+                id         = 'all_users'
+            }
+        )
+    }
+
+    Write-Host 'Enabling Email OTP authentication method for password recovery...'
+    Invoke-B2cGraphApi -AccessToken $AccessToken -Method Patch -Path 'policies/authenticationMethodsPolicy/authenticationMethodConfigurations/email' -Body $body -ApiVersion v1.0 | Out-Null
+}
+
+function Set-PasswordResetLinkBranding {
+    param(
+        [string]$AccessToken,
+        [string]$OrganizationId,
+        [string]$Locale,
+        [bool]$ShowForgotPasswordLink,
+        [string]$CustomForgotMyPasswordText = ''
+    )
+
+    $visibility = @{
+        '@odata.type'               = 'microsoft.graph.loginPageTextVisibilitySettings'
+        hideAccountResetCredentials = -not $ShowForgotPasswordLink
+        hideForgotMyPassword        = -not $ShowForgotPasswordLink
+        hideCannotAccessYourAccount = -not $ShowForgotPasswordLink
+        hideResetItNow              = -not $ShowForgotPasswordLink
+    }
+
+    $brandingBody = @{
+        loginPageTextVisibilitySettings = $visibility
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($CustomForgotMyPasswordText)) {
+        $brandingBody.customForgotMyPasswordText = $CustomForgotMyPasswordText
+    }
+
+    Write-Host 'Updating sign-in page password recovery link visibility...'
+    Set-OrganizationBrandingLocalizationStrings -AccessToken $AccessToken -OrganizationId $OrganizationId -Locale $Locale -BrandingProperties $brandingBody
+
+    if (Test-B2cBrandingApiAccess -AccessToken $AccessToken -OrganizationId $OrganizationId) {
+        Set-OrganizationBrandingStrings -AccessToken $AccessToken -OrganizationId $OrganizationId -BrandingProperties $brandingBody
+    }
+}
+
+function New-B2cPasswordResetUserFlowIfMissing {
+    param(
+        [string]$AccessToken,
+        [string]$UserFlowId,
+        [object]$FlowTemplate
+    )
+
+    if (Test-B2cUserFlowExists -AccessToken $AccessToken -UserFlowId $UserFlowId) {
+        Write-Host "Password reset user flow already exists: $UserFlowId"
+        return
+    }
+
+    Write-Host "Creating password reset user flow: $UserFlowId"
+    Invoke-B2cGraphApi -AccessToken $AccessToken -Method Post -Path 'identity/b2cUserFlows' -Body $FlowTemplate -ApiVersion beta | Out-Null
+    Write-Host "Created password reset user flow: $UserFlowId"
 }

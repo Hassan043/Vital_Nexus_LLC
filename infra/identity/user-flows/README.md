@@ -220,7 +220,9 @@ Manual dispatch → select environment. Requires B2C management secrets in that 
 
 - **F3.T1.5** — Branded authentication experience — [`../branding/README.md`](../branding/README.md)
 
-- **F3.T1.6+** — MFA, password reset, environment settings / Key Vault sync
+- **F3.T1.6** — Password recovery — [`../password-recovery/README.md`](../password-recovery/README.md)
+
+- **F3.T1.7+** — MFA, environment settings / Key Vault sync
 
 - **F3.T2.x** — MSAL frontend and backend JWT validation targeting this user flow
 

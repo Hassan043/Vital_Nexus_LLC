@@ -84,5 +84,6 @@ Manual dispatch → select environment.
 
 ## Next steps
 
-- **F3.T1.6+** — MFA, password reset, SPA→API permission grant, Key Vault settings sync
+- **F3.T1.6** — Password recovery — [`../password-recovery/README.md`](../password-recovery/README.md)
+- **F3.T1.7+** — MFA, SPA→API permission grant, Key Vault settings sync
 - **F3.T2.x** — MSAL frontend and backend JWT validation

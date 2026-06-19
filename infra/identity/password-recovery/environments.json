@@ -1,0 +1,26 @@
+{
+  "dev": {
+    "emailOtpMethod": "enabled",
+    "showForgotPasswordLink": true,
+    "customForgotMyPasswordText": "Forgot your password?",
+    "passwordResetUserFlowId": "B2C_1_VitalNexusPasswordReset",
+    "passwordResetUserFlowShortId": "VitalNexusPasswordReset",
+    "passwordResetFlowDisplayName": "VitalNexus Dev Password Reset"
+  },
+  "test": {
+    "emailOtpMethod": "enabled",
+    "showForgotPasswordLink": true,
+    "customForgotMyPasswordText": "Forgot your password?",
+    "passwordResetUserFlowId": "B2C_1_VitalNexusPasswordReset",
+    "passwordResetUserFlowShortId": "VitalNexusPasswordReset",
+    "passwordResetFlowDisplayName": "VitalNexus Test Password Reset"
+  },
+  "prod": {
+    "emailOtpMethod": "enabled",
+    "showForgotPasswordLink": true,
+    "customForgotMyPasswordText": "Forgot your password?",
+    "passwordResetUserFlowId": "B2C_1_VitalNexusPasswordReset",
+    "passwordResetUserFlowShortId": "VitalNexusPasswordReset",
+    "passwordResetFlowDisplayName": "VitalNexus Password Reset"
+  }
+}
