@@ -4,14 +4,22 @@ on:
   pull_request:
     paths:
       - 'infra/identity/**'
+      - 'scripts/b2c/**'
+      - 'scripts/register-b2c-spa-app.ps1'
+      - 'scripts/verify-b2c-spa-app.ps1'
       - '.github/workflows/identity-build.yml'
+      - '.github/workflows/configure-b2c-spa-app.yml'
   push:
     branches:
       - dev
       - main
     paths:
       - 'infra/identity/**'
+      - 'scripts/b2c/**'
+      - 'scripts/register-b2c-spa-app.ps1'
+      - 'scripts/verify-b2c-spa-app.ps1'
       - '.github/workflows/identity-build.yml'
+      - '.github/workflows/configure-b2c-spa-app.yml'
   workflow_dispatch:
 
 permissions:
@@ -32,3 +40,17 @@ jobs:
           az bicep build --file infra/identity/main.bicep
           az bicep build --file infra/identity/modules/b2c-tenant.bicep
           az bicep build --file infra/identity/modules/key-vault-tenant-secret.bicep
+
+      - name: Validate SPA app environment config
+        shell: pwsh
+        run: |
+          $config = Get-Content infra/identity/spa-app/environments.json -Raw | ConvertFrom-Json
+          foreach ($envName in @('dev', 'test', 'prod')) {
+            if (-not $config.$envName.displayName) {
+              throw "spa-app/environments.json missing displayName for $envName"
+            }
+            if (-not $config.$envName.redirectUris -or $config.$envName.redirectUris.Count -eq 0) {
+              throw "spa-app/environments.json missing redirectUris for $envName"
+            }
+          }
+          Write-Host "spa-app/environments.json is valid."

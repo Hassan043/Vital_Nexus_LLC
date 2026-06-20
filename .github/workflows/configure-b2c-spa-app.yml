@@ -1,0 +1,80 @@
+name: Configure B2C SPA App Registration
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment for React frontend SPA app registration
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+      key_vault_name:
+        description: Optional Key Vault name to store b2c-spa-client-id secret
+        required: false
+        default: ''
+        type: string
+      skip_deployed_frontend_uri:
+        description: Do not resolve deployed Container App FQDN as redirect URI
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  configure:
+    name: Register SPA app (${{ github.event.inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set Azure subscription
+        run: az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Register React frontend SPA app
+        shell: pwsh
+        env:
+          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
+          B2C_MANAGEMENT_CLIENT_ID: ${{ secrets.B2C_MANAGEMENT_CLIENT_ID }}
+          B2C_MANAGEMENT_CLIENT_SECRET: ${{ secrets.B2C_MANAGEMENT_CLIENT_SECRET }}
+        run: |
+          if (-not $env:B2C_TENANT_ID -or -not $env:B2C_MANAGEMENT_CLIENT_ID -or -not $env:B2C_MANAGEMENT_CLIENT_SECRET) {
+            throw 'Configure B2C_TENANT_ID, B2C_MANAGEMENT_CLIENT_ID, and B2C_MANAGEMENT_CLIENT_SECRET in the GitHub Environment secrets.'
+          }
+
+          $params = @{
+            Environment = '${{ github.event.inputs.environment }}'
+          }
+
+          $kvName = '${{ github.event.inputs.key_vault_name }}'
+          if ($kvName) {
+            $params.KeyVaultName = $kvName
+          }
+
+          if ('${{ github.event.inputs.skip_deployed_frontend_uri }}' -eq 'true') {
+            $params.SkipDeployedFrontendUri = $true
+          }
+
+          ./scripts/register-b2c-spa-app.ps1 @params
+
+      - name: Verify SPA app registration
+        shell: pwsh
+        env:
+          B2C_TENANT_ID: ${{ secrets.B2C_TENANT_ID }}
+          B2C_MANAGEMENT_CLIENT_ID: ${{ secrets.B2C_MANAGEMENT_CLIENT_ID }}
+          B2C_MANAGEMENT_CLIENT_SECRET: ${{ secrets.B2C_MANAGEMENT_CLIENT_SECRET }}
+        run: |
+          ./scripts/verify-b2c-spa-app.ps1 -Environment '${{ github.event.inputs.environment }}'
