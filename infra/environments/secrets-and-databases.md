@@ -83,6 +83,8 @@ Configure **separate secrets for each GitHub Environment** (`dev`, `test`, `prod
 | `B2C_SPA_CLIENT_ID` | Per environment | React frontend SPA client ID (F3.T1.2) |
 | `B2C_API_CLIENT_ID` | Per environment | Backend API client ID (F3.T1.3) |
 
+Frontend local MSAL settings (F3.T2.1) map from the secrets above — see `frontend/.env.example` (`VITE_B2C_CLIENT_ID`, `VITE_B2C_TENANT_ID`, `VITE_B2C_API_SCOPE`, etc.).
+
 The deploy workflow (`.github/workflows/deploy-infra.yml`) runs in the selected GitHub Environment and passes `SQL_ADMIN_LOGIN` / `SQL_ADMIN_PASSWORD` into Bicep at deploy time.
 
 ## Verification
