@@ -53,6 +53,14 @@ function Invoke-B2cGraphApi {
         if ($null -ne $response) {
             $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
             $details = $reader.ReadToEnd()
+            if ($details -match 'Authorization_RequestDenied' -and $Path -match 'branding') {
+                throw @"
+Graph API $Method $Path failed: insufficient privileges.
+In the EXTERNAL tenant: add OrganizationalBranding.ReadWrite.All (application) to the management app and grant admin consent.
+Details: $details
+"@
+            }
+
             throw "Graph API $Method $Path failed: $details"
         }
 
@@ -192,4 +200,234 @@ function Assert-B2cManagementCredentials {
         [string]::IsNullOrWhiteSpace($ManagementClientSecret)) {
         throw 'Set B2C_TENANT_ID, B2C_MANAGEMENT_CLIENT_ID, and B2C_MANAGEMENT_CLIENT_SECRET.'
     }
+}
+
+function Invoke-B2cGraphBrandingApi {
+    param(
+        [string]$AccessToken,
+        [string]$Method,
+        [string]$Path,
+        [object]$Body = $null,
+        [string]$AcceptLanguage = '0'
+    )
+
+    $uri = "https://graph.microsoft.com/v1.0/$Path"
+    $headers = @{
+        Authorization     = "Bearer $AccessToken"
+        'Accept-Language' = $AcceptLanguage
+    }
+
+    $params = @{
+        Method  = $Method
+        Uri     = $uri
+        Headers = $headers
+    }
+
+    if ($null -ne $Body) {
+        $params.ContentType = 'application/json'
+        $params.Body = ($Body | ConvertTo-Json -Depth 10 -Compress)
+    }
+
+    try {
+        return Invoke-RestMethod @params
+    }
+    catch {
+        $response = $_.Exception.Response
+        if ($null -ne $response) {
+            $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
+            $details = $reader.ReadToEnd()
+            if ($details -match 'Authorization_RequestDenied') {
+                throw @"
+Graph API $Method $Path failed: insufficient privileges.
+In the EXTERNAL tenant (not your work tenant): App registrations -> VitalNexus B2C Management Dev -> API permissions -> add Microsoft Graph application permission OrganizationalBranding.ReadWrite.All -> Grant admin consent.
+Confirm B2C_MANAGEMENT_CLIENT_ID is the management app (7392a9b0-...), not the SPA app. Wait 1-2 minutes after consent, then re-run.
+Details: $details
+"@
+            }
+
+            throw "Graph API $Method $Path failed: $details"
+        }
+
+        throw
+    }
+}
+
+function New-ContentCustomizationBody {
+    param(
+        [hashtable]$ContentCustomization
+    )
+
+    if ($null -eq $ContentCustomization -or $ContentCustomization.Count -eq 0) {
+        return $null
+    }
+
+    $attributeCollection = foreach ($key in ($ContentCustomization.Keys | Sort-Object)) {
+        @{
+            key   = $key
+            value = [string]$ContentCustomization[$key]
+        }
+    }
+
+    return @{
+        '@odata.type'         = 'microsoft.graph.contentCustomization'
+        attributeCollection   = @($attributeCollection)
+    }
+}
+
+function Test-B2cBrandingApiAccess {
+    param(
+        [string]$AccessToken,
+        [string]$OrganizationId
+    )
+
+    try {
+        Invoke-B2cGraphBrandingApi -AccessToken $AccessToken -Method Get -Path "organization/$OrganizationId/branding" -AcceptLanguage '0' | Out-Null
+        return $true
+    }
+    catch {
+        if ($_.Exception.Message -match 'ResourceNotFound|404|does not exist') {
+            return $false
+        }
+
+        throw
+    }
+}
+
+function Get-OrganizationBranding {
+    param(
+        [string]$AccessToken,
+        [string]$OrganizationId
+    )
+
+    return Invoke-B2cGraphBrandingApi -AccessToken $AccessToken -Method Get -Path "organization/$OrganizationId/branding" -AcceptLanguage '0'
+}
+
+function Get-OrganizationBrandingLocalization {
+    param(
+        [string]$AccessToken,
+        [string]$OrganizationId,
+        [string]$Locale
+    )
+
+    try {
+        return Invoke-B2cGraphBrandingApi -AccessToken $AccessToken -Method Get -Path "organization/$OrganizationId/branding/localizations/$Locale" -AcceptLanguage $Locale
+    }
+    catch {
+        if ($_.Exception.Message -match 'NotFound|404|ResourceNotFound') {
+            return $null
+        }
+
+        throw
+    }
+}
+
+function Set-OrganizationBrandingStrings {
+    param(
+        [string]$AccessToken,
+        [string]$OrganizationId,
+        [hashtable]$BrandingProperties
+    )
+
+    if ($BrandingProperties.Count -eq 0) {
+        return
+    }
+
+    try {
+        Invoke-B2cGraphBrandingApi -AccessToken $AccessToken -Method Patch -Path "organization/$OrganizationId/branding" -Body $BrandingProperties -AcceptLanguage '0' | Out-Null
+    }
+    catch {
+        if ($_.Exception.Message -match 'ResourceNotFound|404|does not exist') {
+            Write-Warning 'Default company branding is not initialized yet; skipped default branding PATCH (localization POST/PATCH creates it).'
+            return
+        }
+
+        throw
+    }
+}
+
+function Set-OrganizationBrandingLocalizationStrings {
+    param(
+        [string]$AccessToken,
+        [string]$OrganizationId,
+        [string]$Locale,
+        [hashtable]$BrandingProperties
+    )
+
+    if ($BrandingProperties.Count -eq 0) {
+        return
+    }
+
+    $existing = Get-OrganizationBrandingLocalization -AccessToken $AccessToken -OrganizationId $OrganizationId -Locale $Locale
+    if ($null -eq $existing) {
+        $createBody = @{ id = $Locale }
+        foreach ($key in $BrandingProperties.Keys) {
+            $createBody[$key] = $BrandingProperties[$key]
+        }
+
+        Invoke-B2cGraphBrandingApi -AccessToken $AccessToken -Method Post -Path "organization/$OrganizationId/branding/localizations" -Body $createBody -AcceptLanguage $Locale | Out-Null
+        return
+    }
+
+    Invoke-B2cGraphBrandingApi -AccessToken $AccessToken -Method Patch -Path "organization/$OrganizationId/branding/localizations/$Locale" -Body $BrandingProperties -AcceptLanguage $Locale | Out-Null
+}
+
+function Set-OrganizationBrandingStream {
+    param(
+        [string]$AccessToken,
+        [string]$OrganizationId,
+        [string]$PropertyName,
+        [string]$FilePath,
+        [string]$Locale = 'en'
+    )
+
+    if (-not (Test-Path -LiteralPath $FilePath)) {
+        throw "Branding asset not found: $FilePath"
+    }
+
+    $extension = [System.IO.Path]::GetExtension($FilePath).ToLowerInvariant()
+    $contentType = switch ($extension) {
+        '.png' { 'image/png' }
+        '.jpg' { 'image/jpeg' }
+        '.jpeg' { 'image/jpeg' }
+        '.ico' { 'image/x-icon' }
+        default { throw "Unsupported branding asset type '$extension' for $PropertyName. Use PNG, JPEG, or ICO." }
+    }
+
+    $uri = "https://graph.microsoft.com/v1.0/organization/$OrganizationId/branding/localizations/$Locale/$PropertyName"
+    Invoke-RestMethod `
+        -Method Put `
+        -Uri $uri `
+        -Headers @{
+            Authorization     = "Bearer $AccessToken"
+            'Accept-Language' = $Locale
+        } `
+        -ContentType $contentType `
+        -InFile $FilePath | Out-Null
+}
+
+function Get-B2cUserFlowOverridePages {
+    param(
+        [string]$AccessToken,
+        [string]$UserFlowId,
+        [string]$LanguageId = 'en'
+    )
+
+    $response = Invoke-B2cGraphApi -AccessToken $AccessToken -Method Get -Path "identity/b2cUserFlows/$UserFlowId/languages/$LanguageId/overridesPages" -ApiVersion beta
+    return @($response.value)
+}
+
+function Set-B2cUserFlowLanguageOverridePageContent {
+    param(
+        [string]$AccessToken,
+        [string]$UserFlowId,
+        [string]$LanguageId,
+        [string]$PageId,
+        [object[]]$LocalizedStrings
+    )
+
+    $body = @{
+        localizedStrings = $LocalizedStrings
+    }
+
+    Invoke-B2cGraphApi -AccessToken $AccessToken -Method Patch -Path "identity/b2cUserFlows/$UserFlowId/languages/$LanguageId/overridesPages/$PageId" -Body $body -ApiVersion beta | Out-Null
 }

@@ -11,10 +11,13 @@ on:
       - 'scripts/verify-b2c-api-app.ps1'
       - 'scripts/configure-b2c-signup-signin-flow.ps1'
       - 'scripts/verify-b2c-user-flow.ps1'
+      - 'scripts/configure-b2c-auth-branding.ps1'
+      - 'scripts/verify-b2c-auth-branding.ps1'
       - '.github/workflows/identity-build.yml'
       - '.github/workflows/configure-b2c-spa-app.yml'
       - '.github/workflows/configure-b2c-api-app.yml'
       - '.github/workflows/configure-b2c-user-flow.yml'
+      - '.github/workflows/configure-b2c-auth-branding.yml'
   push:
     branches:
       - dev
@@ -28,10 +31,13 @@ on:
       - 'scripts/verify-b2c-api-app.ps1'
       - 'scripts/configure-b2c-signup-signin-flow.ps1'
       - 'scripts/verify-b2c-user-flow.ps1'
+      - 'scripts/configure-b2c-auth-branding.ps1'
+      - 'scripts/verify-b2c-auth-branding.ps1'
       - '.github/workflows/identity-build.yml'
       - '.github/workflows/configure-b2c-spa-app.yml'
       - '.github/workflows/configure-b2c-api-app.yml'
       - '.github/workflows/configure-b2c-user-flow.yml'
+      - '.github/workflows/configure-b2c-auth-branding.yml'
   workflow_dispatch:
 
 permissions:
@@ -98,3 +104,17 @@ jobs:
           }
           Get-Content infra/identity/user-flows/signup-signin.flow.json -Raw | ConvertFrom-Json | Out-Null
           Write-Host "user-flows configuration is valid."
+
+      - name: Validate branding environment config
+        shell: pwsh
+        run: |
+          $config = Get-Content infra/identity/branding/environments.json -Raw | ConvertFrom-Json
+          foreach ($envName in @('dev', 'test', 'prod')) {
+            if (-not $config.$envName.backgroundColor) {
+              throw "branding/environments.json missing backgroundColor for $envName"
+            }
+            if (-not $config.$envName.contentCustomization.SignIn_Title) {
+              throw "branding/environments.json missing contentCustomization.SignIn_Title for $envName"
+            }
+          }
+          Write-Host "branding/environments.json is valid."

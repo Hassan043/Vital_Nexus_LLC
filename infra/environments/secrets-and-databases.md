@@ -59,6 +59,8 @@ Register the backend API and scopes with [`.github/workflows/configure-b2c-api-a
 
 Configure the customer sign-up/sign-in user flow with [`.github/workflows/configure-b2c-user-flow.yml`](../../.github/workflows/configure-b2c-user-flow.yml) or [`scripts/configure-b2c-signup-signin-flow.ps1`](../../scripts/configure-b2c-signup-signin-flow.ps1). See [`infra/identity/user-flows/README.md`](../identity/user-flows/README.md).
 
+Configure branded authentication pages with [`.github/workflows/configure-b2c-auth-branding.yml`](../../.github/workflows/configure-b2c-auth-branding.yml) or [`scripts/configure-b2c-auth-branding.ps1`](../../scripts/configure-b2c-auth-branding.ps1). See [`infra/identity/branding/README.md`](../identity/branding/README.md).
+
 **Never store user passwords, MFA secrets, or refresh tokens in VitalNexus databases.** Authentication is delegated to Microsoft Entra External ID.
 
 ## GitHub Environment secrets

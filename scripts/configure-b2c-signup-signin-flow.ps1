@@ -66,14 +66,7 @@ Write-Host "  .\scripts\verify-b2c-user-flow.ps1 -Environment $Environment"
 
 if (-not $SkipBrandingPortalReminder) {
     Write-Host ''
-    Write-Host 'Portal branding (logo, banner, background color):' -ForegroundColor Yellow
-    Write-Host "  1. Microsoft Entra External ID -> $tenantDomain"
-    if ($tenantKind -eq 'ciam') {
-        Write-Host '  2. External Identities -> User flows -> select the flow -> Company branding / Page layout'
-    }
-    else {
-        Write-Host '  2. Company branding -> upload logo/banner and set sign-in page colors'
-        Write-Host "  3. User flows -> $userFlowId -> Page layouts -> Sign up and sign in"
-    }
-    Write-Host '  4. Customize page content strings for en (optional; template in infra/identity/user-flows/branding/)'
+    Write-Host 'Branded sign-in pages (F3.T1.5):' -ForegroundColor Yellow
+    Write-Host "  .\scripts\configure-b2c-auth-branding.ps1 -Environment $Environment"
+    Write-Host '  See infra/identity/branding/README.md for logo assets and portal fallback.'
 }
