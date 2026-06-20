@@ -33,6 +33,55 @@
   font-weight: 600;
 }
 
+.session-header {
+  align-items: flex-start;
+}
+
+.session-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem 1rem;
+}
+
+.session-user {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  max-width: min(100%, 320px);
+}
+
+.session-status {
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.session-name {
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.session-email {
+  color: var(--text);
+  font-size: 0.92rem;
+  word-break: break-word;
+}
+
+.auth-loading-screen {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+}
+
+.app-layout-authenticated .app-shell {
+  padding-top: 32px;
+}
+
 .site-nav-primary {
   padding: 0.45rem 0.9rem;
   border-radius: 999px;

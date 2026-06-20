@@ -2,6 +2,7 @@ import { InteractionRequiredAuthError, InteractionStatus } from '@azure/msal-bro
 import { useCallback } from 'react'
 import { useMsal } from '@azure/msal-react'
 import { buildLoginRequest, buildSignUpRequest, tokenRequest } from './authConfig'
+import { clearAuthReturnUrl } from './returnUrl'
 
 export function useVitalNexusAuth() {
   const { instance, accounts, inProgress } = useMsal()
@@ -18,6 +19,7 @@ export function useVitalNexusAuth() {
   }
 
   async function signOut(): Promise<void> {
+    clearAuthReturnUrl()
     await instance.logoutRedirect({
       account: account ?? undefined,
     })

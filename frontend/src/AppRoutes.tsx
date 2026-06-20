@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AuthenticatedAppShell } from './components/AuthenticatedAppShell'
 import { RequireAuth } from './components/RequireAuth'
 import { RequireGuest } from './components/RequireGuest'
 import { CreateAccountPage } from './pages/CreateAccountPage'
@@ -9,30 +10,17 @@ export function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={
-            <RequireAuth>
-              <HomePage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/sign-in"
-          element={
-            <RequireGuest>
-              <SignInPage />
-            </RequireGuest>
-          }
-        />
-        <Route
-          path="/create-account"
-          element={
-            <RequireGuest>
-              <CreateAccountPage />
-            </RequireGuest>
-          }
-        />
+        <Route element={<RequireGuest />}>
+          <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/create-account" element={<CreateAccountPage />} />
+        </Route>
+
+        <Route element={<RequireAuth />}>
+          <Route element={<AuthenticatedAppShell />}>
+            <Route path="/" element={<HomePage />} />
+          </Route>
+        </Route>
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
