@@ -1,0 +1,44 @@
+{
+  "dev": {
+    "displayName": "VitalNexus API Dev",
+    "tenantDomainPrefix": "vitalnexusexternal",
+    "scopeNamespace": "vitalnexus-api",
+    "scopes": [
+      {
+        "value": "access_as_user",
+        "adminConsentDisplayName": "Access VitalNexus API",
+        "adminConsentDescription": "Allows the application to access the VitalNexus API on behalf of the signed-in user.",
+        "userConsentDisplayName": "Access VitalNexus API",
+        "userConsentDescription": "Allows VitalNexus to access the API on your behalf."
+      }
+    ]
+  },
+  "test": {
+    "displayName": "VitalNexus API Test",
+    "tenantDomainPrefix": "vitalnexustest",
+    "scopeNamespace": "vitalnexus-api",
+    "scopes": [
+      {
+        "value": "access_as_user",
+        "adminConsentDisplayName": "Access VitalNexus API",
+        "adminConsentDescription": "Allows the application to access the VitalNexus API on behalf of the signed-in user.",
+        "userConsentDisplayName": "Access VitalNexus API",
+        "userConsentDescription": "Allows VitalNexus to access the API on your behalf."
+      }
+    ]
+  },
+  "prod": {
+    "displayName": "VitalNexus API",
+    "tenantDomainPrefix": "vitalnexusprod",
+    "scopeNamespace": "vitalnexus-api",
+    "scopes": [
+      {
+        "value": "access_as_user",
+        "adminConsentDisplayName": "Access VitalNexus API",
+        "adminConsentDescription": "Allows the application to access the VitalNexus API on behalf of the signed-in user.",
+        "userConsentDisplayName": "Access VitalNexus API",
+        "userConsentDescription": "Allows VitalNexus to access the API on your behalf."
+      }
+    ]
+  }
+}

@@ -7,8 +7,11 @@ on:
       - 'scripts/b2c/**'
       - 'scripts/register-b2c-spa-app.ps1'
       - 'scripts/verify-b2c-spa-app.ps1'
+      - 'scripts/register-b2c-api-app.ps1'
+      - 'scripts/verify-b2c-api-app.ps1'
       - '.github/workflows/identity-build.yml'
       - '.github/workflows/configure-b2c-spa-app.yml'
+      - '.github/workflows/configure-b2c-api-app.yml'
   push:
     branches:
       - dev
@@ -18,8 +21,11 @@ on:
       - 'scripts/b2c/**'
       - 'scripts/register-b2c-spa-app.ps1'
       - 'scripts/verify-b2c-spa-app.ps1'
+      - 'scripts/register-b2c-api-app.ps1'
+      - 'scripts/verify-b2c-api-app.ps1'
       - '.github/workflows/identity-build.yml'
       - '.github/workflows/configure-b2c-spa-app.yml'
+      - '.github/workflows/configure-b2c-api-app.yml'
   workflow_dispatch:
 
 permissions:
@@ -54,3 +60,20 @@ jobs:
             }
           }
           Write-Host "spa-app/environments.json is valid."
+
+      - name: Validate API app environment config
+        shell: pwsh
+        run: |
+          $config = Get-Content infra/identity/api-app/environments.json -Raw | ConvertFrom-Json
+          foreach ($envName in @('dev', 'test', 'prod')) {
+            if (-not $config.$envName.displayName) {
+              throw "api-app/environments.json missing displayName for $envName"
+            }
+            if (-not $config.$envName.tenantDomainPrefix) {
+              throw "api-app/environments.json missing tenantDomainPrefix for $envName"
+            }
+            if (-not $config.$envName.scopes -or $config.$envName.scopes.Count -eq 0) {
+              throw "api-app/environments.json missing scopes for $envName"
+            }
+          }
+          Write-Host "api-app/environments.json is valid."

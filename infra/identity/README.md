@@ -11,7 +11,10 @@ Each deployment environment (`dev`, `test`, `prod`) owns a **dedicated external 
 | `Microsoft.AzureActiveDirectory/b2cDirectories` | Environment-specific external tenant |
 | Key Vault secrets (optional) | `b2c-tenant-domain` |
 
-User flows, branding, MFA policies, and additional app configuration are configured in follow-on issues (F3.T1.3–F3.T1.5). The React frontend SPA app registration is **F3.T1.2** — see [`spa-app/README.md`](spa-app/README.md).
+User flows, branding, MFA policies, and additional app configuration are configured in follow-on issues (F3.T1.4–F3.T1.5). App registrations:
+
+- **F3.T1.2** — React frontend SPA — [`spa-app/README.md`](spa-app/README.md)
+- **F3.T1.3** — Backend API and scopes — [`api-app/README.md`](api-app/README.md)
 
 ## Prerequisites
 
@@ -81,6 +84,7 @@ After the tenant resource exists:
 2. Confirm **Tenant properties** (display name, country).
 3. Note the **Tenant ID** from Azure portal or the `az rest` command above.
 4. Proceed to **F3.T1.2** (register React frontend SPA app) — [`spa-app/README.md`](spa-app/README.md).
+5. Proceed to **F3.T1.3** (register backend API and expose scopes) — [`api-app/README.md`](api-app/README.md).
 
 ## Limitations
 
