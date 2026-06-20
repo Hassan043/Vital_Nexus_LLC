@@ -1,0 +1,25 @@
+{
+  "localizedStrings": [
+    {
+      "elementType": "UxElement",
+      "elementId": "heading",
+      "stringId": "Sign in to VitalNexus",
+      "override": true,
+      "value": "Sign in to VitalNexus"
+    },
+    {
+      "elementType": "UxElement",
+      "elementId": "intro",
+      "stringId": "Functional medicine lab intelligence for your clinic.",
+      "override": true,
+      "value": "Functional medicine lab intelligence for your clinic."
+    },
+    {
+      "elementType": "UxElement",
+      "elementId": "createaccount_intro",
+      "stringId": "Create your VitalNexus account",
+      "override": true,
+      "value": "Create your VitalNexus account"
+    }
+  ]
+}

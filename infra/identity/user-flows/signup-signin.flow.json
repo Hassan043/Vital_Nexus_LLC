@@ -1,0 +1,12 @@
+{
+  "id": "VitalNexusSignUpSignIn",
+  "userFlowType": "signUpOrSignIn",
+  "userFlowTypeVersion": 3,
+  "isLanguageCustomizationEnabled": true,
+  "defaultLanguageTag": "en",
+  "identityProviders": [
+    {
+      "id": "EmailPassword-OAUTH"
+    }
+  ]
+}
