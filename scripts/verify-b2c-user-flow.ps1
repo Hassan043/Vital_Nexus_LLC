@@ -21,7 +21,8 @@ param(
     [string]$UserFlowDisplayName = '',
 
     [string]$ManagementClientId = $env:B2C_MANAGEMENT_CLIENT_ID,
-    [string]$ManagementClientSecret = $env:B2C_MANAGEMENT_CLIENT_SECRET
+    [string]$ManagementClientSecret = $env:B2C_MANAGEMENT_CLIENT_SECRET,
+    [string]$SpaClientId = $env:B2C_SPA_CLIENT_ID
 )
 
 $ErrorActionPreference = 'Stop'
@@ -76,6 +77,18 @@ if ($TenantKind -eq 'ciam') {
 
     Write-Host "User flow ID:   $($flow.id)"
     Write-Host "Display name:   $($flow.displayName)"
+
+    $SpaClientId = Resolve-B2cSpaClientId `
+        -AccessToken $accessToken `
+        -Environment $Environment `
+        -SpaClientId $SpaClientId `
+        -ManagementClientId $ManagementClientId `
+        -RepoRoot $repoRoot
+    $linkedAppIds = Get-CiamUserFlowLinkedAppIds -AccessToken $accessToken -FlowId $flow.id
+    Write-Host "Linked SPA app:   $($linkedAppIds -join ', ')"
+    if ($linkedAppIds -notcontains $SpaClientId.Trim()) {
+        throw "CIAM user flow '$UserFlowDisplayName' is not linked to SPA app '$SpaClientId'. Run .\scripts\configure-b2c-signup-signin-flow.ps1 -Environment $Environment"
+    }
 
     $metadataUrl = "https://$TenantDomainPrefix.ciamlogin.com/$TenantId/v2.0/.well-known/openid-configuration"
     Write-Host "Metadata URL:   $metadataUrl"

@@ -13,11 +13,17 @@ on:
       - 'scripts/verify-b2c-user-flow.ps1'
       - 'scripts/configure-b2c-auth-branding.ps1'
       - 'scripts/verify-b2c-auth-branding.ps1'
+      - 'scripts/configure-b2c-password-recovery.ps1'
+      - 'scripts/verify-b2c-password-recovery.ps1'
+      - 'scripts/configure-b2c-mfa-conditional-access.ps1'
+      - 'scripts/verify-b2c-mfa-conditional-access.ps1'
       - '.github/workflows/identity-build.yml'
       - '.github/workflows/configure-b2c-spa-app.yml'
       - '.github/workflows/configure-b2c-api-app.yml'
       - '.github/workflows/configure-b2c-user-flow.yml'
       - '.github/workflows/configure-b2c-auth-branding.yml'
+      - '.github/workflows/configure-b2c-password-recovery.yml'
+      - '.github/workflows/configure-b2c-mfa-conditional-access.yml'
   push:
     branches:
       - dev
@@ -33,11 +39,17 @@ on:
       - 'scripts/verify-b2c-user-flow.ps1'
       - 'scripts/configure-b2c-auth-branding.ps1'
       - 'scripts/verify-b2c-auth-branding.ps1'
+      - 'scripts/configure-b2c-password-recovery.ps1'
+      - 'scripts/verify-b2c-password-recovery.ps1'
+      - 'scripts/configure-b2c-mfa-conditional-access.ps1'
+      - 'scripts/verify-b2c-mfa-conditional-access.ps1'
       - '.github/workflows/identity-build.yml'
       - '.github/workflows/configure-b2c-spa-app.yml'
       - '.github/workflows/configure-b2c-api-app.yml'
       - '.github/workflows/configure-b2c-user-flow.yml'
       - '.github/workflows/configure-b2c-auth-branding.yml'
+      - '.github/workflows/configure-b2c-password-recovery.yml'
+      - '.github/workflows/configure-b2c-mfa-conditional-access.yml'
   workflow_dispatch:
 
 permissions:
@@ -118,3 +130,29 @@ jobs:
             }
           }
           Write-Host "branding/environments.json is valid."
+
+      - name: Validate password recovery environment config
+        shell: pwsh
+        run: |
+          $config = Get-Content infra/identity/password-recovery/environments.json -Raw | ConvertFrom-Json
+          foreach ($envName in @('dev', 'test', 'prod')) {
+            if (-not $config.$envName.passwordResetUserFlowId) {
+              throw "password-recovery/environments.json missing passwordResetUserFlowId for $envName"
+            }
+          }
+          Get-Content infra/identity/password-recovery/password-reset.b2c.flow.json -Raw | ConvertFrom-Json | Out-Null
+          Write-Host "password-recovery configuration is valid."
+
+      - name: Validate MFA environment config
+        shell: pwsh
+        run: |
+          $config = Get-Content infra/identity/mfa/environments.json -Raw | ConvertFrom-Json
+          foreach ($envName in @('dev', 'test', 'prod')) {
+            if (-not $config.$envName.conditionalAccessPolicyDisplayName) {
+              throw "mfa/environments.json missing conditionalAccessPolicyDisplayName for $envName"
+            }
+            if (-not $config.$envName.grantBuiltInControls -or $config.$envName.grantBuiltInControls.Count -eq 0) {
+              throw "mfa/environments.json missing grantBuiltInControls for $envName"
+            }
+          }
+          Write-Host "mfa/environments.json is valid."
