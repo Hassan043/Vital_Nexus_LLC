@@ -1,0 +1,34 @@
+name: Identity Infrastructure Build
+
+on:
+  pull_request:
+    paths:
+      - 'infra/identity/**'
+      - '.github/workflows/identity-build.yml'
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - 'infra/identity/**'
+      - '.github/workflows/identity-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bicep-build:
+    name: Validate identity Bicep
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build identity Bicep templates
+        run: |
+          set -euo pipefail
+          az bicep build --file infra/identity/main.bicep
+          az bicep build --file infra/identity/modules/b2c-tenant.bicep
+          az bicep build --file infra/identity/modules/key-vault-tenant-secret.bicep

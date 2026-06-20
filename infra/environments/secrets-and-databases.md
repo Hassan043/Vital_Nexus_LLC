@@ -1,6 +1,6 @@
 # Secrets and Databases per Environment
 
-Each VitalNexus deployment environment (`dev`, `test`, `prod`) owns its own Azure SQL servers, databases, Key Vault, and Service Bus namespace. Nothing is shared across environments at the data or secrets layer.
+Each VitalNexus deployment environment (`dev`, `test`, `prod`) owns its own Azure SQL servers, databases, Key Vault, Service Bus namespace, and **Microsoft Entra External ID external tenant**. Nothing is shared across environments at the data, secrets, or identity layer.
 
 ## Database isolation
 
@@ -28,6 +28,28 @@ Connection strings are built at deploy time from the environment's SQL servers a
 
 The API Container App reads database connection strings from its environment Key Vault using the workload managed identity (`ConnectionStrings__Accounts`, `ConnectionStrings__LabMarkersData`, `ConnectionStrings__PatientHealth`). The vault URI is exposed as `KeyVault__VaultUri`.
 
+## Identity provider (Entra External ID) per environment
+
+Each environment has its own **Microsoft Entra External ID external tenant** deployed from [`infra/identity/main.bicep`](../identity/main.bicep). Tenant domain prefixes are defined in `infra/identity/main.<env>.bicepparam` (defaults: `vitalnexusdev`, `vitalnexustest`, `vitalnexusprod`).
+
+| Key Vault secret (optional) | Purpose |
+|-----------------------------|---------|
+| `b2c-tenant-domain` | Tenant domain (`<prefix>.onmicrosoft.com`) |
+
+The B2C tenant GUID is not returned by the Bicep resource type. After deploy, resolve it with:
+
+```powershell
+az rest --method get `
+  --url "https://management.azure.com/subscriptions/<subscription-id>/resourceGroups/rg-vitalnexus-dev/providers/Microsoft.AzureActiveDirectory/b2cDirectories/vitalnexusdev.onmicrosoft.com?api-version=2023-05-17-preview" `
+  --query "properties.tenantId" -o tsv
+```
+
+Store the resolved tenant ID in Key Vault manually or in F3.T1.5 application configuration.
+
+Deploy with [`.github/workflows/deploy-identity.yml`](../../.github/workflows/deploy-identity.yml). Pass the environment Key Vault name to persist tenant metadata after core infra exists.
+
+**Never store user passwords, MFA secrets, or refresh tokens in VitalNexus databases.** Authentication is delegated to Microsoft Entra External ID.
+
 ## GitHub Environment secrets
 
 Configure **separate secrets for each GitHub Environment** (`dev`, `test`, `prod`). Do not reuse production SQL passwords or credentials in dev or test.
@@ -45,8 +67,9 @@ The deploy workflow (`.github/workflows/deploy-infra.yml`) runs in the selected 
 
 After deploying an environment, confirm isolation:
 
-1. Key Vault contains the four secrets listed above and no secrets from other environments.
+1. Key Vault contains the four database/Service Bus secrets listed above and no secrets from other environments.
 2. SQL servers in the resource group match the `<env>` suffix.
 3. API Container App environment variables reference connection strings via Key Vault secret refs, not plain-text values.
+4. Entra External ID tenant domain and tenant ID match the environment's `infra/identity/main.<env>.bicepparam` deployment outputs.
 
 See [`README.md`](README.md) for environment overview and deploy steps.

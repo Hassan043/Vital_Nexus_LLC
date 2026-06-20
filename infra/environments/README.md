@@ -12,7 +12,7 @@ VitalNexus uses three isolated Azure deployment environments. Each environment i
 
 All environments deploy the same `infra/main.bicep` template. The `environmentName` parameter drives resource naming (`-<env>` suffix), tags, and environment-specific defaults (for example prod uses higher replica counts and longer Service Bus message TTL).
 
-Each environment also receives **dedicated SQL servers, databases, Key Vault secrets, and Service Bus namespace** — nothing is shared across dev, test, or prod. See [`secrets-and-databases.md`](secrets-and-databases.md) for the full isolation model and required GitHub secrets.
+Each environment also receives **dedicated SQL servers, databases, Key Vault secrets, Service Bus namespace, and Microsoft Entra External ID external tenant** — nothing is shared across dev, test, or prod. See [`secrets-and-databases.md`](secrets-and-databases.md) for the full isolation model and required GitHub secrets.
 
 ## Deploy
 
@@ -64,5 +64,7 @@ Replace `test` with `dev` or `prod` and the matching parameter file as needed.
 4. Run the deploy workflow for each environment.
 
 Application components (frontend, API, Functions) are deployed separately — see [`docs/DEPLOYMENT_PIPELINES.md`](../docs/DEPLOYMENT_PIPELINES.md).
+
+Identity (Microsoft Entra External ID external tenant) is deployed separately — see [`infra/identity/README.md`](../identity/README.md) and [`.github/workflows/deploy-identity.yml`](../.github/workflows/deploy-identity.yml).
 
 Database schema is deployed via [`deploy-databases.yml`](../.github/workflows/deploy-databases.yml) or individually via [`deploy-account-business-database.yml`](../.github/workflows/deploy-account-business-database.yml) and [`deploy-patient-health-database.yml`](../.github/workflows/deploy-patient-health-database.yml), with GitHub Environment approval gates on test and prod — see [`docs/DATABASE_DEPLOYMENT.md`](../docs/DATABASE_DEPLOYMENT.md).

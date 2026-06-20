@@ -1,0 +1,305 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.44.1.10279",
+      "templateHash": "16323937111323863206"
+    }
+  },
+  "parameters": {
+    "environmentName": {
+      "type": "string",
+      "allowedValues": [
+        "dev",
+        "test",
+        "prod"
+      ],
+      "metadata": {
+        "description": "Deployment environment (dev, test, or prod)."
+      }
+    },
+    "tenantDomainPrefix": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 24,
+      "metadata": {
+        "description": "Azure AD B2C tenant domain prefix without .onmicrosoft.com (alphanumeric, globally unique)."
+      }
+    },
+    "displayName": {
+      "type": "string",
+      "metadata": {
+        "description": "Display name for the B2C tenant in the Azure portal."
+      }
+    },
+    "countryCode": {
+      "type": "string",
+      "defaultValue": "US",
+      "metadata": {
+        "description": "ISO 3166-1 alpha-2 country code for tenant creation."
+      }
+    },
+    "dataResidencyLocation": {
+      "type": "string",
+      "defaultValue": "United States",
+      "metadata": {
+        "description": "Data residency location for the B2C tenant."
+      }
+    },
+    "keyVaultName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional. When set, tenant metadata is written to this existing Key Vault."
+      }
+    }
+  },
+  "variables": {
+    "tags": {
+      "product": "VitalNexus",
+      "environment": "[parameters('environmentName')]",
+      "managedBy": "bicep",
+      "component": "identity"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "b2c-tenant",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "tenantDomainPrefix": {
+            "value": "[parameters('tenantDomainPrefix')]"
+          },
+          "displayName": {
+            "value": "[parameters('displayName')]"
+          },
+          "countryCode": {
+            "value": "[parameters('countryCode')]"
+          },
+          "dataResidencyLocation": {
+            "value": "[parameters('dataResidencyLocation')]"
+          },
+          "tags": {
+            "value": "[variables('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.44.1.10279",
+              "templateHash": "13372589322285367774"
+            }
+          },
+          "parameters": {
+            "tenantDomainPrefix": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 24,
+              "metadata": {
+                "description": "Azure AD B2C tenant domain prefix without the .onmicrosoft.com suffix."
+              }
+            },
+            "displayName": {
+              "type": "string",
+              "metadata": {
+                "description": "Human-readable tenant display name shown in the Azure portal."
+              }
+            },
+            "countryCode": {
+              "type": "string",
+              "defaultValue": "US",
+              "metadata": {
+                "description": "ISO 3166-1 alpha-2 country code used when creating the tenant."
+              }
+            },
+            "dataResidencyLocation": {
+              "type": "string",
+              "defaultValue": "United States",
+              "allowedValues": [
+                "United States",
+                "Europe",
+                "Asia Pacific",
+                "Australia",
+                "Brazil",
+                "Canada",
+                "Japan",
+                "Korea",
+                "India"
+              ],
+              "metadata": {
+                "description": "Data residency location for the B2C tenant (not an Azure region such as eastus)."
+              }
+            },
+            "skuName": {
+              "type": "string",
+              "defaultValue": "Standard",
+              "metadata": {
+                "description": "SKU name for the B2C tenant billing tier identifier (not a monetary value)."
+              }
+            },
+            "skuTier": {
+              "type": "string",
+              "defaultValue": "A0",
+              "metadata": {
+                "description": "SKU tier for the B2C tenant."
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags applied to the B2C tenant resource."
+              }
+            }
+          },
+          "variables": {
+            "tenantDomain": "[format('{0}.onmicrosoft.com', parameters('tenantDomainPrefix'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.AzureActiveDirectory/b2cDirectories",
+              "apiVersion": "2023-05-17-preview",
+              "name": "[variables('tenantDomain')]",
+              "location": "[parameters('dataResidencyLocation')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "[parameters('skuName')]",
+                "tier": "[parameters('skuTier')]"
+              },
+              "properties": {
+                "createTenantProperties": {
+                  "countryCode": "[parameters('countryCode')]",
+                  "displayName": "[parameters('displayName')]"
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "tenantDomain": {
+              "type": "string",
+              "value": "[variables('tenantDomain')]"
+            },
+            "tenantResourceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.AzureActiveDirectory/b2cDirectories', variables('tenantDomain'))]"
+            },
+            "loginBaseUrl": {
+              "type": "string",
+              "value": "[format('https://{0}.b2clogin.com', parameters('tenantDomainPrefix'))]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "condition": "[not(empty(parameters('keyVaultName')))]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "b2c-tenant-domain-secret",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "keyVaultName": {
+            "value": "[parameters('keyVaultName')]"
+          },
+          "secretName": {
+            "value": "b2c-tenant-domain"
+          },
+          "secretValue": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'b2c-tenant'), '2025-04-01').outputs.tenantDomain.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.44.1.10279",
+              "templateHash": "15666717942085432774"
+            }
+          },
+          "parameters": {
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the existing Key Vault in the environment resource group."
+              }
+            },
+            "secretName": {
+              "type": "string",
+              "metadata": {
+                "description": "Secret name (Key Vault secret identifier)."
+              }
+            },
+            "secretValue": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Secret value to store."
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2023-07-01",
+              "name": "[format('{0}/{1}', parameters('keyVaultName'), parameters('secretName'))]",
+              "properties": {
+                "value": "[parameters('secretValue')]"
+              }
+            }
+          ],
+          "outputs": {
+            "secretName": {
+              "type": "string",
+              "value": "[parameters('secretName')]"
+            },
+            "secretUri": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('secretName')), '2023-07-01').secretUri]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'b2c-tenant')]"
+      ]
+    }
+  ],
+  "outputs": {
+    "environmentName": {
+      "type": "string",
+      "value": "[parameters('environmentName')]"
+    },
+    "tenantDomain": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'b2c-tenant'), '2025-04-01').outputs.tenantDomain.value]"
+    },
+    "tenantResourceId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'b2c-tenant'), '2025-04-01').outputs.tenantResourceId.value]"
+    },
+    "loginBaseUrl": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'b2c-tenant'), '2025-04-01').outputs.loginBaseUrl.value]"
+    },
+    "keyVaultTenantDomainSecretName": {
+      "type": "string",
+      "value": "[if(not(empty(parameters('keyVaultName'))), reference(resourceId('Microsoft.Resources/deployments', 'b2c-tenant-domain-secret'), '2025-04-01').outputs.secretName.value, '')]"
+    }
+  }
+}
