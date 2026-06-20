@@ -4,7 +4,7 @@ import { isMsalConfigured } from './auth/authConfig'
 import { initializeMsal } from './auth/msalInstance'
 import type { PublicClientApplication } from '@azure/msal-browser'
 import { AuthSetupPage } from './pages/AuthSetupPage'
-import { HomePage } from './pages/HomePage'
+import { AppRoutes } from './AppRoutes'
 
 function App() {
   const [msalInstance, setMsalInstance] = useState<PublicClientApplication | null>(null)
@@ -50,7 +50,7 @@ function App() {
 
   return (
     <MsalProvider instance={msalInstance}>
-      <HomePage />
+      <AppRoutes />
     </MsalProvider>
   )
 }

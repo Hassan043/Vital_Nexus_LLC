@@ -96,6 +96,37 @@ export const loginRequest = {
   scopes: ['openid', 'profile'],
 }
 
+export function buildLoginRequest(email?: string) {
+  const trimmedEmail = email?.trim()
+  if (!trimmedEmail) {
+    return loginRequest
+  }
+
+  return {
+    ...loginRequest,
+    loginHint: trimmedEmail,
+  }
+}
+
+export const signUpRequest = {
+  scopes: ['openid', 'profile'],
+  ...(getTenantKind() === 'ciam'
+    ? { prompt: 'create' as const }
+    : { extraQueryParameters: { option: 'signup' } }),
+}
+
+export function buildSignUpRequest(email?: string) {
+  const trimmedEmail = email?.trim()
+  if (!trimmedEmail) {
+    return signUpRequest
+  }
+
+  return {
+    ...signUpRequest,
+    loginHint: trimmedEmail,
+  }
+}
+
 export const tokenRequest = {
   scopes: [getApiScope()].filter((scope): scope is string => Boolean(scope)),
 }

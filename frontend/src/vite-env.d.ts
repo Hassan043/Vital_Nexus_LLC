@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_B2C_USER_FLOW: string
   readonly VITE_B2C_API_SCOPE: string
   readonly VITE_B2C_REDIRECT_URI: string
+  readonly VITE_API_BASE_URL: string
 }
 
 interface ImportMeta {
