@@ -1,10 +1,13 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VitalNexus.Api.Accounts;
 using VitalNexus.Application.Accounts;
 using VitalNexus.Application.Identity;
+using VitalNexus.Domain.Accounts;
 
 namespace VitalNexus.Api.Controllers;
 
+[Authorize(Policy = ApplicationRolePolicies.RequireProviderRole)]
 [ApiController]
 [Route("api/me")]
 public sealed class MeController(
