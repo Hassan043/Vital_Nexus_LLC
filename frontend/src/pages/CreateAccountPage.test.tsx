@@ -3,9 +3,11 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { CreateAccountPage } from './CreateAccountPage'
 
+const signUp = vi.fn()
+
 vi.mock('../auth/useVitalNexusAuth', () => ({
   useVitalNexusAuth: () => ({
-    signUp: vi.fn(),
+    signUp,
     isLoading: false,
   }),
 }))
@@ -30,5 +32,25 @@ describe('CreateAccountPage', () => {
     expect(screen.getByRole('heading', { name: 'Finish on Microsoft' })).toBeTruthy()
     expect(screen.getByText(/clinician@example.com/)).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Continue to secure registration' })).toBeTruthy()
+  })
+
+  it('redirects to Entra sign-up with the collected email', async () => {
+    signUp.mockClear()
+
+    render(
+      <MemoryRouter>
+        <CreateAccountPage />
+      </MemoryRouter>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Get started' }))
+    fireEvent.change(screen.getByLabelText('Email address'), {
+      target: { value: 'clinician@example.com' },
+    })
+    fireEvent.click(screen.getByRole('checkbox'))
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to secure registration' }))
+
+    expect(signUp).toHaveBeenCalledWith('clinician@example.com')
   })
 })
