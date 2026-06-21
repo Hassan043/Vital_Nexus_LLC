@@ -60,15 +60,27 @@ public static class EntraExternalIdAuthenticationExtensions
                 };
             });
 
+        var apiAccessPolicy = new AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .RequireAssertion(context =>
+                EntraExternalIdScopeReader.HasRequiredScope(context.User, options.RequiredScope))
+            .Build();
+
         services.AddAuthorizationBuilder()
             .AddPolicy(ApiAccessPolicyName, policy =>
-            {
-                policy.RequireAuthenticatedUser();
-                policy.RequireAssertion(context =>
-                    EntraExternalIdScopeReader.HasRequiredScope(context.User, options.RequiredScope));
-            });
+                ConfigureApiAccessPolicy(policy, options))
+            .SetFallbackPolicy(apiAccessPolicy);
 
         return services;
+    }
+
+    private static void ConfigureApiAccessPolicy(
+        AuthorizationPolicyBuilder policy,
+        EntraExternalIdOptions options)
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireAssertion(context =>
+            EntraExternalIdScopeReader.HasRequiredScope(context.User, options.RequiredScope));
     }
 
     public static IServiceCollection AddVitalNexusCors(

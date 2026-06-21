@@ -4,11 +4,11 @@ using VitalNexus.Application.Identity;
 namespace VitalNexus.Api.Controllers;
 
 [ApiController]
-[Route("api/me")]
-public sealed class MeController(IExternalIdentityAccessor externalIdentityAccessor) : ControllerBase
+[Route("api/provider")]
+public sealed class ProviderController(IExternalIdentityAccessor externalIdentityAccessor) : ControllerBase
 {
     [HttpGet]
-    public IActionResult Get()
+    public IActionResult GetCurrentProvider()
     {
         var identity = externalIdentityAccessor.Current;
         if (identity is null)
@@ -19,10 +19,9 @@ public sealed class MeController(IExternalIdentityAccessor externalIdentityAcces
         return Ok(new
         {
             objectId = identity.ObjectId,
-            name = identity.DisplayName,
             email = identity.Email,
-            tenantId = identity.TenantId,
-            scopes = identity.Scopes.Count == 0 ? null : string.Join(' ', identity.Scopes),
+            displayName = identity.DisplayName,
+            onboardingStatus = "pending",
         });
     }
 }
