@@ -1,26 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
-using VitalNexus.Application.Identity;
+using VitalNexus.Application.Accounts;
 
 namespace VitalNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/provider")]
-public sealed class ProviderController(IExternalIdentityAccessor externalIdentityAccessor) : ControllerBase
+public sealed class ProviderController(ICurrentAccountsUserAccessor currentAccountsUserAccessor) : ControllerBase
 {
     [HttpGet]
-    public IActionResult GetCurrentProvider()
+    public async Task<IActionResult> GetCurrentProvider(CancellationToken cancellationToken)
     {
-        var identity = externalIdentityAccessor.Current;
-        if (identity is null)
+        var user = await currentAccountsUserAccessor.GetCurrentAsync(cancellationToken);
+        if (user is null)
         {
             return Unauthorized();
         }
 
         return Ok(new
         {
-            objectId = identity.ObjectId,
-            email = identity.Email,
-            displayName = identity.DisplayName,
+            userId = user.Id,
+            entraObjectId = user.EntraObjectId,
+            email = user.Email,
+            displayName = user.DisplayName,
             onboardingStatus = "pending",
         });
     }
