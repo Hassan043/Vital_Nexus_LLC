@@ -9,6 +9,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 var entraOptions = builder.Configuration.BindEntraExternalIdOptions();
+entraOptions.EnsureEntraExternalIdConfiguredForEnvironment(builder.Environment);
+
 if (entraOptions.IsConfigured)
 {
     builder.Services.AddEntraExternalIdAuthentication(entraOptions);
@@ -75,3 +77,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program;
