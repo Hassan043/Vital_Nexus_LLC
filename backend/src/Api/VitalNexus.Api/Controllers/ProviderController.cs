@@ -6,7 +6,9 @@ namespace VitalNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/provider")]
-public sealed class ProviderController(ICurrentAccountsUserAccessor currentAccountsUserAccessor) : ControllerBase
+public sealed class ProviderController(
+    ICurrentAccountsUserAccessor currentAccountsUserAccessor,
+    ICurrentClinicContextAccessor currentClinicContextAccessor) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetCurrentProvider(CancellationToken cancellationToken)
@@ -17,6 +19,8 @@ public sealed class ProviderController(ICurrentAccountsUserAccessor currentAccou
             return Unauthorized();
         }
 
+        var activeClinic = await currentClinicContextAccessor.GetCurrentAsync(cancellationToken);
+
         return Ok(new
         {
             userId = user.Id,
@@ -25,6 +29,7 @@ public sealed class ProviderController(ICurrentAccountsUserAccessor currentAccou
             displayName = user.DisplayName,
             roles = user.Roles,
             clinicMemberships = user.ClinicMemberships.Select(AccountsUserResponseMapper.MapClinicMembership).ToArray(),
+            activeClinic = AccountsUserResponseMapper.MapActiveClinic(activeClinic),
             onboardingStatus = ProviderOnboardingStatus.FromMemberships(user.ClinicMemberships),
         });
     }

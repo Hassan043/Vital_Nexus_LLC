@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
@@ -22,6 +23,15 @@ public sealed class EntraExternalIdWebApplicationFactory : WebApplicationFactory
             "InstrumentationKey=00000000-0000-0000-0000-000000000000");
 
         builder.UseEnvironment("Development");
+
+        builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+        {
+            configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:PatientHealth"] =
+                    "Server=localhost;Database=PatientHealth;Trusted_Connection=True;Encrypt=False",
+            });
+        });
 
         builder.ConfigureServices(services =>
         {
