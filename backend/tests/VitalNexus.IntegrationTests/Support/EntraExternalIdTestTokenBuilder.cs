@@ -31,7 +31,23 @@ public sealed class EntraExternalIdTestTokenBuilder
 
     public string Scopes { get; init; } = "openid profile access_as_user";
 
+    public string ObjectId { get; init; } = "00000000-0000-4000-8000-000000000099";
+
+    public string Email { get; init; } = "clinician@example.com";
+
     public static EntraExternalIdTestTokenBuilder Valid() => new();
+
+    public EntraExternalIdTestTokenBuilder WithObjectId(string objectId) =>
+        new()
+        {
+            Issuer = Issuer,
+            Audience = Audience,
+            SigningKey = SigningKey,
+            ExpiresUtc = ExpiresUtc,
+            Scopes = Scopes,
+            ObjectId = objectId,
+            Email = Email,
+        };
 
     public static EntraExternalIdTestTokenBuilder Expired() =>
         new() { ExpiresUtc = DateTime.UtcNow.AddMinutes(-5) };
@@ -58,10 +74,10 @@ public sealed class EntraExternalIdTestTokenBuilder
             audience: Audience,
             claims:
             [
-                new Claim("sub", "00000000-0000-4000-8000-000000000099"),
-                new Claim("oid", "00000000-0000-4000-8000-000000000099"),
+                new Claim("sub", ObjectId),
+                new Claim("oid", ObjectId),
                 new Claim("name", "Test Clinician"),
-                new Claim("preferred_username", "clinician@example.com"),
+                new Claim("preferred_username", Email),
                 new Claim("scp", Scopes),
             ],
             expires: ExpiresUtc,

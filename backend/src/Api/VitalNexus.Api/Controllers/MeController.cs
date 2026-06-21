@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VitalNexus.Api.Accounts;
 using VitalNexus.Application.Accounts;
 using VitalNexus.Application.Identity;
 
@@ -34,6 +35,8 @@ public sealed class MeController(
             email = user.Email,
             tenantId = identity.TenantId,
             scopes = identity.Scopes.Count == 0 ? null : string.Join(' ', identity.Scopes),
+            roles = user.Roles,
+            clinicMemberships = user.ClinicMemberships.Select(AccountsUserResponseMapper.MapClinicMembership).ToArray(),
         });
     }
 }

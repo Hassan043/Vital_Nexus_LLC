@@ -11,4 +11,8 @@ public sealed class AccountsUser
     public string? DisplayName { get; init; }
 
     public DateTime CreatedAt { get; init; }
+
+    public IReadOnlyList<string> Roles { get; init; } = [];
+
+    public IReadOnlyList<ClinicMembership> ClinicMemberships { get; init; } = [];
 }

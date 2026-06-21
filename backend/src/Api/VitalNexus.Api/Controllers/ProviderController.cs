@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VitalNexus.Api.Accounts;
 using VitalNexus.Application.Accounts;
 
 namespace VitalNexus.Api.Controllers;
@@ -22,7 +23,9 @@ public sealed class ProviderController(ICurrentAccountsUserAccessor currentAccou
             entraObjectId = user.EntraObjectId,
             email = user.Email,
             displayName = user.DisplayName,
-            onboardingStatus = "pending",
+            roles = user.Roles,
+            clinicMemberships = user.ClinicMemberships.Select(AccountsUserResponseMapper.MapClinicMembership).ToArray(),
+            onboardingStatus = ProviderOnboardingStatus.FromMemberships(user.ClinicMemberships),
         });
     }
 }

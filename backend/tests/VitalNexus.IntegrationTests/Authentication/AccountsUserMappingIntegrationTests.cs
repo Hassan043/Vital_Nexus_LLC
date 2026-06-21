@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using VitalNexus.Domain.Accounts;
+using VitalNexus.Infrastructure.Accounts;
 using VitalNexus.IntegrationTests.Support;
 
 namespace VitalNexus.IntegrationTests.Authentication;
@@ -34,6 +37,14 @@ public sealed class AccountsUserMappingIntegrationTests
         Assert.True(Guid.TryParse(userId.GetString(), out _));
         Assert.Equal("00000000-0000-4000-8000-000000000099", root.GetProperty("entraObjectId").GetString());
         Assert.Equal("clinician@example.com", root.GetProperty("email").GetString());
+
+        var roles = root.GetProperty("roles");
+        Assert.Equal(JsonValueKind.Array, roles.ValueKind);
+        Assert.Contains(roles.EnumerateArray(), role => role.GetString() == "Clinician");
+
+        var clinicMemberships = root.GetProperty("clinicMemberships");
+        Assert.Equal(JsonValueKind.Array, clinicMemberships.ValueKind);
+        Assert.Empty(clinicMemberships.EnumerateArray());
     }
 
     [Fact]
@@ -56,5 +67,46 @@ public sealed class AccountsUserMappingIntegrationTests
         Assert.Equal(
             firstDocument.RootElement.GetProperty("userId").GetString(),
             secondDocument.RootElement.GetProperty("userId").GetString());
+    }
+
+    [Fact]
+    public async Task Provider_ReturnsCompleteOnboardingWhenUserHasActiveClinicMembership()
+    {
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            EntraExternalIdTestTokenBuilder.Valid()
+                .WithObjectId("00000000-0000-4000-8000-000000000077")
+                .Build());
+
+        var meResponse = await client.GetAsync("/api/me");
+        Assert.Equal(HttpStatusCode.OK, meResponse.StatusCode);
+
+        using var meDocument = JsonDocument.Parse(await meResponse.Content.ReadAsStringAsync());
+        var userId = Guid.Parse(meDocument.RootElement.GetProperty("userId").GetString()!);
+
+        var membershipRepository = (InMemoryClinicMembershipRepository)_factory.Services
+            .GetRequiredService<VitalNexus.Application.Accounts.IClinicMembershipRepository>();
+        var clinicId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        await membershipRepository.AddMembershipAsync(
+            userId,
+            new ClinicMembership
+            {
+                ClinicId = clinicId,
+                ClinicName = "Test Clinic",
+                JoinedAt = DateTime.UtcNow,
+                IsActive = true,
+            });
+
+        var providerResponse = await client.GetAsync("/api/provider");
+        Assert.Equal(HttpStatusCode.OK, providerResponse.StatusCode);
+
+        using var providerDocument = JsonDocument.Parse(await providerResponse.Content.ReadAsStringAsync());
+        var root = providerDocument.RootElement;
+
+        Assert.Equal("complete", root.GetProperty("onboardingStatus").GetString());
+        Assert.Equal(JsonValueKind.Array, root.GetProperty("roles").ValueKind);
+        Assert.Equal(1, root.GetProperty("clinicMemberships").GetArrayLength());
+        Assert.Equal(clinicId.ToString(), root.GetProperty("clinicMemberships")[0].GetProperty("clinicId").GetString());
     }
 }

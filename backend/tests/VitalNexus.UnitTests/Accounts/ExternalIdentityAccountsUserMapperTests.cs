@@ -1,4 +1,5 @@
 using VitalNexus.Application.Identity;
+using VitalNexus.Domain.Accounts;
 using VitalNexus.Infrastructure.Accounts;
 
 namespace VitalNexus.UnitTests.Accounts;
@@ -9,7 +10,8 @@ public sealed class ExternalIdentityAccountsUserMapperTests
     public async Task MapAsync_CreatesInternalAccountsUserForNewExternalIdentity()
     {
         var repository = new InMemoryAccountsUserRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository);
+        var roleRepository = new InMemoryUserRoleRepository();
+        var mapper = new ExternalIdentityAccountsUserMapper(repository, roleRepository);
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000099",
@@ -26,10 +28,31 @@ public sealed class ExternalIdentityAccountsUserMapperTests
     }
 
     [Fact]
+    public async Task MapAsync_AssignsDefaultClinicianRoleForNewExternalIdentity()
+    {
+        var repository = new InMemoryAccountsUserRepository();
+        var roleRepository = new InMemoryUserRoleRepository();
+        var mapper = new ExternalIdentityAccountsUserMapper(repository, roleRepository);
+        var identity = new TrustedExternalIdentity
+        {
+            ObjectId = "00000000-0000-4000-8000-000000000088",
+            Email = "new-clinician@example.com",
+            DisplayName = "New Clinician",
+        };
+
+        var user = await mapper.MapAsync(identity);
+        var roles = await roleRepository.GetRoleNamesForUserAsync(user.Id);
+
+        Assert.Single(roles);
+        Assert.Equal(ApplicationRoles.Clinician, roles[0]);
+    }
+
+    [Fact]
     public async Task MapAsync_ReturnsExistingUserForSameEntraObjectId()
     {
         var repository = new InMemoryAccountsUserRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository);
+        var roleRepository = new InMemoryUserRoleRepository();
+        var mapper = new ExternalIdentityAccountsUserMapper(repository, roleRepository);
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000099",
@@ -48,7 +71,8 @@ public sealed class ExternalIdentityAccountsUserMapperTests
     public async Task MapAsync_UpdatesDisplayNameWhenExternalIdentityChanges()
     {
         var repository = new InMemoryAccountsUserRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository);
+        var roleRepository = new InMemoryUserRoleRepository();
+        var mapper = new ExternalIdentityAccountsUserMapper(repository, roleRepository);
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000099",
@@ -68,7 +92,8 @@ public sealed class ExternalIdentityAccountsUserMapperTests
     public async Task MapAsync_ThrowsWhenEmailIsMissingForNewUser()
     {
         var repository = new InMemoryAccountsUserRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository);
+        var roleRepository = new InMemoryUserRoleRepository();
+        var mapper = new ExternalIdentityAccountsUserMapper(repository, roleRepository);
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000099",

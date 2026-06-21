@@ -8,7 +8,9 @@ namespace VitalNexus.Infrastructure.Accounts;
 public sealed class HttpContextCurrentAccountsUserAccessor(
     IHttpContextAccessor httpContextAccessor,
     IExternalIdentityAccessor externalIdentityAccessor,
-    IExternalIdentityAccountsUserMapper mapper) : ICurrentAccountsUserAccessor
+    IExternalIdentityAccountsUserMapper mapper,
+    IUserRoleRepository userRoleRepository,
+    IClinicMembershipRepository clinicMembershipRepository) : ICurrentAccountsUserAccessor
 {
     private const string CacheItemKey = "VitalNexus.CurrentAccountsUser";
 
@@ -32,7 +34,12 @@ public sealed class HttpContextCurrentAccountsUserAccessor(
         }
 
         var user = await mapper.MapAsync(identity, cancellationToken);
-        httpContext.Items[CacheItemKey] = user;
-        return user;
+        var enrichedUser = await AccountsUserProfileEnricher.EnrichAsync(
+            user,
+            userRoleRepository,
+            clinicMembershipRepository,
+            cancellationToken);
+        httpContext.Items[CacheItemKey] = enrichedUser;
+        return enrichedUser;
     }
 }

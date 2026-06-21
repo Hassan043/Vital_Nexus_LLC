@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VitalNexus.Api.Accounts;
 using VitalNexus.Application.Accounts;
 
 namespace VitalNexus.Api.Controllers;
@@ -23,6 +24,8 @@ public sealed class AccountsController(ICurrentAccountsUserAccessor currentAccou
             email = user.Email,
             displayName = user.DisplayName,
             createdAt = user.CreatedAt,
+            roles = user.Roles,
+            clinicMemberships = user.ClinicMemberships.Select(AccountsUserResponseMapper.MapClinicMembership).ToArray(),
         });
     }
 }
