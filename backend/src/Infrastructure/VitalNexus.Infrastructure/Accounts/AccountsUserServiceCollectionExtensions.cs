@@ -16,6 +16,7 @@ public static class AccountsUserServiceCollectionExtensions
         services.AddSingleton<IUserInvitationRepository, InMemoryUserInvitationRepository>();
         services.AddSingleton<ISubscriptionRepository, InMemorySubscriptionRepository>();
         services.AddSingleton<IPlanTierRepository, InMemoryPlanTierRepository>();
+        services.AddSingleton<ITenantIsolationValidator, TenantIsolationValidator>();
         services.AddScoped<ICustomerOnboardingService, CustomerOnboardingService>();
         services.AddScoped<IExternalIdentityAccountsUserMapper, ExternalIdentityAccountsUserMapper>();
         services.AddScoped<ICurrentAccountsUserAccessor, HttpContextCurrentAccountsUserAccessor>();
