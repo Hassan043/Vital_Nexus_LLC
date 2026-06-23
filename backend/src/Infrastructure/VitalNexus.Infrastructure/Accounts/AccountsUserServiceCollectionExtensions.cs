@@ -14,6 +14,8 @@ public static class AccountsUserServiceCollectionExtensions
         services.AddSingleton<IClinicRepository, InMemoryClinicRepository>();
         services.AddSingleton<IClinicProfileRepository, InMemoryClinicProfileRepository>();
         services.AddSingleton<IUserInvitationRepository, InMemoryUserInvitationRepository>();
+        services.AddSingleton<ISubscriptionRepository, InMemorySubscriptionRepository>();
+        services.AddSingleton<IPlanTierRepository, InMemoryPlanTierRepository>();
         services.AddScoped<IExternalIdentityAccountsUserMapper, ExternalIdentityAccountsUserMapper>();
         services.AddScoped<ICurrentAccountsUserAccessor, HttpContextCurrentAccountsUserAccessor>();
         return services;
