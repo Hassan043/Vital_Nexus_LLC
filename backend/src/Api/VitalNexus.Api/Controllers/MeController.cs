@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
+using VitalNexus.Application.Accounts;
 using VitalNexus.Application.Identity;
 
 namespace VitalNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/me")]
-public sealed class MeController(IExternalIdentityAccessor externalIdentityAccessor) : ControllerBase
+public sealed class MeController(
+    IExternalIdentityAccessor externalIdentityAccessor,
+    ICurrentAccountsUserAccessor currentAccountsUserAccessor) : ControllerBase
 {
     [HttpGet]
-    public IActionResult Get()
+    public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
         var identity = externalIdentityAccessor.Current;
         if (identity is null)
@@ -16,11 +19,19 @@ public sealed class MeController(IExternalIdentityAccessor externalIdentityAcces
             return Unauthorized();
         }
 
+        var user = await currentAccountsUserAccessor.GetCurrentAsync(cancellationToken);
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
         return Ok(new
         {
-            objectId = identity.ObjectId,
-            name = identity.DisplayName,
-            email = identity.Email,
+            userId = user.Id,
+            objectId = user.EntraObjectId,
+            entraObjectId = user.EntraObjectId,
+            name = user.DisplayName,
+            email = user.Email,
             tenantId = identity.TenantId,
             scopes = identity.Scopes.Count == 0 ? null : string.Join(' ', identity.Scopes),
         });

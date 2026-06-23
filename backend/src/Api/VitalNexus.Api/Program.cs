@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using VitalNexus.Api.Configuration;
+using VitalNexus.Infrastructure.Accounts;
 using VitalNexus.Infrastructure.Configuration;
 using VitalNexus.Infrastructure.Identity;
 
@@ -17,6 +18,7 @@ if (entraOptions.IsConfigured)
     builder.Services.AddEntraExternalIdAuthentication(entraOptions);
     builder.Services.AddVitalNexusCors(entraOptions);
     builder.Services.AddExternalIdentityAccessor();
+    builder.Services.AddAccountsUserMapping();
 }
 
 builder.Services.AddSwaggerGen(options =>
