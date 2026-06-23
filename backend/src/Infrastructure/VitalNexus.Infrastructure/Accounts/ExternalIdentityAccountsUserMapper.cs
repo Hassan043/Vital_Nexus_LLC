@@ -4,7 +4,9 @@ using VitalNexus.Domain.Accounts;
 
 namespace VitalNexus.Infrastructure.Accounts;
 
-public sealed class ExternalIdentityAccountsUserMapper(IAccountsUserRepository repository) : IExternalIdentityAccountsUserMapper
+public sealed class ExternalIdentityAccountsUserMapper(
+    IAccountsUserRepository repository,
+    IUserRoleRepository userRoleRepository) : IExternalIdentityAccountsUserMapper
 {
     public async Task<AccountsUser> MapAsync(
         TrustedExternalIdentity identity,
@@ -37,7 +39,9 @@ public sealed class ExternalIdentityAccountsUserMapper(IAccountsUserRepository r
             CreatedAt = DateTime.UtcNow,
         };
 
-        return await repository.CreateAsync(newUser, cancellationToken);
+        var createdUser = await repository.CreateAsync(newUser, cancellationToken);
+        await userRoleRepository.AssignRoleAsync(createdUser.Id, ApplicationRoles.Clinician, cancellationToken);
+        return createdUser;
     }
 
     private async Task<AccountsUser> SyncProfileAsync(
