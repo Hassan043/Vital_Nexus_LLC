@@ -8,3 +8,10 @@ GO
 IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'sec_ClinicalWrite')
     EXEC('CREATE ROLE [sec_ClinicalWrite]');
 GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Placeholder)
+BEGIN
+    INSERT INTO dbo.Placeholder (Note)
+    VALUES ('Provisioned Patients database — clinical schema will expand in later phases.');
+END
+GO
