@@ -7,6 +7,7 @@ on:
       - dev
     paths:
       - 'backend/tests/VitalNexus.UnitTests/**'
+      - 'backend/tests/VitalNexus.IntegrationTests/**'
       - 'backend/src/Api/VitalNexus.Api/**'
       - 'backend/src/Core/**'
       - 'backend/src/Infrastructure/**'
@@ -17,6 +18,7 @@ on:
       - dev
     paths:
       - 'backend/tests/VitalNexus.UnitTests/**'
+      - 'backend/tests/VitalNexus.IntegrationTests/**'
       - 'backend/src/Api/VitalNexus.Api/**'
       - 'backend/src/Core/**'
       - 'backend/src/Infrastructure/**'
@@ -44,3 +46,12 @@ jobs:
 
       - name: Run backend API unit tests
         run: dotnet test backend/tests/VitalNexus.UnitTests/VitalNexus.UnitTests.csproj --configuration Release --no-restore
+
+      - name: Restore backend integration test project
+        run: dotnet restore backend/tests/VitalNexus.IntegrationTests/VitalNexus.IntegrationTests.csproj
+
+      - name: Build backend integration test project
+        run: dotnet build backend/tests/VitalNexus.IntegrationTests/VitalNexus.IntegrationTests.csproj --configuration Release --no-restore
+
+      - name: Run backend API integration tests
+        run: dotnet test backend/tests/VitalNexus.IntegrationTests/VitalNexus.IntegrationTests.csproj --configuration Release --no-restore
