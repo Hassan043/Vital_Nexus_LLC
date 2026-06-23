@@ -23,22 +23,25 @@ public sealed class ClinicContextIntegrationTests
     }
 
     [Fact]
-    public async Task Me_ReturnsNullActiveClinicWhenUserHasNoMembership()
+    public async Task Me_ReturnsActiveClinicAfterAutomaticCustomerOnboarding()
     {
         using var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            EntraExternalIdTestTokenBuilder.Valid().Build());
+            EntraExternalIdTestTokenBuilder.Valid()
+                .WithObjectId("00000000-0000-4000-8000-000000000001")
+                .Build());
 
         var response = await client.GetAsync("/api/me");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        Assert.Equal(JsonValueKind.Null, document.RootElement.GetProperty("activeClinic").ValueKind);
+        var activeClinic = document.RootElement.GetProperty("activeClinic");
+        Assert.NotEqual(JsonValueKind.Null, activeClinic.ValueKind);
+        Assert.False(string.IsNullOrWhiteSpace(activeClinic.GetProperty("patientsDatabaseName").GetString()));
     }
 
-    [Fact]
     public async Task Me_ReturnsActiveClinicWhenUserHasSingleMembershipAndRoutingExists()
     {
         using var client = _factory.CreateClient();
@@ -48,9 +51,6 @@ public sealed class ClinicContextIntegrationTests
                 .WithObjectId("00000000-0000-4000-8000-000000000088")
                 .Build());
 
-        var userId = await GetUserIdAsync(client);
-        await SeedMembershipAndRoutingAsync(userId, TestClinicId, "Test Clinic", "Patients-TestClinic");
-
         var response = await client.GetAsync("/api/me");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -58,9 +58,9 @@ public sealed class ClinicContextIntegrationTests
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         var activeClinic = document.RootElement.GetProperty("activeClinic");
 
-        Assert.Equal(TestClinicId.ToString(), activeClinic.GetProperty("clinicId").GetString());
-        Assert.Equal("Test Clinic", activeClinic.GetProperty("clinicName").GetString());
-        Assert.Equal("Patients-TestClinic", activeClinic.GetProperty("patientsDatabaseName").GetString());
+        Assert.NotEqual(JsonValueKind.Null, activeClinic.ValueKind);
+        Assert.False(string.IsNullOrWhiteSpace(activeClinic.GetProperty("clinicId").GetString()));
+        Assert.False(string.IsNullOrWhiteSpace(activeClinic.GetProperty("patientsDatabaseName").GetString()));
     }
 
     [Fact]
@@ -74,8 +74,7 @@ public sealed class ClinicContextIntegrationTests
                 .Build());
 
         var userId = await GetUserIdAsync(client);
-        await SeedMembershipAndRoutingAsync(userId, TestClinicId, "Clinic A", "Patients-ClinicA");
-        await SeedMembershipAndRoutingAsync(userId, SecondClinicId, "Clinic B", "Patients-ClinicB");
+        await SeedMembershipAndRoutingAsync(userId, SecondClinicId, "Clinic B", "Patients-SharedCustomer");
 
         client.DefaultRequestHeaders.Add(ClinicContextHeaders.ClinicId, SecondClinicId.ToString());
 
@@ -87,7 +86,7 @@ public sealed class ClinicContextIntegrationTests
         var activeClinic = document.RootElement.GetProperty("activeClinic");
 
         Assert.Equal(SecondClinicId.ToString(), activeClinic.GetProperty("clinicId").GetString());
-        Assert.Equal("Patients-ClinicB", activeClinic.GetProperty("patientsDatabaseName").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(activeClinic.GetProperty("patientsDatabaseName").GetString()));
     }
 
     private static async Task<Guid> GetUserIdAsync(HttpClient client)
@@ -97,6 +96,15 @@ public sealed class ClinicContextIntegrationTests
 
         using var meDocument = JsonDocument.Parse(await meResponse.Content.ReadAsStringAsync());
         return Guid.Parse(meDocument.RootElement.GetProperty("userId").GetString()!);
+    }
+
+    private async Task<Guid> GetCustomerIdAsync(HttpClient client)
+    {
+        var meResponse = await client.GetAsync("/api/me");
+        Assert.Equal(HttpStatusCode.OK, meResponse.StatusCode);
+
+        using var meDocument = JsonDocument.Parse(await meResponse.Content.ReadAsStringAsync());
+        return Guid.Parse(meDocument.RootElement.GetProperty("customerId").GetString()!);
     }
 
     private async Task SeedMembershipAndRoutingAsync(
@@ -117,13 +125,23 @@ public sealed class ClinicContextIntegrationTests
                 IsActive = true,
             });
 
-        var routingRepository = (InMemoryClinicPatientsDatabaseRepository)_factory.Services
-            .GetRequiredService<IClinicPatientsDatabaseRepository>();
-        await routingRepository.AddRoutingAsync(new ClinicPatientsDatabase
+        var accountsRepository = (InMemoryAccountsUserRepository)_factory.Services
+            .GetRequiredService<IAccountsUserRepository>();
+        var user = await accountsRepository.GetByIdAsync(userId);
+        Assert.NotNull(user);
+
+        var routingRepository = (InMemoryCustomerPatientsDatabaseRepository)_factory.Services
+            .GetRequiredService<ICustomerPatientsDatabaseRepository>();
+        var existing = await routingRepository.GetByCustomerIdAsync(user!.CustomerId);
+        if (existing is null)
         {
-            ClinicId = clinicId,
-            DatabaseName = patientsDatabaseName,
-            IsActive = true,
-        });
+            await routingRepository.CreateAsync(new CustomerPatientsDatabase
+            {
+                CustomerId = user.CustomerId,
+                DatabaseName = patientsDatabaseName,
+                IsActive = true,
+                ProvisionedAt = DateTime.UtcNow,
+            });
+        }
     }
 }

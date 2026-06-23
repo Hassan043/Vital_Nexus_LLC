@@ -4,7 +4,7 @@ using VitalNexus.Domain.Accounts;
 namespace VitalNexus.Infrastructure.Accounts;
 
 public sealed class ClinicContextResolver(
-    IClinicPatientsDatabaseRepository clinicPatientsDatabaseRepository,
+    ICustomerPatientsDatabaseRepository patientsDatabaseRepository,
     PatientsDatabaseConnectionStringFactory connectionStringFactory) : IClinicContextResolver
 {
     public async Task<ClinicContext?> ResolveAsync(
@@ -40,9 +40,7 @@ public sealed class ClinicContextResolver(
             return null;
         }
 
-        var routing = await clinicPatientsDatabaseRepository.GetByClinicIdAsync(
-            selectedMembership.ClinicId,
-            cancellationToken);
+        var routing = await patientsDatabaseRepository.GetByCustomerIdAsync(user.CustomerId, cancellationToken);
         if (routing is null || !routing.IsActive)
         {
             return null;

@@ -8,17 +8,17 @@ namespace VitalNexus.Infrastructure.Accounts;
 public sealed class PatientsDatabaseConnectionStringFactory
 {
     private readonly IConfiguration _configuration;
-    private readonly ClinicPatientsDatabaseOptions _options;
+    private readonly CustomerPatientsDatabaseOptions _options;
 
     public PatientsDatabaseConnectionStringFactory(
         IConfiguration configuration,
-        IOptions<ClinicPatientsDatabaseOptions> options)
+        IOptions<CustomerPatientsDatabaseOptions> options)
     {
         _configuration = configuration;
         _options = options.Value;
     }
 
-    public string Build(ClinicPatientsDatabase routing)
+    public string Build(CustomerPatientsDatabase routing)
     {
         var template = _configuration.GetConnectionString(_options.TemplateConnectionStringName)
             ?? throw new InvalidOperationException(

@@ -8,7 +8,7 @@ namespace VitalNexus.UnitTests.Accounts;
 public sealed class PatientsDatabaseConnectionStringFactoryTests
 {
     [Fact]
-    public void Build_ReplacesInitialCatalogWithClinicDatabaseName()
+    public void Build_ReplacesInitialCatalogWithCustomerDatabaseName()
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -20,15 +20,15 @@ public sealed class PatientsDatabaseConnectionStringFactoryTests
 
         var factory = new PatientsDatabaseConnectionStringFactory(
             configuration,
-            Options.Create(new ClinicPatientsDatabaseOptions()));
+            Options.Create(new CustomerPatientsDatabaseOptions()));
 
-        var connectionString = factory.Build(new ClinicPatientsDatabase
+        var connectionString = factory.Build(new CustomerPatientsDatabase
         {
-            ClinicId = Guid.NewGuid(),
-            DatabaseName = "Patients-AcmeClinic",
+            CustomerId = Guid.NewGuid(),
+            DatabaseName = "Patients-AcmeCustomer",
         });
 
-        Assert.Contains("Initial Catalog=Patients-AcmeClinic", connectionString);
+        Assert.Contains("Initial Catalog=Patients-AcmeCustomer", connectionString);
         Assert.Contains("Data Source=sql-vnx-phi-dev.database.windows.net", connectionString);
     }
 
@@ -45,12 +45,12 @@ public sealed class PatientsDatabaseConnectionStringFactoryTests
 
         var factory = new PatientsDatabaseConnectionStringFactory(
             configuration,
-            Options.Create(new ClinicPatientsDatabaseOptions()));
+            Options.Create(new CustomerPatientsDatabaseOptions()));
 
-        var connectionString = factory.Build(new ClinicPatientsDatabase
+        var connectionString = factory.Build(new CustomerPatientsDatabase
         {
-            ClinicId = Guid.NewGuid(),
-            DatabaseName = "Patients-AcmeClinic",
+            CustomerId = Guid.NewGuid(),
+            DatabaseName = "Patients-AcmeCustomer",
             ServerName = "sql-vnx-phi-prod.database.windows.net",
         });
 

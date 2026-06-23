@@ -8,6 +8,7 @@ namespace VitalNexus.UnitTests.Accounts;
 
 public sealed class ClinicContextResolverTests
 {
+    private static readonly Guid CustomerId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
     private static readonly Guid ClinicOneId = Guid.Parse("11111111-1111-1111-1111-111111111111");
     private static readonly Guid ClinicTwoId = Guid.Parse("22222222-2222-2222-2222-222222222222");
 
@@ -34,8 +35,8 @@ public sealed class ClinicContextResolverTests
         Assert.NotNull(context);
         Assert.Equal(ClinicOneId, context!.ClinicId);
         Assert.Equal("Clinic One", context.ClinicName);
-        Assert.Equal("Patients-ClinicOne", context.PatientsDatabaseName);
-        Assert.Contains("Initial Catalog=Patients-ClinicOne", context.PatientsConnectionString);
+        Assert.Equal("Patients-CustomerDemo", context.PatientsDatabaseName);
+        Assert.Contains("Initial Catalog=Patients-CustomerDemo", context.PatientsConnectionString);
     }
 
     [Fact]
@@ -65,7 +66,7 @@ public sealed class ClinicContextResolverTests
 
         Assert.NotNull(context);
         Assert.Equal(ClinicTwoId, context!.ClinicId);
-        Assert.Equal("Patients-ClinicTwo", context.PatientsDatabaseName);
+        Assert.Equal("Patients-CustomerDemo", context.PatientsDatabaseName);
     }
 
     [Fact]
@@ -110,28 +111,16 @@ public sealed class ClinicContextResolverTests
     [Fact]
     public async Task ResolveAsync_ReturnsNullWhenRoutingIsInactive()
     {
-        var repository = new InMemoryClinicPatientsDatabaseRepository(
-            Options.Create(new ClinicPatientsDatabaseOptions()));
-        await repository.AddRoutingAsync(new ClinicPatientsDatabase
+        var repository = new InMemoryCustomerPatientsDatabaseRepository();
+        await repository.CreateAsync(new CustomerPatientsDatabase
         {
-            ClinicId = ClinicOneId,
-            DatabaseName = "Patients-ClinicOne",
+            CustomerId = CustomerId,
+            DatabaseName = "Patients-CustomerDemo",
             IsActive = false,
+            ProvisionedAt = DateTime.UtcNow,
         });
 
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:PatientHealth"] =
-                    "Server=sql-vnx-phi-dev.database.windows.net;Database=PatientHealth;User ID=app;Password=secret;",
-            })
-            .Build();
-
-        var resolver = new ClinicContextResolver(
-            repository,
-            new PatientsDatabaseConnectionStringFactory(
-                configuration,
-                Options.Create(new ClinicPatientsDatabaseOptions())));
+        var resolver = CreateResolver(repository);
 
         var user = CreateUser([
             CreateMembership(ClinicOneId, "Clinic One"),
@@ -144,6 +133,23 @@ public sealed class ClinicContextResolverTests
 
     private static ClinicContextResolver CreateResolver(bool includeRouting = true)
     {
+        var repository = new InMemoryCustomerPatientsDatabaseRepository();
+        if (includeRouting)
+        {
+            repository.CreateAsync(new CustomerPatientsDatabase
+            {
+                CustomerId = CustomerId,
+                DatabaseName = "Patients-CustomerDemo",
+                IsActive = true,
+                ProvisionedAt = DateTime.UtcNow,
+            }).GetAwaiter().GetResult();
+        }
+
+        return CreateResolver(repository);
+    }
+
+    private static ClinicContextResolver CreateResolver(InMemoryCustomerPatientsDatabaseRepository repository)
+    {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -152,30 +158,11 @@ public sealed class ClinicContextResolverTests
             })
             .Build();
 
-        var repository = new InMemoryClinicPatientsDatabaseRepository(
-            Options.Create(new ClinicPatientsDatabaseOptions()));
-
-        if (includeRouting)
-        {
-            repository.AddRoutingAsync(new ClinicPatientsDatabase
-            {
-                ClinicId = ClinicOneId,
-                DatabaseName = "Patients-ClinicOne",
-                IsActive = true,
-            }).GetAwaiter().GetResult();
-            repository.AddRoutingAsync(new ClinicPatientsDatabase
-            {
-                ClinicId = ClinicTwoId,
-                DatabaseName = "Patients-ClinicTwo",
-                IsActive = true,
-            }).GetAwaiter().GetResult();
-        }
-
         return new ClinicContextResolver(
             repository,
             new PatientsDatabaseConnectionStringFactory(
                 configuration,
-                Options.Create(new ClinicPatientsDatabaseOptions())));
+                Options.Create(new CustomerPatientsDatabaseOptions())));
     }
 
     private static AccountsUser CreateUser(IReadOnlyList<ClinicMembership> memberships) =>
@@ -183,7 +170,7 @@ public sealed class ClinicContextResolverTests
         {
             Id = Guid.NewGuid(),
             EntraObjectId = Guid.NewGuid(),
-            CustomerId = Guid.NewGuid(),
+            CustomerId = CustomerId,
             Email = "clinician@example.com",
             ClinicMemberships = memberships,
         };
