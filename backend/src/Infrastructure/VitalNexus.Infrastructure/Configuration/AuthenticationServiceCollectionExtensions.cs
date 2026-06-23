@@ -73,16 +73,16 @@ public static class EntraExternalIdAuthenticationExtensions
         services.AddAuthorizationBuilder()
             .AddPolicy(ApiAccessPolicyName, policy =>
                 ConfigureApiAccessPolicy(policy, options))
-            .AddPolicy(ApplicationRolePolicies.RequireProviderRole, policy =>
+            .AddPolicy(ApplicationRolePolicies.RequireCustomerMember, policy =>
                 ConfigureApplicationRolePolicy(
                     policy,
                     options,
-                    ApplicationRoles.Clinician,
-                    ApplicationRoles.ClinicAdmin))
-            .AddPolicy(ApplicationRolePolicies.RequireClinician, policy =>
-                ConfigureApplicationRolePolicy(policy, options, ApplicationRoles.Clinician))
-            .AddPolicy(ApplicationRolePolicies.RequireClinicAdmin, policy =>
-                ConfigureApplicationRolePolicy(policy, options, ApplicationRoles.ClinicAdmin))
+                    ApplicationRoles.Admin,
+                    ApplicationRoles.User))
+            .AddPolicy(ApplicationRolePolicies.RequireUser, policy =>
+                ConfigureApplicationRolePolicy(policy, options, ApplicationRoles.User))
+            .AddPolicy(ApplicationRolePolicies.RequireAdmin, policy =>
+                ConfigureApplicationRolePolicy(policy, options, ApplicationRoles.Admin))
             .SetFallbackPolicy(apiAccessPolicy);
 
         return services;

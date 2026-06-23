@@ -183,6 +183,7 @@ public sealed class ClinicContextResolverTests
         {
             Id = Guid.NewGuid(),
             EntraObjectId = Guid.NewGuid(),
+            CustomerId = Guid.NewGuid(),
             Email = "clinician@example.com",
             ClinicMemberships = memberships,
         };

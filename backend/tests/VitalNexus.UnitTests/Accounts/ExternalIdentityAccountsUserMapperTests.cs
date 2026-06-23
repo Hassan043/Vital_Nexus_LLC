@@ -10,8 +10,9 @@ public sealed class ExternalIdentityAccountsUserMapperTests
     public async Task MapAsync_CreatesInternalAccountsUserForNewExternalIdentity()
     {
         var repository = new InMemoryAccountsUserRepository();
+        var customerRepository = new InMemoryCustomerRepository();
         var roleRepository = new InMemoryUserRoleRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository, roleRepository);
+        var mapper = new ExternalIdentityAccountsUserMapper(repository, customerRepository, roleRepository);
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000099",
@@ -22,37 +23,40 @@ public sealed class ExternalIdentityAccountsUserMapperTests
         var user = await mapper.MapAsync(identity);
 
         Assert.NotEqual(Guid.Empty, user.Id);
+        Assert.NotEqual(Guid.Empty, user.CustomerId);
         Assert.Equal(Guid.Parse(identity.ObjectId), user.EntraObjectId);
         Assert.Equal("clinician@example.com", user.Email);
         Assert.Equal("Test Clinician", user.DisplayName);
     }
 
     [Fact]
-    public async Task MapAsync_AssignsDefaultClinicianRoleForNewExternalIdentity()
+    public async Task MapAsync_AssignsAdminRoleForNewCustomerRegistration()
     {
         var repository = new InMemoryAccountsUserRepository();
+        var customerRepository = new InMemoryCustomerRepository();
         var roleRepository = new InMemoryUserRoleRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository, roleRepository);
+        var mapper = new ExternalIdentityAccountsUserMapper(repository, customerRepository, roleRepository);
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000088",
-            Email = "new-clinician@example.com",
-            DisplayName = "New Clinician",
+            Email = "new-admin@example.com",
+            DisplayName = "New Admin",
         };
 
         var user = await mapper.MapAsync(identity);
         var roles = await roleRepository.GetRoleNamesForUserAsync(user.Id);
 
         Assert.Single(roles);
-        Assert.Equal(ApplicationRoles.Clinician, roles[0]);
+        Assert.Equal(ApplicationRoles.Admin, roles[0]);
     }
 
     [Fact]
     public async Task MapAsync_ReturnsExistingUserForSameEntraObjectId()
     {
         var repository = new InMemoryAccountsUserRepository();
+        var customerRepository = new InMemoryCustomerRepository();
         var roleRepository = new InMemoryUserRoleRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository, roleRepository);
+        var mapper = new ExternalIdentityAccountsUserMapper(repository, customerRepository, roleRepository);
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000099",
@@ -71,8 +75,9 @@ public sealed class ExternalIdentityAccountsUserMapperTests
     public async Task MapAsync_UpdatesDisplayNameWhenExternalIdentityChanges()
     {
         var repository = new InMemoryAccountsUserRepository();
+        var customerRepository = new InMemoryCustomerRepository();
         var roleRepository = new InMemoryUserRoleRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository, roleRepository);
+        var mapper = new ExternalIdentityAccountsUserMapper(repository, customerRepository, roleRepository);
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000099",
@@ -92,8 +97,9 @@ public sealed class ExternalIdentityAccountsUserMapperTests
     public async Task MapAsync_ThrowsWhenEmailIsMissingForNewUser()
     {
         var repository = new InMemoryAccountsUserRepository();
+        var customerRepository = new InMemoryCustomerRepository();
         var roleRepository = new InMemoryUserRoleRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository, roleRepository);
+        var mapper = new ExternalIdentityAccountsUserMapper(repository, customerRepository, roleRepository);
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000099",

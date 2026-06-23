@@ -8,6 +8,11 @@ public interface IUserRoleRepository
 
     Task AssignRoleAsync(
         Guid userId,
+        Guid customerId,
         string roleName,
+        CancellationToken cancellationToken = default);
+
+    Task RemoveAllRolesForUserAsync(
+        Guid userId,
         CancellationToken cancellationToken = default);
 }

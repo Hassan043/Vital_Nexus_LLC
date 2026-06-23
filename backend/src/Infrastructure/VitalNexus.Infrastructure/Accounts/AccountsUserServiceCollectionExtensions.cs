@@ -7,6 +7,7 @@ public static class AccountsUserServiceCollectionExtensions
 {
     public static IServiceCollection AddAccountsUserMapping(this IServiceCollection services)
     {
+        services.AddSingleton<ICustomerRepository, InMemoryCustomerRepository>();
         services.AddSingleton<IAccountsUserRepository, InMemoryAccountsUserRepository>();
         services.AddSingleton<IUserRoleRepository, InMemoryUserRoleRepository>();
         services.AddSingleton<IClinicMembershipRepository, InMemoryClinicMembershipRepository>();

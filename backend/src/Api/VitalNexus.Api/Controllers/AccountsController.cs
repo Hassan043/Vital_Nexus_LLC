@@ -6,7 +6,7 @@ using VitalNexus.Domain.Accounts;
 
 namespace VitalNexus.Api.Controllers;
 
-[Authorize(Policy = ApplicationRolePolicies.RequireProviderRole)]
+[Authorize(Policy = ApplicationRolePolicies.RequireCustomerMember)]
 [ApiController]
 [Route("api/accounts")]
 public sealed class AccountsController(ICurrentAccountsUserAccessor currentAccountsUserAccessor) : ControllerBase
@@ -22,6 +22,7 @@ public sealed class AccountsController(ICurrentAccountsUserAccessor currentAccou
 
         return Ok(new
         {
+            customerId = user.CustomerId,
             userId = user.Id,
             entraObjectId = user.EntraObjectId,
             email = user.Email,

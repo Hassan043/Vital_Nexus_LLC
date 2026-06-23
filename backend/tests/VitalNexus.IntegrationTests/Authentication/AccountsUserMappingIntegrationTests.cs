@@ -40,7 +40,7 @@ public sealed class AccountsUserMappingIntegrationTests
 
         var roles = root.GetProperty("roles");
         Assert.Equal(JsonValueKind.Array, roles.ValueKind);
-        Assert.Contains(roles.EnumerateArray(), role => role.GetString() == "Clinician");
+        Assert.Contains(roles.EnumerateArray(), role => role.GetString() == "Admin");
 
         var clinicMemberships = root.GetProperty("clinicMemberships");
         Assert.Equal(JsonValueKind.Array, clinicMemberships.ValueKind);

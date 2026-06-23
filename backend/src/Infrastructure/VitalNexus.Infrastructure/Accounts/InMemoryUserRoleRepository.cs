@@ -8,11 +8,12 @@ public sealed class InMemoryUserRoleRepository : IUserRoleRepository
 {
     private static readonly HashSet<string> KnownRoles = new(StringComparer.OrdinalIgnoreCase)
     {
-        ApplicationRoles.Clinician,
-        ApplicationRoles.ClinicAdmin,
+        ApplicationRoles.Admin,
+        ApplicationRoles.User,
     };
 
     private readonly ConcurrentDictionary<(Guid UserId, string RoleName), byte> _assignments = new();
+    private readonly ConcurrentDictionary<Guid, Guid> _adminByCustomer = new();
 
     public Task<IReadOnlyList<string>> GetRoleNamesForUserAsync(
         Guid userId,
@@ -29,12 +30,25 @@ public sealed class InMemoryUserRoleRepository : IUserRoleRepository
 
     public Task AssignRoleAsync(
         Guid userId,
+        Guid customerId,
         string roleName,
         CancellationToken cancellationToken = default)
     {
         if (!KnownRoles.Contains(roleName))
         {
             throw new InvalidOperationException($"Unknown application role '{roleName}'.");
+        }
+
+        if (string.Equals(roleName, ApplicationRoles.Admin, StringComparison.OrdinalIgnoreCase))
+        {
+            if (_adminByCustomer.TryGetValue(customerId, out var existingAdminId)
+                && existingAdminId != userId)
+            {
+                throw new InvalidOperationException(
+                    "This customer already has an active Admin. Only one Admin is allowed per customer.");
+            }
+
+            _adminByCustomer[customerId] = userId;
         }
 
         _assignments.TryAdd((userId, roleName), 0);
@@ -48,6 +62,14 @@ public sealed class InMemoryUserRoleRepository : IUserRoleRepository
         foreach (var key in _assignments.Keys.Where(entry => entry.UserId == userId).ToList())
         {
             _assignments.TryRemove(key, out _);
+        }
+
+        foreach (var customerId in _adminByCustomer
+                     .Where(entry => entry.Value == userId)
+                     .Select(entry => entry.Key)
+                     .ToList())
+        {
+            _adminByCustomer.TryRemove(customerId, out _);
         }
 
         return Task.CompletedTask;

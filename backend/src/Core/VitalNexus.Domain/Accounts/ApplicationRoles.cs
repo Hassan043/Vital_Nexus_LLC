@@ -2,7 +2,7 @@ namespace VitalNexus.Domain.Accounts;
 
 public static class ApplicationRoles
 {
-    public const string Clinician = "Clinician";
+    public const string Admin = "Admin";
 
-    public const string ClinicAdmin = "ClinicAdmin";
+    public const string User = "User";
 }

@@ -11,8 +11,8 @@ public sealed class ApplicationRoleAuthorizationHandlerTests
     public async Task HandleRequirementAsync_SucceedsWhenUserHasRequiredRole()
     {
         var userId = Guid.NewGuid();
-        var handler = CreateHandler(CreateUser(userId, ApplicationRoles.Clinician));
-        var context = CreateContext(new ApplicationRoleRequirement(ApplicationRoles.Clinician));
+        var handler = CreateHandler(CreateUser(userId, ApplicationRoles.User));
+        var context = CreateContext(new ApplicationRoleRequirement(ApplicationRoles.User));
 
         await handler.HandleAsync(context);
 
@@ -22,10 +22,10 @@ public sealed class ApplicationRoleAuthorizationHandlerTests
     [Fact]
     public async Task HandleRequirementAsync_SucceedsWhenUserHasOneOfMultipleAllowedRoles()
     {
-        var handler = CreateHandler(CreateUser(Guid.NewGuid(), ApplicationRoles.ClinicAdmin));
+        var handler = CreateHandler(CreateUser(Guid.NewGuid(), ApplicationRoles.Admin));
         var context = CreateContext(new ApplicationRoleRequirement(
-            ApplicationRoles.Clinician,
-            ApplicationRoles.ClinicAdmin));
+            ApplicationRoles.User,
+            ApplicationRoles.Admin));
 
         await handler.HandleAsync(context);
 
@@ -36,7 +36,7 @@ public sealed class ApplicationRoleAuthorizationHandlerTests
     public async Task HandleRequirementAsync_DoesNotSucceedWhenUserHasNoRoles()
     {
         var handler = CreateHandler(CreateUser(Guid.NewGuid()));
-        var context = CreateContext(new ApplicationRoleRequirement(ApplicationRoles.Clinician));
+        var context = CreateContext(new ApplicationRoleRequirement(ApplicationRoles.User));
 
         await handler.HandleAsync(context);
 
@@ -47,7 +47,7 @@ public sealed class ApplicationRoleAuthorizationHandlerTests
     public async Task HandleRequirementAsync_DoesNotSucceedWhenUserIsMissing()
     {
         var handler = CreateHandler(null);
-        var context = CreateContext(new ApplicationRoleRequirement(ApplicationRoles.Clinician));
+        var context = CreateContext(new ApplicationRoleRequirement(ApplicationRoles.User));
 
         await handler.HandleAsync(context);
 
@@ -57,8 +57,8 @@ public sealed class ApplicationRoleAuthorizationHandlerTests
     [Fact]
     public async Task HandleRequirementAsync_DoesNotSucceedWhenUserHasDifferentRole()
     {
-        var handler = CreateHandler(CreateUser(Guid.NewGuid(), ApplicationRoles.Clinician));
-        var context = CreateContext(new ApplicationRoleRequirement(ApplicationRoles.ClinicAdmin));
+        var handler = CreateHandler(CreateUser(Guid.NewGuid(), ApplicationRoles.User));
+        var context = CreateContext(new ApplicationRoleRequirement(ApplicationRoles.Admin));
 
         await handler.HandleAsync(context);
 
@@ -68,8 +68,8 @@ public sealed class ApplicationRoleAuthorizationHandlerTests
     [Fact]
     public async Task HandleRequirementAsync_MatchesRolesCaseInsensitively()
     {
-        var handler = CreateHandler(CreateUser(Guid.NewGuid(), "clinician"));
-        var context = CreateContext(new ApplicationRoleRequirement(ApplicationRoles.Clinician));
+        var handler = CreateHandler(CreateUser(Guid.NewGuid(), "user"));
+        var context = CreateContext(new ApplicationRoleRequirement(ApplicationRoles.User));
 
         await handler.HandleAsync(context);
 
@@ -90,6 +90,7 @@ public sealed class ApplicationRoleAuthorizationHandlerTests
         {
             Id = userId,
             EntraObjectId = Guid.NewGuid(),
+            CustomerId = Guid.NewGuid(),
             Email = "user@example.com",
             Roles = roles,
         };

@@ -6,6 +6,8 @@ public sealed class AccountsUser
 
     public Guid EntraObjectId { get; init; }
 
+    public Guid CustomerId { get; init; }
+
     public string Email { get; init; } = string.Empty;
 
     public string? DisplayName { get; init; }

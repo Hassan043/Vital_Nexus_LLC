@@ -23,7 +23,7 @@ public sealed class RbacBoundaryIntegrationTests
     [InlineData("/api/me")]
     [InlineData("/api/accounts")]
     [InlineData("/api/provider")]
-    public async Task ProviderEndpoints_WithDefaultClinicianRole_ReturnOk(string path)
+    public async Task CustomerEndpoints_WithDefaultAdminRole_ReturnOk(string path)
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4004-8000-000000000010");
 
@@ -36,14 +36,14 @@ public sealed class RbacBoundaryIntegrationTests
     [InlineData("/api/me")]
     [InlineData("/api/accounts")]
     [InlineData("/api/provider")]
-    public async Task ProviderEndpoints_WithClinicAdminRoleOnly_ReturnOk(string path)
+    public async Task CustomerEndpoints_WithUserRoleOnly_ReturnOk(string path)
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4004-8000-000000000011");
-        var userId = await ProvisionUserAsync(client);
+        var provision = await ProvisionUserAsync(client);
 
         var roleRepository = GetRoleRepository();
-        await roleRepository.RemoveAllRolesForUserAsync(userId);
-        await roleRepository.AssignRoleAsync(userId, ApplicationRoles.ClinicAdmin);
+        await roleRepository.RemoveAllRolesForUserAsync(provision.UserId);
+        await roleRepository.AssignRoleAsync(provision.UserId, provision.CustomerId, ApplicationRoles.User);
 
         var response = await client.GetAsync(path);
 
@@ -54,13 +54,13 @@ public sealed class RbacBoundaryIntegrationTests
     [InlineData("/api/me")]
     [InlineData("/api/accounts")]
     [InlineData("/api/provider")]
-    public async Task ProviderEndpoints_WithBothProviderRoles_ReturnOk(string path)
+    public async Task CustomerEndpoints_WithBothCustomerRoles_ReturnOk(string path)
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4004-8000-000000000012");
-        var userId = await ProvisionUserAsync(client);
+        var provision = await ProvisionUserAsync(client);
 
         var roleRepository = GetRoleRepository();
-        await roleRepository.AssignRoleAsync(userId, ApplicationRoles.ClinicAdmin);
+        await roleRepository.AssignRoleAsync(provision.UserId, provision.CustomerId, ApplicationRoles.User);
 
         var response = await client.GetAsync(path);
 
@@ -71,14 +71,14 @@ public sealed class RbacBoundaryIntegrationTests
     [InlineData("/api/me", "00000000-0000-4004-8000-000000000131")]
     [InlineData("/api/accounts", "00000000-0000-4004-8000-000000000132")]
     [InlineData("/api/provider", "00000000-0000-4004-8000-000000000133")]
-    public async Task ProviderEndpoints_WithValidScopeButNoApplicationRoles_ReturnForbidden(
+    public async Task CustomerEndpoints_WithValidScopeButNoApplicationRoles_ReturnForbidden(
         string path,
         string objectId)
     {
         using var client = CreateAuthenticatedClient(objectId);
-        var userId = await ProvisionUserAsync(client);
+        var provision = await ProvisionUserAsync(client);
 
-        await GetRoleRepository().RemoveAllRolesForUserAsync(userId);
+        await GetRoleRepository().RemoveAllRolesForUserAsync(provision.UserId);
 
         var response = await client.GetAsync(path);
 
@@ -89,7 +89,7 @@ public sealed class RbacBoundaryIntegrationTests
     [InlineData("/api/me")]
     [InlineData("/api/accounts")]
     [InlineData("/api/provider")]
-    public async Task ProviderEndpoints_WithApplicationRoleButMissingScope_ReturnForbidden(string path)
+    public async Task CustomerEndpoints_WithApplicationRoleButMissingScope_ReturnForbidden(string path)
     {
         using var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
@@ -104,22 +104,22 @@ public sealed class RbacBoundaryIntegrationTests
     }
 
     [Fact]
-    public async Task ProviderEndpoints_AfterRolesRemovedOnSubsequentRequest_ReturnForbidden()
+    public async Task CustomerEndpoints_AfterRolesRemovedOnSubsequentRequest_ReturnForbidden()
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4004-8000-000000000015");
-        var userId = await ProvisionUserAsync(client);
+        var provision = await ProvisionUserAsync(client);
 
         var firstResponse = await client.GetAsync("/api/me");
         Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
 
-        await GetRoleRepository().RemoveAllRolesForUserAsync(userId);
+        await GetRoleRepository().RemoveAllRolesForUserAsync(provision.UserId);
 
         var secondResponse = await client.GetAsync("/api/me");
         Assert.Equal(HttpStatusCode.Forbidden, secondResponse.StatusCode);
     }
 
     [Fact]
-    public async Task Accounts_WithClinicianRole_IncludesRoleInResponse()
+    public async Task Accounts_WithAdminRole_IncludesRoleInResponse()
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4004-8000-000000000016");
 
@@ -131,10 +131,31 @@ public sealed class RbacBoundaryIntegrationTests
 
         Assert.Contains(
             roles.EnumerateArray(),
-            role => role.GetString() == ApplicationRoles.Clinician);
+            role => role.GetString() == ApplicationRoles.Admin);
         Assert.DoesNotContain(
             roles.EnumerateArray(),
-            role => role.GetString() == ApplicationRoles.ClinicAdmin);
+            role => role.GetString() == ApplicationRoles.User);
+    }
+
+    [Fact]
+    public async Task AssignRoleAsync_RejectsSecondAdminForSameCustomer()
+    {
+        using var client = CreateAuthenticatedClient("00000000-0000-4004-8000-000000000017");
+        var firstProvision = await ProvisionUserAsync(client);
+
+        var secondClient = CreateAuthenticatedClient("00000000-0000-4004-8000-000000000018");
+        var secondProvision = await ProvisionUserAsync(secondClient);
+
+        var roleRepository = GetRoleRepository();
+        await roleRepository.RemoveAllRolesForUserAsync(secondProvision.UserId);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            roleRepository.AssignRoleAsync(
+                secondProvision.UserId,
+                firstProvision.CustomerId,
+                ApplicationRoles.Admin));
+
+        Assert.Contains("one Admin", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     private HttpClient CreateAuthenticatedClient(string objectId)
@@ -146,13 +167,15 @@ public sealed class RbacBoundaryIntegrationTests
         return client;
     }
 
-    private static async Task<Guid> ProvisionUserAsync(HttpClient client)
+    private static async Task<(Guid UserId, Guid CustomerId)> ProvisionUserAsync(HttpClient client)
     {
         var response = await client.GetAsync("/api/accounts");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        return Guid.Parse(document.RootElement.GetProperty("userId").GetString()!);
+        return (
+            Guid.Parse(document.RootElement.GetProperty("userId").GetString()!),
+            Guid.Parse(document.RootElement.GetProperty("customerId").GetString()!));
     }
 
     private InMemoryUserRoleRepository GetRoleRepository() =>

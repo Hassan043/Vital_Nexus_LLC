@@ -18,6 +18,7 @@ internal static class AccountsUserProfileEnricher
         {
             Id = user.Id,
             EntraObjectId = user.EntraObjectId,
+            CustomerId = user.CustomerId,
             Email = user.Email,
             DisplayName = user.DisplayName,
             CreatedAt = user.CreatedAt,

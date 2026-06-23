@@ -6,6 +6,7 @@ namespace VitalNexus.Infrastructure.Accounts;
 
 public sealed class ExternalIdentityAccountsUserMapper(
     IAccountsUserRepository repository,
+    ICustomerRepository customerRepository,
     IUserRoleRepository userRoleRepository) : IExternalIdentityAccountsUserMapper
 {
     public async Task<AccountsUser> MapAsync(
@@ -30,17 +31,33 @@ public sealed class ExternalIdentityAccountsUserMapper(
             throw new InvalidOperationException("Cannot provision an Accounts user without an email address.");
         }
 
+        var customerId = Guid.NewGuid();
+        var customer = new Customer
+        {
+            Id = customerId,
+            Name = BuildCustomerName(identity.Email),
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        await customerRepository.CreateAsync(customer, cancellationToken);
+
         var newUser = new AccountsUser
         {
             Id = Guid.NewGuid(),
             EntraObjectId = entraObjectId,
+            CustomerId = customerId,
             Email = identity.Email.Trim(),
             DisplayName = NormalizeDisplayName(identity.DisplayName),
             CreatedAt = DateTime.UtcNow,
         };
 
         var createdUser = await repository.CreateAsync(newUser, cancellationToken);
-        await userRoleRepository.AssignRoleAsync(createdUser.Id, ApplicationRoles.Clinician, cancellationToken);
+        await userRoleRepository.AssignRoleAsync(
+            createdUser.Id,
+            customerId,
+            ApplicationRoles.Admin,
+            cancellationToken);
+
         return createdUser;
     }
 
@@ -59,12 +76,21 @@ public sealed class ExternalIdentityAccountsUserMapper(
         {
             Id = existingUser.Id,
             EntraObjectId = existingUser.EntraObjectId,
+            CustomerId = existingUser.CustomerId,
             Email = existingUser.Email,
             DisplayName = normalizedDisplayName,
             CreatedAt = existingUser.CreatedAt,
         };
 
         return await repository.UpdateAsync(updatedUser, cancellationToken);
+    }
+
+    private static string BuildCustomerName(string email)
+    {
+        var atIndex = email.IndexOf('@');
+        return atIndex > 0
+            ? $"Customer ({email[..atIndex]})"
+            : "Customer";
     }
 
     private static string? NormalizeDisplayName(string? displayName)

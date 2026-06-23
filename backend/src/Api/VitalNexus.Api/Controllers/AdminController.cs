@@ -6,15 +6,15 @@ using VitalNexus.Domain.Accounts;
 
 namespace VitalNexus.Api.Controllers;
 
-[Authorize(Policy = ApplicationRolePolicies.RequireCustomerMember)]
+[Authorize(Policy = ApplicationRolePolicies.RequireAdmin)]
 [ApiController]
-[Route("api/provider")]
-public sealed class ProviderController(
+[Route("api/admin")]
+public sealed class AdminController(
     ICurrentAccountsUserAccessor currentAccountsUserAccessor,
-    ICurrentClinicContextAccessor currentClinicContextAccessor) : ControllerBase
+    ICustomerRepository customerRepository) : ControllerBase
 {
-    [HttpGet]
-    public async Task<IActionResult> GetCurrentProvider(CancellationToken cancellationToken)
+    [HttpGet("account")]
+    public async Task<IActionResult> GetAccountOverview(CancellationToken cancellationToken)
     {
         var user = await currentAccountsUserAccessor.GetCurrentAsync(cancellationToken);
         if (user is null)
@@ -22,18 +22,22 @@ public sealed class ProviderController(
             return Unauthorized();
         }
 
-        var activeClinic = await currentClinicContextAccessor.GetCurrentAsync(cancellationToken);
+        var customer = await customerRepository.GetByIdAsync(user.CustomerId, cancellationToken);
+        if (customer is null)
+        {
+            return NotFound();
+        }
 
         return Ok(new
         {
+            customerId = customer.Id,
+            customerName = customer.Name,
             userId = user.Id,
-            entraObjectId = user.EntraObjectId,
             email = user.Email,
             displayName = user.DisplayName,
             roles = user.Roles,
             clinicMemberships = user.ClinicMemberships.Select(AccountsUserResponseMapper.MapClinicMembership).ToArray(),
-            activeClinic = AccountsUserResponseMapper.MapActiveClinic(activeClinic),
-            onboardingStatus = ProviderOnboardingStatus.FromMemberships(user.ClinicMemberships),
+            access = "Admin access to customer account, clinics, staff users, and onboarding information.",
         });
     }
 }
