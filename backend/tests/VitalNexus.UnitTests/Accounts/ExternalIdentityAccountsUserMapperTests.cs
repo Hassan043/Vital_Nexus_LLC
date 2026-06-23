@@ -1,3 +1,4 @@
+using VitalNexus.Application.Accounts;
 using VitalNexus.Application.Identity;
 using VitalNexus.Domain.Accounts;
 using VitalNexus.Infrastructure.Accounts;
@@ -9,10 +10,7 @@ public sealed class ExternalIdentityAccountsUserMapperTests
     [Fact]
     public async Task MapAsync_CreatesInternalAccountsUserForNewExternalIdentity()
     {
-        var repository = new InMemoryAccountsUserRepository();
-        var customerRepository = new InMemoryCustomerRepository();
-        var roleRepository = new InMemoryUserRoleRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository, customerRepository, roleRepository);
+        var mapper = CreateMapper();
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000099",
@@ -32,10 +30,8 @@ public sealed class ExternalIdentityAccountsUserMapperTests
     [Fact]
     public async Task MapAsync_AssignsAdminRoleForNewCustomerRegistration()
     {
-        var repository = new InMemoryAccountsUserRepository();
-        var customerRepository = new InMemoryCustomerRepository();
         var roleRepository = new InMemoryUserRoleRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository, customerRepository, roleRepository);
+        var mapper = CreateMapper(roleRepository: roleRepository);
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000088",
@@ -53,10 +49,7 @@ public sealed class ExternalIdentityAccountsUserMapperTests
     [Fact]
     public async Task MapAsync_ReturnsExistingUserForSameEntraObjectId()
     {
-        var repository = new InMemoryAccountsUserRepository();
-        var customerRepository = new InMemoryCustomerRepository();
-        var roleRepository = new InMemoryUserRoleRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository, customerRepository, roleRepository);
+        var mapper = CreateMapper();
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000099",
@@ -74,10 +67,7 @@ public sealed class ExternalIdentityAccountsUserMapperTests
     [Fact]
     public async Task MapAsync_UpdatesDisplayNameWhenExternalIdentityChanges()
     {
-        var repository = new InMemoryAccountsUserRepository();
-        var customerRepository = new InMemoryCustomerRepository();
-        var roleRepository = new InMemoryUserRoleRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository, customerRepository, roleRepository);
+        var mapper = CreateMapper();
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000099",
@@ -96,15 +86,115 @@ public sealed class ExternalIdentityAccountsUserMapperTests
     [Fact]
     public async Task MapAsync_ThrowsWhenEmailIsMissingForNewUser()
     {
-        var repository = new InMemoryAccountsUserRepository();
-        var customerRepository = new InMemoryCustomerRepository();
-        var roleRepository = new InMemoryUserRoleRepository();
-        var mapper = new ExternalIdentityAccountsUserMapper(repository, customerRepository, roleRepository);
+        var mapper = CreateMapper();
         var identity = new TrustedExternalIdentity
         {
             ObjectId = "00000000-0000-4000-8000-000000000099",
         };
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => mapper.MapAsync(identity));
+    }
+
+    [Fact]
+    public async Task MapAsync_AcceptsInvitationAsUserRoleForExistingCustomer()
+    {
+        var repository = new InMemoryAccountsUserRepository();
+        var customerRepository = new InMemoryCustomerRepository();
+        var roleRepository = new InMemoryUserRoleRepository();
+        var invitationRepository = new InMemoryUserInvitationRepository();
+        var membershipRepository = new InMemoryClinicMembershipRepository();
+        var customerId = Guid.NewGuid();
+        await customerRepository.CreateAsync(new Customer
+        {
+            Id = customerId,
+            Name = "Existing Customer",
+            CreatedAt = DateTime.UtcNow,
+        });
+
+        var adminId = Guid.NewGuid();
+        await repository.CreateAsync(new AccountsUser
+        {
+            Id = adminId,
+            EntraObjectId = Guid.NewGuid(),
+            CustomerId = customerId,
+            Email = "admin@example.com",
+            CreatedAt = DateTime.UtcNow,
+        });
+        await roleRepository.AssignRoleAsync(adminId, customerId, ApplicationRoles.Admin);
+        var clinicId = Guid.NewGuid();
+        await membershipRepository.AddMembershipAsync(
+            adminId,
+            new ClinicMembership
+            {
+                ClinicId = clinicId,
+                ClinicName = "Main Clinic",
+                JoinedAt = DateTime.UtcNow,
+                IsActive = true,
+            });
+        await invitationRepository.CreateAsync(new UserInvitation
+        {
+            Id = Guid.NewGuid(),
+            CustomerId = customerId,
+            Email = "staff@example.com",
+            RoleName = ApplicationRoles.User,
+            InvitedByUserId = adminId,
+            CreatedAt = DateTime.UtcNow,
+        });
+
+        var mapper = CreateMapper(
+            repository,
+            customerRepository,
+            roleRepository,
+            invitationRepository,
+            membershipRepository);
+        var user = await mapper.MapAsync(new TrustedExternalIdentity
+        {
+            ObjectId = "00000000-0000-4000-8000-000000000055",
+            Email = "staff@example.com",
+            DisplayName = "Staff User",
+        });
+
+        var roles = await roleRepository.GetRoleNamesForUserAsync(user.Id);
+        Assert.Equal(customerId, user.CustomerId);
+        Assert.Equal(ApplicationRoles.User, roles[0]);
+    }
+
+    private static ExternalIdentityAccountsUserMapper CreateMapper(
+        InMemoryAccountsUserRepository? repository = null,
+        InMemoryCustomerRepository? customerRepository = null,
+        InMemoryUserRoleRepository? roleRepository = null,
+        InMemoryUserInvitationRepository? invitationRepository = null,
+        InMemoryClinicMembershipRepository? membershipRepository = null)
+    {
+        repository ??= new InMemoryAccountsUserRepository();
+        customerRepository ??= new InMemoryCustomerRepository();
+        roleRepository ??= new InMemoryUserRoleRepository();
+        invitationRepository ??= new InMemoryUserInvitationRepository();
+        membershipRepository ??= new InMemoryClinicMembershipRepository();
+
+        var clinicRepository = new InMemoryClinicRepository();
+        var clinicProfileRepository = new InMemoryClinicProfileRepository();
+        var subscriptionRepository = new InMemorySubscriptionRepository();
+        var patientsDatabaseRepository = new InMemoryCustomerPatientsDatabaseRepository();
+        var onboardingService = new CustomerOnboardingService(
+            customerRepository,
+            repository,
+            roleRepository,
+            subscriptionRepository,
+            clinicRepository,
+            clinicProfileRepository,
+            membershipRepository,
+            patientsDatabaseRepository,
+            new SimulatedPatientsDatabaseProvisioningService(
+                patientsDatabaseRepository,
+                Microsoft.Extensions.Options.Options.Create(new CustomerPatientsDatabaseOptions())));
+
+        return new ExternalIdentityAccountsUserMapper(
+            repository,
+            customerRepository,
+            roleRepository,
+            invitationRepository,
+            membershipRepository,
+            onboardingService);
     }
 }

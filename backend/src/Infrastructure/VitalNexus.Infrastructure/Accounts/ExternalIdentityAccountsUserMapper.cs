@@ -7,7 +7,9 @@ namespace VitalNexus.Infrastructure.Accounts;
 public sealed class ExternalIdentityAccountsUserMapper(
     IAccountsUserRepository repository,
     ICustomerRepository customerRepository,
-    IUserRoleRepository userRoleRepository) : IExternalIdentityAccountsUserMapper
+    IUserRoleRepository userRoleRepository,
+    IUserInvitationRepository userInvitationRepository,
+    IClinicMembershipRepository clinicMembershipRepository) : IExternalIdentityAccountsUserMapper
 {
     public async Task<AccountsUser> MapAsync(
         TrustedExternalIdentity identity,
@@ -31,11 +33,97 @@ public sealed class ExternalIdentityAccountsUserMapper(
             throw new InvalidOperationException("Cannot provision an Accounts user without an email address.");
         }
 
+        var normalizedEmail = identity.Email.Trim();
+        var invitation = await userInvitationRepository.GetPendingByEmailAsync(normalizedEmail, cancellationToken);
+        if (invitation is not null)
+        {
+            return await AcceptInvitationAsync(invitation, entraObjectId, identity, cancellationToken);
+        }
+
+        var existingByEmail = await repository.GetByEmailAsync(normalizedEmail, cancellationToken);
+        if (existingByEmail is not null && existingByEmail.EntraObjectId is null)
+        {
+            return await LinkEntraIdentityAsync(existingByEmail, entraObjectId, identity, cancellationToken);
+        }
+
+        if (existingByEmail is not null)
+        {
+            throw new InvalidOperationException("An Accounts user already exists for this email address.");
+        }
+
+        return await ProvisionNewCustomerAdminAsync(entraObjectId, identity, normalizedEmail, cancellationToken);
+    }
+
+    private async Task<AccountsUser> AcceptInvitationAsync(
+        UserInvitation invitation,
+        Guid entraObjectId,
+        TrustedExternalIdentity identity,
+        CancellationToken cancellationToken)
+    {
+        var newUser = new AccountsUser
+        {
+            Id = Guid.NewGuid(),
+            EntraObjectId = entraObjectId,
+            CustomerId = invitation.CustomerId,
+            Email = invitation.Email.Trim(),
+            DisplayName = NormalizeDisplayName(identity.DisplayName),
+            AccountStatus = AccountStatuses.Active,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        var createdUser = await repository.CreateAsync(newUser, cancellationToken);
+        await userRoleRepository.AssignRoleAsync(
+            createdUser.Id,
+            invitation.CustomerId,
+            invitation.RoleName,
+            cancellationToken);
+        await userInvitationRepository.MarkAcceptedAsync(invitation.Id, cancellationToken);
+
+        var memberships = await clinicMembershipRepository.GetMembershipsForUserAsync(
+            invitation.InvitedByUserId,
+            cancellationToken);
+        foreach (var membership in memberships.Where(m => m.IsActive))
+        {
+            await clinicMembershipRepository.AddMembershipAsync(
+                createdUser.Id,
+                membership,
+                cancellationToken);
+        }
+
+        return createdUser;
+    }
+
+    private async Task<AccountsUser> LinkEntraIdentityAsync(
+        AccountsUser existingByEmail,
+        Guid entraObjectId,
+        TrustedExternalIdentity identity,
+        CancellationToken cancellationToken)
+    {
+        var linkedUser = new AccountsUser
+        {
+            Id = existingByEmail.Id,
+            EntraObjectId = entraObjectId,
+            CustomerId = existingByEmail.CustomerId,
+            Email = existingByEmail.Email,
+            DisplayName = NormalizeDisplayName(identity.DisplayName) ?? existingByEmail.DisplayName,
+            AccountStatus = AccountStatuses.Active,
+            CreatedAt = existingByEmail.CreatedAt,
+        };
+
+        return await repository.UpdateAsync(linkedUser, cancellationToken);
+    }
+
+    private async Task<AccountsUser> ProvisionNewCustomerAdminAsync(
+        Guid entraObjectId,
+        TrustedExternalIdentity identity,
+        string normalizedEmail,
+        CancellationToken cancellationToken)
+    {
         var customerId = Guid.NewGuid();
         var customer = new Customer
         {
             Id = customerId,
-            Name = BuildCustomerName(identity.Email),
+            Name = BuildCustomerName(normalizedEmail),
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -46,8 +134,9 @@ public sealed class ExternalIdentityAccountsUserMapper(
             Id = Guid.NewGuid(),
             EntraObjectId = entraObjectId,
             CustomerId = customerId,
-            Email = identity.Email.Trim(),
+            Email = normalizedEmail,
             DisplayName = NormalizeDisplayName(identity.DisplayName),
+            AccountStatus = AccountStatuses.Active,
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -79,6 +168,7 @@ public sealed class ExternalIdentityAccountsUserMapper(
             CustomerId = existingUser.CustomerId,
             Email = existingUser.Email,
             DisplayName = normalizedDisplayName,
+            AccountStatus = existingUser.AccountStatus,
             CreatedAt = existingUser.CreatedAt,
         };
 

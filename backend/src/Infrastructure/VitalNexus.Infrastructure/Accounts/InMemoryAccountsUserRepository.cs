@@ -8,12 +8,19 @@ public sealed class InMemoryAccountsUserRepository : IAccountsUserRepository
 {
     private readonly ConcurrentDictionary<Guid, AccountsUser> _usersByEntraObjectId = new();
     private readonly ConcurrentDictionary<Guid, AccountsUser> _usersById = new();
+    private readonly ConcurrentDictionary<string, AccountsUser> _usersByEmail = new(StringComparer.OrdinalIgnoreCase);
 
     public Task<AccountsUser?> GetByEntraObjectIdAsync(
         Guid entraObjectId,
         CancellationToken cancellationToken = default)
     {
         _usersByEntraObjectId.TryGetValue(entraObjectId, out var user);
+        return Task.FromResult(user);
+    }
+
+    public Task<AccountsUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        _usersByEmail.TryGetValue(email.Trim(), out var user);
         return Task.FromResult(user);
     }
 
@@ -36,19 +43,26 @@ public sealed class InMemoryAccountsUserRepository : IAccountsUserRepository
 
     public Task<AccountsUser> CreateAsync(AccountsUser user, CancellationToken cancellationToken = default)
     {
-        if (!_usersByEntraObjectId.TryAdd(user.EntraObjectId, user))
+        if (user.EntraObjectId.HasValue
+            && !_usersByEntraObjectId.TryAdd(user.EntraObjectId.Value, user))
         {
             throw new InvalidOperationException("An Accounts user already exists for the Entra object id.");
         }
 
         _usersById[user.Id] = user;
+        _usersByEmail[user.Email.Trim()] = user;
         return Task.FromResult(user);
     }
 
     public Task<AccountsUser> UpdateAsync(AccountsUser user, CancellationToken cancellationToken = default)
     {
-        _usersByEntraObjectId[user.EntraObjectId] = user;
+        if (user.EntraObjectId.HasValue)
+        {
+            _usersByEntraObjectId[user.EntraObjectId.Value] = user;
+        }
+
         _usersById[user.Id] = user;
+        _usersByEmail[user.Email.Trim()] = user;
         return Task.FromResult(user);
     }
 }
