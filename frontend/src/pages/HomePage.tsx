@@ -11,9 +11,10 @@ export function HomePage() {
   const [profile, setProfile] = useState<AccountProfile | null>(null)
   const [apiError, setApiError] = useState('')
   const [apiLoading, setApiLoading] = useState(false)
+  const accountKey = account?.homeAccountId ?? null
 
   useEffect(() => {
-    if (!account) {
+    if (!accountKey) {
       setProfile(null)
       setApiError('')
       return
@@ -50,7 +51,7 @@ export function HomePage() {
     return () => {
       cancelled = true
     }
-  }, [account, api])
+  }, [accountKey, api])
 
   return (
     <>
