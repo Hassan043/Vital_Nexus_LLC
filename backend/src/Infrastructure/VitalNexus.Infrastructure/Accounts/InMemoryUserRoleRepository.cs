@@ -40,4 +40,16 @@ public sealed class InMemoryUserRoleRepository : IUserRoleRepository
         _assignments.TryAdd((userId, roleName), 0);
         return Task.CompletedTask;
     }
+
+    public Task RemoveAllRolesForUserAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        foreach (var key in _assignments.Keys.Where(entry => entry.UserId == userId).ToList())
+        {
+            _assignments.TryRemove(key, out _);
+        }
+
+        return Task.CompletedTask;
+    }
 }

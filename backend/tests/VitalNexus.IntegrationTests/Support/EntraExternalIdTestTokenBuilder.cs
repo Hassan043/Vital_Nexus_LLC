@@ -49,6 +49,18 @@ public sealed class EntraExternalIdTestTokenBuilder
             Email = Email,
         };
 
+    public EntraExternalIdTestTokenBuilder WithEmail(string email) =>
+        new()
+        {
+            Issuer = Issuer,
+            Audience = Audience,
+            SigningKey = SigningKey,
+            ExpiresUtc = ExpiresUtc,
+            Scopes = Scopes,
+            ObjectId = ObjectId,
+            Email = email,
+        };
+
     public static EntraExternalIdTestTokenBuilder Expired() =>
         new() { ExpiresUtc = DateTime.UtcNow.AddMinutes(-5) };
 

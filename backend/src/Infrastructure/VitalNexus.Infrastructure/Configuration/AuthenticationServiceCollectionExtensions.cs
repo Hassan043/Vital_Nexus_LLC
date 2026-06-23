@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using VitalNexus.Domain.Accounts;
+using VitalNexus.Infrastructure.Authorization;
 using VitalNexus.Infrastructure.Identity;
 
 namespace VitalNexus.Infrastructure.Configuration;
@@ -66,9 +68,21 @@ public static class EntraExternalIdAuthenticationExtensions
                 EntraExternalIdScopeReader.HasRequiredScope(context.User, options.RequiredScope))
             .Build();
 
+        services.AddScoped<IAuthorizationHandler, ApplicationRoleAuthorizationHandler>();
+
         services.AddAuthorizationBuilder()
             .AddPolicy(ApiAccessPolicyName, policy =>
                 ConfigureApiAccessPolicy(policy, options))
+            .AddPolicy(ApplicationRolePolicies.RequireProviderRole, policy =>
+                ConfigureApplicationRolePolicy(
+                    policy,
+                    options,
+                    ApplicationRoles.Clinician,
+                    ApplicationRoles.ClinicAdmin))
+            .AddPolicy(ApplicationRolePolicies.RequireClinician, policy =>
+                ConfigureApplicationRolePolicy(policy, options, ApplicationRoles.Clinician))
+            .AddPolicy(ApplicationRolePolicies.RequireClinicAdmin, policy =>
+                ConfigureApplicationRolePolicy(policy, options, ApplicationRoles.ClinicAdmin))
             .SetFallbackPolicy(apiAccessPolicy);
 
         return services;
@@ -81,6 +95,15 @@ public static class EntraExternalIdAuthenticationExtensions
         policy.RequireAuthenticatedUser();
         policy.RequireAssertion(context =>
             EntraExternalIdScopeReader.HasRequiredScope(context.User, options.RequiredScope));
+    }
+
+    private static void ConfigureApplicationRolePolicy(
+        AuthorizationPolicyBuilder policy,
+        EntraExternalIdOptions options,
+        params string[] allowedRoles)
+    {
+        ConfigureApiAccessPolicy(policy, options);
+        policy.AddRequirements(new ApplicationRoleRequirement(allowedRoles));
     }
 
     public static IServiceCollection AddVitalNexusCors(
