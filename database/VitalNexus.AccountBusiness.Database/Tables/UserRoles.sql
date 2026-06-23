@@ -9,5 +9,7 @@ CREATE TABLE [dbo].[UserRoles]
     CONSTRAINT [FK_UserRoles_ApplicationRoles] FOREIGN KEY ([RoleId]) REFERENCES [dbo].[ApplicationRoles] ([Id])
 );
 
+GO
+
 CREATE NONCLUSTERED INDEX [IX_UserRoles_RoleId]
     ON [dbo].[UserRoles] ([RoleId]);

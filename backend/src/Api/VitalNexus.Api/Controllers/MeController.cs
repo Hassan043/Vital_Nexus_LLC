@@ -9,7 +9,8 @@ namespace VitalNexus.Api.Controllers;
 [Route("api/me")]
 public sealed class MeController(
     IExternalIdentityAccessor externalIdentityAccessor,
-    ICurrentAccountsUserAccessor currentAccountsUserAccessor) : ControllerBase
+    ICurrentAccountsUserAccessor currentAccountsUserAccessor,
+    ICurrentClinicContextAccessor currentClinicContextAccessor) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
@@ -26,6 +27,8 @@ public sealed class MeController(
             return Unauthorized();
         }
 
+        var activeClinic = await currentClinicContextAccessor.GetCurrentAsync(cancellationToken);
+
         return Ok(new
         {
             userId = user.Id,
@@ -37,6 +40,7 @@ public sealed class MeController(
             scopes = identity.Scopes.Count == 0 ? null : string.Join(' ', identity.Scopes),
             roles = user.Roles,
             clinicMemberships = user.ClinicMemberships.Select(AccountsUserResponseMapper.MapClinicMembership).ToArray(),
+            activeClinic = AccountsUserResponseMapper.MapActiveClinic(activeClinic),
         });
     }
 }

@@ -19,6 +19,7 @@ if (entraOptions.IsConfigured)
     builder.Services.AddVitalNexusCors(entraOptions);
     builder.Services.AddExternalIdentityAccessor();
     builder.Services.AddAccountsUserMapping();
+    builder.Services.AddClinicContextResolution(builder.Configuration);
 }
 
 builder.Services.AddSwaggerGen(options =>

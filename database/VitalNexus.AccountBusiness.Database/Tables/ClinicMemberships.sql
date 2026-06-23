@@ -10,5 +10,7 @@ CREATE TABLE [dbo].[ClinicMemberships]
     CONSTRAINT [FK_ClinicMemberships_Clinics] FOREIGN KEY ([ClinicId]) REFERENCES [dbo].[Clinics] ([Id])
 );
 
+GO
+
 CREATE NONCLUSTERED INDEX [IX_ClinicMemberships_ClinicId]
     ON [dbo].[ClinicMemberships] ([ClinicId]);
