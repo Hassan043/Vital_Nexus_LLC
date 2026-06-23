@@ -94,6 +94,54 @@ public sealed class ClinicContextResolverTests
         Assert.Null(context);
     }
 
+    [Fact]
+    public async Task ResolveAsync_ExcludesInactiveMemberships()
+    {
+        var resolver = CreateResolver();
+        var user = CreateUser([
+            CreateMembership(ClinicOneId, "Clinic One", isActive: false),
+        ]);
+
+        var context = await resolver.ResolveAsync(user);
+
+        Assert.Null(context);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_ReturnsNullWhenRoutingIsInactive()
+    {
+        var repository = new InMemoryClinicPatientsDatabaseRepository(
+            Options.Create(new ClinicPatientsDatabaseOptions()));
+        await repository.AddRoutingAsync(new ClinicPatientsDatabase
+        {
+            ClinicId = ClinicOneId,
+            DatabaseName = "Patients-ClinicOne",
+            IsActive = false,
+        });
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:PatientHealth"] =
+                    "Server=sql-vnx-phi-dev.database.windows.net;Database=PatientHealth;User ID=app;Password=secret;",
+            })
+            .Build();
+
+        var resolver = new ClinicContextResolver(
+            repository,
+            new PatientsDatabaseConnectionStringFactory(
+                configuration,
+                Options.Create(new ClinicPatientsDatabaseOptions())));
+
+        var user = CreateUser([
+            CreateMembership(ClinicOneId, "Clinic One"),
+        ]);
+
+        var context = await resolver.ResolveAsync(user);
+
+        Assert.Null(context);
+    }
+
     private static ClinicContextResolver CreateResolver(bool includeRouting = true)
     {
         var configuration = new ConfigurationBuilder()
@@ -139,12 +187,15 @@ public sealed class ClinicContextResolverTests
             ClinicMemberships = memberships,
         };
 
-    private static ClinicMembership CreateMembership(Guid clinicId, string clinicName) =>
+    private static ClinicMembership CreateMembership(
+        Guid clinicId,
+        string clinicName,
+        bool isActive = true) =>
         new()
         {
             ClinicId = clinicId,
             ClinicName = clinicName,
             JoinedAt = DateTime.UtcNow,
-            IsActive = true,
+            IsActive = isActive,
         };
 }
