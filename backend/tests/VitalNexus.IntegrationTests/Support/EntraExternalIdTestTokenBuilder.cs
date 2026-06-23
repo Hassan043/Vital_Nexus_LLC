@@ -46,7 +46,7 @@ public sealed class EntraExternalIdTestTokenBuilder
             ExpiresUtc = ExpiresUtc,
             Scopes = Scopes,
             ObjectId = objectId,
-            Email = Email,
+            Email = $"user-{objectId}@example.com",
         };
 
     public EntraExternalIdTestTokenBuilder WithEmail(string email) =>

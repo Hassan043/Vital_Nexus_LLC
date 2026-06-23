@@ -12,6 +12,7 @@ export class ApiError extends Error {
 
 export type ApiClient = {
   get: <T>(path: string) => Promise<T>
+  post: <T>(path: string, body: unknown) => Promise<T>
 }
 
 type CreateApiClientOptions = {
@@ -47,5 +48,11 @@ export function createApiClient({ baseUrl, getAccessToken }: CreateApiClientOpti
 
   return {
     get: <T>(path: string) => request<T>(path, { method: 'GET' }),
+    post: <T>(path: string, body: unknown) =>
+      request<T>(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }),
   }
 }

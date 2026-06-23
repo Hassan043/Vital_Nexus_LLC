@@ -9,7 +9,8 @@ public sealed class ExternalIdentityAccountsUserMapper(
     ICustomerRepository customerRepository,
     IUserRoleRepository userRoleRepository,
     IUserInvitationRepository userInvitationRepository,
-    IClinicMembershipRepository clinicMembershipRepository) : IExternalIdentityAccountsUserMapper
+    IClinicMembershipRepository clinicMembershipRepository,
+    ICustomerOnboardingService customerOnboardingService) : IExternalIdentityAccountsUserMapper
 {
     public async Task<AccountsUser> MapAsync(
         TrustedExternalIdentity identity,
@@ -120,10 +121,11 @@ public sealed class ExternalIdentityAccountsUserMapper(
         CancellationToken cancellationToken)
     {
         var customerId = Guid.NewGuid();
+        var customerName = BuildCustomerName(normalizedEmail);
         var customer = new Customer
         {
             Id = customerId,
-            Name = BuildCustomerName(normalizedEmail),
+            Name = customerName,
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -145,6 +147,12 @@ public sealed class ExternalIdentityAccountsUserMapper(
             createdUser.Id,
             customerId,
             ApplicationRoles.Admin,
+            cancellationToken);
+
+        await customerOnboardingService.CompleteOnboardingAsync(
+            customerId,
+            createdUser.Id,
+            customerName,
             cancellationToken);
 
         return createdUser;

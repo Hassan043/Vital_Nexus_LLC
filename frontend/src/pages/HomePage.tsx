@@ -2,6 +2,7 @@ import { useAccountProfile } from '../api/useAccountProfile'
 import { getApiBaseUrl } from '../api/config'
 import { isAdmin } from '../auth/roles'
 import { AdminAccountPanel } from '../components/AdminAccountPanel'
+import { CustomerOnboardingDemo } from '../components/CustomerOnboardingDemo'
 
 export function HomePage() {
   const { profile, loading: apiLoading, error: apiError } = useAccountProfile()
@@ -38,6 +39,7 @@ export function HomePage() {
       </section>
 
       <AdminAccountPanel roles={profile?.roles} />
+      <CustomerOnboardingDemo roles={profile?.roles} />
     </>
   )
 }

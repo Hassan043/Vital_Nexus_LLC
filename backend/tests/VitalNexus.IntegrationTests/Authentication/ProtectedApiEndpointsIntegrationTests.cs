@@ -71,7 +71,7 @@ public sealed class ProtectedApiEndpointsIntegrationTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var payload = await response.Content.ReadAsStringAsync();
-        Assert.Contains("pending", payload, StringComparison.Ordinal);
+        Assert.Contains("complete", payload, StringComparison.Ordinal);
         Assert.Contains("clinician@example.com", payload, StringComparison.Ordinal);
     }
 }

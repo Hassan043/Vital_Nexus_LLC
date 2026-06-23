@@ -13,6 +13,7 @@ public static class ClinicContextServiceCollectionExtensions
         services.Configure<CustomerPatientsDatabaseOptions>(
             configuration.GetSection(CustomerPatientsDatabaseOptions.SectionName));
         services.AddSingleton<ICustomerPatientsDatabaseRepository, InMemoryCustomerPatientsDatabaseRepository>();
+        services.AddSingleton<IPatientsDatabaseProvisioningService, SimulatedPatientsDatabaseProvisioningService>();
         services.AddSingleton<PatientsDatabaseConnectionStringFactory>();
         services.AddScoped<IClinicContextResolver, ClinicContextResolver>();
         services.AddScoped<ICurrentClinicContextAccessor, HttpContextCurrentClinicContextAccessor>();

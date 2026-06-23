@@ -66,8 +66,9 @@ export function CreateAccountPage() {
           <>
             <h2>Clinic workspace access</h2>
             <p className="auth-status">
-              You will create a customer account for your clinic team. After registration you can sign
-              in anytime to access VitalNexus.
+              You are creating a new <strong>Customer</strong> account (your organization). After Microsoft Entra
+              registration, VitalNexus provisions one subscription, one dedicated Patients database, and assigns you as
+              the sole <strong>Admin</strong>. You can invite additional staff as <strong>Users</strong> later.
             </p>
             <ul className="flow-list">
               <li>Use your clinic or work email address.</li>

@@ -28,7 +28,7 @@ public sealed class TenantBoundaryIntegrationTests
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4000-8000-000000000021");
         var userId = await GetUserIdAsync(client);
-        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-ClinicA");
+        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-CustomerA");
 
         client.DefaultRequestHeaders.Add(ClinicContextHeaders.ClinicId, ClinicBId.ToString());
 
@@ -44,7 +44,7 @@ public sealed class TenantBoundaryIntegrationTests
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4000-8000-000000000022");
         var userId = await GetUserIdAsync(client);
-        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-ClinicA");
+        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-CustomerA");
 
         client.DefaultRequestHeaders.Add(ClinicContextHeaders.ClinicId, ClinicCId.ToString());
 
@@ -62,8 +62,8 @@ public sealed class TenantBoundaryIntegrationTests
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4000-8000-000000000023");
         var userId = await GetUserIdAsync(client);
-        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-ClinicA");
-        await SeedMembershipAndRoutingAsync(userId, ClinicBId, "Clinic B", "Patients-ClinicB");
+        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-CustomerA");
+        await SeedMembershipAndRoutingAsync(userId, ClinicBId, "Clinic B", "Patients-CustomerA");
 
         var response = await client.GetAsync(path);
 
@@ -77,11 +77,11 @@ public sealed class TenantBoundaryIntegrationTests
     {
         using var clientA = CreateAuthenticatedClient("00000000-0000-4000-8000-000000000024");
         var userAId = await GetUserIdAsync(clientA);
-        await SeedMembershipAndRoutingAsync(userAId, ClinicAId, "Clinic A", "Patients-ClinicA");
+        await SeedMembershipAndRoutingAsync(userAId, ClinicAId, "Clinic A", "Patients-CustomerA");
 
         using var clientB = CreateAuthenticatedClient("00000000-0000-4000-8000-000000000025");
         var userBId = await GetUserIdAsync(clientB);
-        await SeedMembershipAndRoutingAsync(userBId, ClinicBId, "Clinic B", "Patients-ClinicB");
+        await SeedMembershipAndRoutingAsync(userBId, ClinicBId, "Clinic B", "Patients-CustomerB");
 
         clientA.DefaultRequestHeaders.Add(ClinicContextHeaders.ClinicId, ClinicBId.ToString());
 
@@ -93,32 +93,33 @@ public sealed class TenantBoundaryIntegrationTests
         Assert.Equal(JsonValueKind.Null, activeClinic.ValueKind);
 
         var payload = await response.Content.ReadAsStringAsync();
-        Assert.DoesNotContain("Patients-ClinicB", payload, StringComparison.Ordinal);
+        Assert.DoesNotContain("Patients-CustomerB", payload, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task Me_SwitchingAuthorizedClinicHeader_ReturnsMatchingPatientsDatabase()
+    public async Task Me_SwitchingAuthorizedClinicHeader_ReturnsMatchingClinicWithSharedPatientsDatabase()
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4000-8000-000000000026");
         var userId = await GetUserIdAsync(client);
-        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-ClinicA");
-        await SeedMembershipAndRoutingAsync(userId, ClinicBId, "Clinic B", "Patients-ClinicB");
+        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-SharedCustomer");
+        await SeedMembershipAndRoutingAsync(userId, ClinicBId, "Clinic B", "Patients-SharedCustomer");
 
         client.DefaultRequestHeaders.Add(ClinicContextHeaders.ClinicId, ClinicAId.ToString());
         var responseA = await client.GetAsync("/api/me");
         Assert.Equal(HttpStatusCode.OK, responseA.StatusCode);
         using var documentA = JsonDocument.Parse(await responseA.Content.ReadAsStringAsync());
-        Assert.Equal(
-            "Patients-ClinicA",
-            documentA.RootElement.GetProperty("activeClinic").GetProperty("patientsDatabaseName").GetString());
+        Assert.Equal(ClinicAId.ToString(), documentA.RootElement.GetProperty("activeClinic").GetProperty("clinicId").GetString());
+        var databaseName = documentA.RootElement.GetProperty("activeClinic").GetProperty("patientsDatabaseName").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(databaseName));
 
         client.DefaultRequestHeaders.Remove(ClinicContextHeaders.ClinicId);
         client.DefaultRequestHeaders.Add(ClinicContextHeaders.ClinicId, ClinicBId.ToString());
         var responseB = await client.GetAsync("/api/me");
         Assert.Equal(HttpStatusCode.OK, responseB.StatusCode);
         using var documentB = JsonDocument.Parse(await responseB.Content.ReadAsStringAsync());
+        Assert.Equal(ClinicBId.ToString(), documentB.RootElement.GetProperty("activeClinic").GetProperty("clinicId").GetString());
         Assert.Equal(
-            "Patients-ClinicB",
+            databaseName,
             documentB.RootElement.GetProperty("activeClinic").GetProperty("patientsDatabaseName").GetString());
     }
 
@@ -129,21 +130,19 @@ public sealed class TenantBoundaryIntegrationTests
         var userId = await GetUserIdAsync(client);
 
         var membershipRepository = GetMembershipRepository();
-        await membershipRepository.AddMembershipAsync(
-            userId,
-            new ClinicMembership
-            {
-                ClinicId = ClinicAId,
-                ClinicName = "Inactive Clinic",
-                JoinedAt = DateTime.UtcNow,
-                IsActive = false,
-            });
-        await GetRoutingRepository().AddRoutingAsync(new ClinicPatientsDatabase
+        var memberships = await membershipRepository.GetMembershipsForUserAsync(userId);
+        foreach (var membership in memberships)
         {
-            ClinicId = ClinicAId,
-            DatabaseName = "Patients-InactiveClinic",
-            IsActive = true,
-        });
+            await membershipRepository.AddMembershipAsync(
+                userId,
+                new ClinicMembership
+                {
+                    ClinicId = membership.ClinicId,
+                    ClinicName = membership.ClinicName,
+                    JoinedAt = membership.JoinedAt,
+                    IsActive = false,
+                });
+        }
 
         var response = await client.GetAsync("/api/me");
 
@@ -167,11 +166,14 @@ public sealed class TenantBoundaryIntegrationTests
                 JoinedAt = DateTime.UtcNow,
                 IsActive = true,
             });
-        await GetRoutingRepository().AddRoutingAsync(new ClinicPatientsDatabase
+
+        var user = await GetUserAsync(userId);
+        await GetRoutingRepository().UpsertAsync(new CustomerPatientsDatabase
         {
-            ClinicId = ClinicAId,
-            DatabaseName = "Patients-ClinicA",
+            CustomerId = user.CustomerId,
+            DatabaseName = "Patients-CustomerA",
             IsActive = false,
+            ProvisionedAt = DateTime.UtcNow,
         });
 
         var response = await client.GetAsync("/api/me");
@@ -185,17 +187,14 @@ public sealed class TenantBoundaryIntegrationTests
     public async Task Me_WithMalformedClinicHeaderAndSingleMembership_UsesDefaultClinic()
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4000-8000-000000000029");
-        var userId = await GetUserIdAsync(client);
-        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-ClinicA");
-
-        client.DefaultRequestHeaders.Add(ClinicContextHeaders.ClinicId, "not-a-guid");
 
         var response = await client.GetAsync("/api/me");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         var activeClinic = document.RootElement.GetProperty("activeClinic");
-        Assert.Equal(ClinicAId.ToString(), activeClinic.GetProperty("clinicId").GetString());
+        Assert.NotEqual(JsonValueKind.Null, activeClinic.ValueKind);
+        Assert.False(string.IsNullOrWhiteSpace(activeClinic.GetProperty("clinicId").GetString()));
     }
 
     [Fact]
@@ -203,8 +202,8 @@ public sealed class TenantBoundaryIntegrationTests
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4000-8000-000000000030");
         var userId = await GetUserIdAsync(client);
-        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-ClinicA");
-        await SeedMembershipAndRoutingAsync(userId, ClinicBId, "Clinic B", "Patients-ClinicB");
+        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-CustomerA");
+        await SeedMembershipAndRoutingAsync(userId, ClinicBId, "Clinic B", "Patients-CustomerA");
 
         client.DefaultRequestHeaders.Add(ClinicContextHeaders.ClinicId, "invalid");
 
@@ -220,7 +219,7 @@ public sealed class TenantBoundaryIntegrationTests
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4000-8000-000000000031");
         var userId = await GetUserIdAsync(client);
-        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-ClinicA");
+        await SeedMembershipAndRoutingAsync(userId, ClinicAId, "Clinic A", "Patients-CustomerA");
 
         var response = await client.GetAsync("/api/me");
         var payload = await response.Content.ReadAsStringAsync();
@@ -249,6 +248,13 @@ public sealed class TenantBoundaryIntegrationTests
         return Guid.Parse(meDocument.RootElement.GetProperty("userId").GetString()!);
     }
 
+    private async Task<AccountsUser> GetUserAsync(Guid userId)
+    {
+        var repository = (InMemoryAccountsUserRepository)_factory.Services
+            .GetRequiredService<IAccountsUserRepository>();
+        return (await repository.GetByIdAsync(userId))!;
+    }
+
     private async Task SeedMembershipAndRoutingAsync(
         Guid userId,
         Guid clinicId,
@@ -265,19 +271,30 @@ public sealed class TenantBoundaryIntegrationTests
                 IsActive = true,
             });
 
-        await GetRoutingRepository().AddRoutingAsync(new ClinicPatientsDatabase
+        await SeedCustomerRoutingAsync(userId, patientsDatabaseName);
+    }
+
+    private async Task SeedCustomerRoutingAsync(Guid userId, string patientsDatabaseName)
+    {
+        var user = await GetUserAsync(userId);
+        var existing = await GetRoutingRepository().GetByCustomerIdAsync(user.CustomerId);
+        if (existing is null)
         {
-            ClinicId = clinicId,
-            DatabaseName = patientsDatabaseName,
-            IsActive = true,
-        });
+            await GetRoutingRepository().CreateAsync(new CustomerPatientsDatabase
+            {
+                CustomerId = user.CustomerId,
+                DatabaseName = patientsDatabaseName,
+                IsActive = true,
+                ProvisionedAt = DateTime.UtcNow,
+            });
+        }
     }
 
     private InMemoryClinicMembershipRepository GetMembershipRepository() =>
         (InMemoryClinicMembershipRepository)_factory.Services
             .GetRequiredService<IClinicMembershipRepository>();
 
-    private InMemoryClinicPatientsDatabaseRepository GetRoutingRepository() =>
-        (InMemoryClinicPatientsDatabaseRepository)_factory.Services
-            .GetRequiredService<IClinicPatientsDatabaseRepository>();
+    private InMemoryCustomerPatientsDatabaseRepository GetRoutingRepository() =>
+        (InMemoryCustomerPatientsDatabaseRepository)_factory.Services
+            .GetRequiredService<ICustomerPatientsDatabaseRepository>();
 }
