@@ -15,6 +15,44 @@ import { useVitalNexusAuth } from '../auth/useVitalNexusAuth'
 import { saveAuthReturnUrl } from '../auth/returnUrl'
 
 describe('RequireAuth', () => {
+  it('renders protected routes for authenticated users', () => {
+    vi.mocked(useVitalNexusAuth).mockReturnValue({
+      isAuthenticated: true,
+      isLoading: false,
+    } as ReturnType<typeof useVitalNexusAuth>)
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route element={<RequireAuth />}>
+            <Route path="/" element={<div>Protected home</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Protected home')).toBeTruthy()
+  })
+
+  it('shows a loading screen while MSAL restores the session', () => {
+    vi.mocked(useVitalNexusAuth).mockReturnValue({
+      isAuthenticated: false,
+      isLoading: true,
+    } as ReturnType<typeof useVitalNexusAuth>)
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route element={<RequireAuth />}>
+            <Route path="/" element={<div>Protected home</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Restoring your session…')).toBeTruthy()
+  })
+
   it('redirects guests to sign-in and stores the return URL', () => {
     vi.mocked(useVitalNexusAuth).mockReturnValue({
       isAuthenticated: false,

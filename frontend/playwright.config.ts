@@ -7,18 +7,36 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
   },
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'unconfigured-chromium',
+      testMatch: '**/app.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:5172',
+      },
+    },
+    {
+      name: 'auth-routes-chromium',
+      testMatch: '**/auth-routes.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:5174',
+      },
     },
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command: 'npm run dev:unconfigured',
+      url: 'http://localhost:5172',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'npm run dev:e2e',
+      url: 'http://localhost:5174',
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 })
