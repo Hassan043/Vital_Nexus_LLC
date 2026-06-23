@@ -6,8 +6,8 @@ test.describe('Entra External ID auth routes', () => {
 
     await expect(page).toHaveURL(/\/sign-in$/)
     await expect(page.getByRole('heading', { name: 'Sign in to VitalNexus' })).toBeVisible()
-    await expect(page.getByText('Sign in to continue to')).toBeVisible()
-    await expect(page.locator('.auth-status strong')).toHaveText('/')
+    await expect(page.getByText('Sign in to continue to')).not.toBeVisible()
+    await expect(page.getByLabel('Email address (optional)')).toBeVisible()
   })
 
   test('shows the create account wizard for guest routes', async ({ page }) => {
