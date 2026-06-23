@@ -1,5 +1,6 @@
 import { EventType, PublicClientApplication } from '@azure/msal-browser'
 import { buildMsalConfiguration, formatAuthErrorMessage, isMsalConfigured } from './authConfig'
+import { cleanAuthRedirectFromBrowserUrl } from './returnUrl'
 
 let msalInstance: PublicClientApplication | null = null
 
@@ -41,6 +42,8 @@ export async function initializeMsal(): Promise<PublicClientApplication> {
     }
   } catch (error) {
     throw new Error(formatAuthErrorMessage(error))
+  } finally {
+    cleanAuthRedirectFromBrowserUrl()
   }
 
   return instance

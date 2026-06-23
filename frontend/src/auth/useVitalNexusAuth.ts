@@ -22,6 +22,7 @@ export function useVitalNexusAuth() {
     clearAuthReturnUrl()
     await instance.logoutRedirect({
       account: account ?? undefined,
+      postLogoutRedirectUri: `${window.location.origin}/sign-in`,
     })
   }
 

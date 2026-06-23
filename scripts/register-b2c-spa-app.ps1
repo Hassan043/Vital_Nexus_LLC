@@ -112,6 +112,14 @@ if ($null -ne $existingSpaApp -and $existingSpaApp.spa.redirectUris) {
     }
 }
 
+$expandedRedirectUris = Expand-SpaRedirectUris -RedirectUris @($redirectUris)
+$redirectUris = [System.Collections.Generic.List[string]]::new()
+foreach ($uri in $expandedRedirectUris) {
+    if (-not $redirectUris.Contains($uri)) {
+        [void]$redirectUris.Add($uri)
+    }
+}
+
 $appBody = @{
     displayName    = $displayName
     signInAudience = 'AzureADandPersonalMicrosoftAccount'

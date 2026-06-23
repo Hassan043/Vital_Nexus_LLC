@@ -828,3 +828,22 @@ function Set-ConditionalAccessMfaPolicyForApplication {
     Write-Host "Created Conditional Access policy: $DisplayName ($($created.id))"
     return $created.id
 }
+
+function Expand-SpaRedirectUris {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$RedirectUris
+    )
+
+    $expanded = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($uri in $RedirectUris) {
+        if ([string]::IsNullOrWhiteSpace($uri)) {
+            continue
+        }
+
+        [void]$expanded.Add($uri.Trim())
+        [void]$expanded.Add(('{0}/sign-in' -f $uri.Trim().TrimEnd('/')))
+    }
+
+    return @($expanded)
+}

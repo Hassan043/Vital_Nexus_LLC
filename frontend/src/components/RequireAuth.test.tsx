@@ -7,9 +7,13 @@ vi.mock('../auth/useVitalNexusAuth', () => ({
   useVitalNexusAuth: vi.fn(),
 }))
 
-vi.mock('../auth/returnUrl', () => ({
-  saveAuthReturnUrl: vi.fn(),
-}))
+vi.mock('../auth/returnUrl', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../auth/returnUrl')>()
+  return {
+    ...actual,
+    saveAuthReturnUrl: vi.fn(),
+  }
+})
 
 import { useVitalNexusAuth } from '../auth/useVitalNexusAuth'
 import { saveAuthReturnUrl } from '../auth/returnUrl'

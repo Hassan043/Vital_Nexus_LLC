@@ -62,7 +62,10 @@ describe('useVitalNexusAuth', () => {
     await result.current.signOut()
 
     expect(clearAuthReturnUrl).toHaveBeenCalled()
-    expect(msal.instance.logoutRedirect).toHaveBeenCalledWith({ account })
+    expect(msal.instance.logoutRedirect).toHaveBeenCalledWith({
+      account,
+      postLogoutRedirectUri: `${window.location.origin}/sign-in`,
+    })
   })
 
   it('acquires API tokens silently when possible', async () => {

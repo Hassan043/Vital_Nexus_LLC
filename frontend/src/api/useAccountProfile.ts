@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useVitalNexusAuth } from '../auth/useVitalNexusAuth'
 import { useApiClient } from './useApiClient'
+import { getApiBaseUrl } from './config'
 import { getCurrentAccount, type AccountProfile } from './accountApi'
 import { ApiError } from './apiClient'
 
@@ -9,6 +10,18 @@ type AccountProfileState = {
   loading: boolean
   error: string
   refresh: () => void
+}
+
+function formatProfileError(caught: unknown): string {
+  if (caught instanceof ApiError) {
+    return `API ${caught.status}: ${caught.body || caught.message}`
+  }
+
+  if (caught instanceof TypeError && caught.message === 'Failed to fetch') {
+    return `Cannot reach the API at ${getApiBaseUrl()}. Start the backend locally and confirm Entra auth is configured.`
+  }
+
+  return caught instanceof Error ? caught.message : 'API request failed.'
 }
 
 export function useAccountProfile(): AccountProfileState {
@@ -42,12 +55,7 @@ export function useAccountProfile(): AccountProfileState {
           return
         }
 
-        if (caught instanceof ApiError) {
-          setError(`API ${caught.status}: ${caught.body || caught.message}`)
-          return
-        }
-
-        setError(caught instanceof Error ? caught.message : 'API request failed.')
+        setError(formatProfileError(caught))
       })
       .finally(() => {
         if (!cancelled) {

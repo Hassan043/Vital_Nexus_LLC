@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AppLayout } from '../components/AppLayout'
+import { cleanAuthRedirectFromBrowserUrl, formatReturnUrlForDisplay } from '../auth/returnUrl'
 import { useVitalNexusAuth } from '../auth/useVitalNexusAuth'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -23,6 +24,11 @@ export function SignInPage() {
   const location = useLocation()
   const [email, setEmail] = useState('')
   const returnPath = getReturnPath(location.state?.from)
+  const displayReturnPath = returnPath ? formatReturnUrlForDisplay(returnPath) : null
+
+  useEffect(() => {
+    cleanAuthRedirectFromBrowserUrl()
+  }, [])
 
   async function handleSignIn() {
     const trimmedEmail = email.trim()
@@ -38,8 +44,8 @@ export function SignInPage() {
       </div>
 
       <section className="auth-panel">
-        {returnPath ? (
-          <p className="auth-status">Sign in to continue to <strong>{returnPath}</strong>.</p>
+        {displayReturnPath && displayReturnPath !== '/' ? (
+          <p className="auth-status">Sign in to continue to <strong>{displayReturnPath}</strong>.</p>
         ) : null}
         <label className="field-label" htmlFor="signin-email">
           Email address (optional)

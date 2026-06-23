@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { saveAuthReturnUrl } from '../auth/returnUrl'
+import { saveAuthReturnUrl, stripAuthQueryParams } from '../auth/returnUrl'
 import { useVitalNexusAuth } from '../auth/useVitalNexusAuth'
 import { AuthLoadingScreen } from './AuthLoadingScreen'
 
@@ -12,7 +12,7 @@ export function RequireAuth() {
   }
 
   if (!isAuthenticated) {
-    saveAuthReturnUrl(`${location.pathname}${location.search}${location.hash}`)
+    saveAuthReturnUrl(`${location.pathname}${stripAuthQueryParams(location.search)}${location.hash}`)
     return <Navigate to="/sign-in" replace state={{ from: location }} />
   }
 

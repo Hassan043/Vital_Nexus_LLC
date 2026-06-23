@@ -10,6 +10,7 @@ Authentication uses the authorization code flow with PKCE (MSAL). Implicit grant
 |---------|-------|
 | Platform | Single-page application |
 | Redirect URI (local) | `http://localhost:5173/` |
+| Post-logout redirect (local) | `http://localhost:5173/sign-in` (registered automatically by `register-b2c-spa-app.ps1`) |
 | Redirect URI (deployed) | `https://<frontend-container-app-fqdn>/` |
 | Client secret | None (public SPA) |
 | Implicit grant | Disabled |

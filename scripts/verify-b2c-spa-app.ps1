@@ -48,7 +48,7 @@ if ($null -eq $app) {
     throw "SPA app registration not found: $displayName. Run register-b2c-spa-app.ps1 first."
 }
 $registeredUris = @($app.spa.redirectUris)
-$expectedUris = @($envConfig.redirectUris)
+$expectedUris = Expand-SpaRedirectUris -RedirectUris @($envConfig.redirectUris)
 
 Write-Host "Client ID:       $($app.appId)"
 Write-Host "Registered URIs: $($registeredUris -join ', ')"
