@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using VitalNexus.Infrastructure.Identity;
 
 namespace VitalNexus.Infrastructure.Configuration;
 
@@ -64,7 +65,7 @@ public static class EntraExternalIdAuthenticationExtensions
             {
                 policy.RequireAuthenticatedUser();
                 policy.RequireAssertion(context =>
-                    EntraExternalIdScopeValidator.HasRequiredScope(context.User, options.RequiredScope));
+                    EntraExternalIdScopeReader.HasRequiredScope(context.User, options.RequiredScope));
             });
 
         return services;
