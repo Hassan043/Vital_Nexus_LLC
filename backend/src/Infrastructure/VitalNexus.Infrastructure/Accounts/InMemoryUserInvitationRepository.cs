@@ -45,6 +45,7 @@ public sealed class InMemoryUserInvitationRepository : IUserInvitationRepository
             Email = invitation.Email,
             RoleName = invitation.RoleName,
             InvitedByUserId = invitation.InvitedByUserId,
+            ClinicIds = invitation.ClinicIds,
             CreatedAt = invitation.CreatedAt,
             AcceptedAt = DateTime.UtcNow,
         };

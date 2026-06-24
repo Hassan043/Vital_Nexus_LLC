@@ -18,7 +18,8 @@ public sealed class AdminController(
     IClinicRepository clinicRepository,
     ICustomerPatientsDatabaseRepository patientsDatabaseRepository,
     IUserInvitationRepository userInvitationRepository,
-    ICustomerOnboardingService customerOnboardingService) : ControllerBase
+    ICustomerOnboardingService customerOnboardingService,
+    IOnboardingAuditRepository onboardingAuditRepository) : ControllerBase
 {
     [HttpGet("account")]
     public async Task<IActionResult> GetAccountOverview(CancellationToken cancellationToken)
@@ -95,6 +96,8 @@ public sealed class AdminController(
                     subscription.ActivatedAt,
                     planTier = planTier?.Name,
                     planTierDescription = planTier?.Description,
+                    monthlyPriceCents = planTier?.MonthlyPriceCents,
+                    patientCapMax = planTier?.PatientCapMax,
                 },
             patientsDatabase = patientsDatabase is null
                 ? null
@@ -132,6 +135,7 @@ public sealed class AdminController(
     }
 
     [HttpPost("users/invite")]
+    [HttpPost("staff/invite")]
     public async Task<IActionResult> InviteUser(
         [FromBody] InviteUserRequest request,
         CancellationToken cancellationToken)
@@ -177,7 +181,20 @@ public sealed class AdminController(
                 Email = normalizedEmail,
                 RoleName = ApplicationRoles.User,
                 InvitedByUserId = user.Id,
+                ClinicIds = request.ClinicIds ?? [],
                 CreatedAt = DateTime.UtcNow,
+            },
+            cancellationToken);
+
+        await onboardingAuditRepository.RecordAsync(
+            new OnboardingAuditEvent
+            {
+                Id = Guid.NewGuid(),
+                CustomerId = user.CustomerId,
+                ActorUserId = user.Id,
+                EventType = OnboardingAuditEventTypes.StaffInvited,
+                Detail = $"Invited staff user {normalizedEmail}.",
+                OccurredAt = DateTime.UtcNow,
             },
             cancellationToken);
 
@@ -188,7 +205,7 @@ public sealed class AdminController(
                 invitation.Id,
                 invitation.Email,
                 invitation.RoleName,
-                message = "Invitation recorded. The staff member must register via Microsoft Entra External ID using this email.",
+                message = "Invitation recorded. The staff member must sign in via Microsoft Entra External ID using this email.",
             });
     }
 
@@ -234,6 +251,8 @@ public sealed class AdminController(
         public string Email { get; set; } = string.Empty;
 
         public string? RoleName { get; set; }
+
+        public IReadOnlyList<Guid>? ClinicIds { get; set; }
     }
 
     public sealed class CreateClinicRequest

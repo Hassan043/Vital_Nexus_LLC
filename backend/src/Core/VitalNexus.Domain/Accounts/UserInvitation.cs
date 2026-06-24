@@ -12,6 +12,8 @@ public sealed class UserInvitation
 
     public Guid InvitedByUserId { get; init; }
 
+    public IReadOnlyList<Guid> ClinicIds { get; init; } = [];
+
     public DateTime CreatedAt { get; init; }
 
     public DateTime? AcceptedAt { get; init; }
