@@ -25,9 +25,27 @@ public static class ExternalIdentityClaimsReader
             Subject = ReadClaim(principal, "sub"),
             TenantId = ReadClaim(principal, "tid"),
             Email = ReadEmail(principal),
-            DisplayName = ReadClaim(principal, "name") ?? principal.Identity?.Name,
+            DisplayName = ReadDisplayName(principal),
             Scopes = EntraExternalIdScopeReader.ReadScopes(principal),
         };
+    }
+
+    private static string? ReadDisplayName(ClaimsPrincipal principal)
+    {
+        var name = ReadClaim(principal, "name") ?? principal.Identity?.Name;
+        var givenName = ReadClaim(principal, "given_name");
+        var familyName = ReadClaim(principal, "family_name");
+
+        if (!string.IsNullOrWhiteSpace(givenName) || !string.IsNullOrWhiteSpace(familyName))
+        {
+            var combined = string.Join(' ', new[] { givenName, familyName }.Where(static part => !string.IsNullOrWhiteSpace(part)));
+            if (!string.IsNullOrWhiteSpace(combined))
+            {
+                return combined;
+            }
+        }
+
+        return name;
     }
 
     private static string? ReadEmail(ClaimsPrincipal principal)

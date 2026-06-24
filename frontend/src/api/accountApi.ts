@@ -1,5 +1,12 @@
 import type { ApiClient } from './apiClient'
 
+export type ClinicMembership = {
+  clinicId: string
+  clinicName: string
+  joinedAt: string
+  isActive: boolean
+}
+
 export type AccountProfile = {
   userId?: string | null
   customerId?: string | null
@@ -8,21 +15,14 @@ export type AccountProfile = {
   email: string | null
   scopes: string | null
   roles?: string[]
-}
-
-export type AdminAccountOverview = {
-  customerId: string
-  customerName: string
-  userId: string
-  email: string
-  displayName: string | null
-  roles: string[]
-  access: string
+  clinicMemberships?: ClinicMembership[]
+  activeClinic?: {
+    clinicId: string
+    clinicName: string
+  } | null
 }
 
 export type OnboardingDashboard = {
-  authenticationProvider: string
-  authorizationProvider: string
   customer: {
     id: string
     name: string
@@ -43,31 +43,28 @@ export type OnboardingDashboard = {
   }
   subscription: {
     status: string
-    createdAt: string
-    activatedAt: string | null
     planTier: string
     planTierDescription: string | null
     monthlyPriceCents?: number
     patientCapMax?: number
   } | null
   patientsDatabase: {
-    databaseName: string
-    serverName: string | null
-    provisionedAt: string
     isActive: boolean
-    schemaNote: string
   } | null
   clinics: Array<{
     id: string
     name: string
     isActive: boolean
-    createdAt: string
+    contactEmail: string | null
+    phone: string | null
+    timeZoneId: string | null
   }>
   users: Array<{
     id: string
     email: string
     displayName: string | null
     accountStatus: string
+    roles: string[]
     entraLinked: boolean
   }>
   pendingInvitations: Array<{
@@ -82,11 +79,7 @@ export async function getCurrentAccount(api: ApiClient): Promise<AccountProfile>
   return api.get<AccountProfile>('/api/me')
 }
 
-export async function getAdminAccountOverview(api: ApiClient): Promise<AdminAccountOverview> {
-  return api.get<AdminAccountOverview>('/api/admin/account')
-}
-
-export async function getOnboardingDashboard(api: ApiClient): Promise<OnboardingDashboard> {
+export async function getWorkspaceDashboard(api: ApiClient): Promise<OnboardingDashboard> {
   return api.get<OnboardingDashboard>('/api/admin/onboarding')
 }
 
@@ -96,4 +89,10 @@ export async function inviteStaffUser(api: ApiClient, email: string): Promise<{ 
 
 export async function createClinic(api: ApiClient, name: string): Promise<{ id: string; name: string }> {
   return api.post<{ id: string; name: string }>('/api/admin/clinics', { name })
+}
+
+export function isOnboardingComplete(
+  onboarding: OnboardingDashboard['onboarding'] | null | undefined,
+): boolean {
+  return onboarding?.isComplete === true
 }

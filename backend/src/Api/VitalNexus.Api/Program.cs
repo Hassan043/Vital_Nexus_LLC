@@ -18,7 +18,7 @@ if (entraOptions.IsConfigured)
     builder.Services.AddEntraExternalIdAuthentication(entraOptions);
     builder.Services.AddVitalNexusCors(entraOptions);
     builder.Services.AddExternalIdentityAccessor();
-    builder.Services.AddAccountsUserMapping();
+    builder.Services.AddAccountsUserMapping(builder.Configuration);
     builder.Services.AddClinicContextResolution(builder.Configuration);
 }
 
@@ -55,7 +55,10 @@ builder.Services.AddSwaggerGen(options =>
     }
 });
 
-builder.Services.AddApplicationInsightsTelemetry();
+if (HasValidApplicationInsightsConnectionString(builder.Configuration))
+{
+    builder.Services.AddApplicationInsightsTelemetry();
+}
 
 var app = builder.Build();
 
@@ -82,5 +85,19 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static bool HasValidApplicationInsightsConnectionString(IConfiguration configuration)
+{
+    var connectionString =
+        configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]
+        ?? configuration["ApplicationInsights:ConnectionString"];
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        return false;
+    }
+
+    return connectionString.Contains("InstrumentationKey=", StringComparison.OrdinalIgnoreCase);
+}
 
 public partial class Program;

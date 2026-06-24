@@ -16,6 +16,7 @@ public sealed class AdminController(
     ISubscriptionRepository subscriptionRepository,
     IPlanTierRepository planTierRepository,
     IClinicRepository clinicRepository,
+    IClinicProfileRepository clinicProfileRepository,
     ICustomerPatientsDatabaseRepository patientsDatabaseRepository,
     IUserInvitationRepository userInvitationRepository,
     ICustomerOnboardingService customerOnboardingService,
@@ -70,6 +71,22 @@ public sealed class AdminController(
             ? null
             : await planTierRepository.GetByIdAsync(subscription.PlanTierId, cancellationToken);
         var clinics = await clinicRepository.GetByCustomerIdAsync(user.CustomerId, cancellationToken);
+        var clinicSummaries = new List<object>();
+        foreach (var clinic in clinics)
+        {
+            var profile = await clinicProfileRepository.GetByClinicIdAsync(clinic.Id, cancellationToken);
+            clinicSummaries.Add(new
+            {
+                clinic.Id,
+                clinic.Name,
+                clinic.IsActive,
+                clinic.CreatedAt,
+                contactEmail = profile?.ContactEmail,
+                phone = profile?.Phone,
+                timeZoneId = profile?.TimeZoneId,
+            });
+        }
+
         var patientsDatabase = await patientsDatabaseRepository.GetByCustomerIdAsync(user.CustomerId, cancellationToken);
         var staffUsers = await accountsUserRepository.GetByCustomerIdAsync(user.CustomerId, cancellationToken);
         var pendingInvitations = await userInvitationRepository.GetPendingByCustomerIdAsync(
@@ -109,19 +126,14 @@ public sealed class AdminController(
                     patientsDatabase.IsActive,
                     schemaNote = "Contains Placeholder table (demo); clinical tables expand in later phases.",
                 },
-            clinics = clinics.Select(clinic => new
-            {
-                clinic.Id,
-                clinic.Name,
-                clinic.IsActive,
-                clinic.CreatedAt,
-            }),
+            clinics = clinicSummaries,
             users = staffUsers.Select(staff => new
             {
                 staff.Id,
                 staff.Email,
                 staff.DisplayName,
                 staff.AccountStatus,
+                roles = staff.Roles,
                 entraLinked = staff.EntraObjectId.HasValue,
             }),
             pendingInvitations = pendingInvitations.Select(invitation => new

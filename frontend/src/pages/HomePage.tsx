@@ -1,79 +1,93 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { getOnboardingDashboard } from '../api/accountApi'
+import { getWorkspaceDashboard, isOnboardingComplete, type OnboardingDashboard } from '../api/accountApi'
 import { useAccountProfile } from '../api/useAccountProfile'
 import { useApiClient } from '../api/useApiClient'
-import { getApiBaseUrl } from '../api/config'
+import { ApiError } from '../api/apiClient'
 import { isAdmin } from '../auth/roles'
-import { AdminAccountPanel } from '../components/AdminAccountPanel'
-import { CustomerOnboardingDemo } from '../components/CustomerOnboardingDemo'
+import { WorkspaceDashboard } from '../components/WorkspaceDashboard'
 
 export function HomePage() {
   const api = useApiClient()
-  const { profile, loading: apiLoading, error: apiError } = useAccountProfile()
-  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null)
-  const roleLabel = profile?.roles?.join(', ') ?? 'none'
+  const { profile, loading: profileLoading, error: profileError, refresh: refreshProfile } = useAccountProfile()
+  const [dashboard, setDashboard] = useState<OnboardingDashboard | null>(null)
+  const [dashboardLoading, setDashboardLoading] = useState(true)
+  const [dashboardError, setDashboardError] = useState('')
   const userIsAdmin = isAdmin(profile?.roles)
+  const profileKey = profile?.userId ?? profile?.email ?? null
 
-  useEffect(() => {
+  const loadDashboard = useCallback(async () => {
     if (!userIsAdmin) {
-      setOnboardingComplete(true)
+      setDashboard(null)
+      setDashboardError('')
+      setDashboardLoading(false)
       return
     }
 
-    let cancelled = false
-    getOnboardingDashboard(api)
-      .then((dashboard) => {
-        if (!cancelled) {
-          setOnboardingComplete(dashboard.onboarding.isComplete)
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setOnboardingComplete(true)
-        }
-      })
-
-    return () => {
-      cancelled = true
+    setDashboardLoading(true)
+    setDashboardError('')
+    try {
+      const result = await getWorkspaceDashboard(api)
+      setDashboard(result)
+    } catch (caught: unknown) {
+      setDashboard(null)
+      if (caught instanceof ApiError) {
+        setDashboardError(caught.displayMessage)
+      } else {
+        setDashboardError(caught instanceof Error ? caught.message : 'Failed to load organization data.')
+      }
+    } finally {
+      setDashboardLoading(false)
     }
   }, [api, userIsAdmin])
 
-  if (userIsAdmin && onboardingComplete === false) {
+  useEffect(() => {
+    if (profileLoading) {
+      return
+    }
+
+    if (!profileKey) {
+      setDashboardLoading(false)
+      return
+    }
+
+    void loadDashboard()
+  }, [profileLoading, profileKey, loadDashboard])
+
+  if (profileLoading || (userIsAdmin && dashboardLoading)) {
+    return (
+      <div className="table-page">
+        <p className="table-message">Loading your workspace…</p>
+      </div>
+    )
+  }
+
+  if (userIsAdmin && dashboard && !isOnboardingComplete(dashboard.onboarding)) {
     return <Navigate to="/onboarding" replace />
   }
 
+  function handleRefresh() {
+    refreshProfile()
+    void loadDashboard()
+  }
+
   return (
-    <>
-      <div className="flow-header">
-        <p className="eyebrow">Clinic workspace</p>
-        <h1>Functional medicine lab intelligence</h1>
-        <p className="lede">Your VitalNexus session is active. Protected routes and API calls use your Entra access token.</p>
-      </div>
-
-      <section className="auth-panel" aria-live="polite">
-        <div className="api-status">
-          <p className="welcome-label">Session check</p>
-          {apiLoading ? (
-            <p className="auth-status">Calling {getApiBaseUrl()}/api/me…</p>
-          ) : profile ? (
-            <>
-              <p className="auth-status">API confirmed your access token.</p>
-              {profile.name ? <p className="welcome-name">{profile.name}</p> : null}
-              {profile.email ? <p className="welcome-email">{profile.email}</p> : null}
-              <p className="welcome-email">Application role: {roleLabel}</p>
-              <p className="welcome-email">API scopes: {profile.scopes ?? 'none'}</p>
-              {!userIsAdmin ? (
-                <p className="flow-note">Customer administration actions are hidden for User accounts.</p>
-              ) : null}
-            </>
-          ) : null}
-          {apiError ? <p className="field-error">{apiError}</p> : null}
+    <div className="table-page">
+      {dashboardError || profileError ? (
+        <div className="table-message table-message-error workspace-error">
+          <p>{dashboardError || profileError}</p>
+          <button type="button" className="table-button" onClick={handleRefresh}>
+            Retry
+          </button>
         </div>
-      </section>
-
-      <AdminAccountPanel roles={profile?.roles} />
-      <CustomerOnboardingDemo roles={profile?.roles} />
-    </>
+      ) : null}
+      <WorkspaceDashboard
+        profile={profile}
+        dashboard={dashboard}
+        dashboardLoading={false}
+        dashboardError=""
+        onRefresh={handleRefresh}
+      />
+    </div>
   )
 }

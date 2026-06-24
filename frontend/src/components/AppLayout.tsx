@@ -4,11 +4,12 @@ import { Link } from 'react-router-dom'
 type AppLayoutProps = {
   children: ReactNode
   showAuthLinks?: boolean
+  variant?: 'default' | 'auth'
 }
 
-export function AppLayout({ children, showAuthLinks = true }: AppLayoutProps) {
+export function AppLayout({ children, showAuthLinks = true, variant = 'default' }: AppLayoutProps) {
   return (
-    <div className="app-layout">
+    <div className={`app-layout${variant === 'auth' ? ' app-layout-auth' : ''}`}>
       <header className="site-header">
         <Link to="/" className="brand-link">
           <span className="eyebrow">VitalNexus</span>
@@ -22,7 +23,7 @@ export function AppLayout({ children, showAuthLinks = true }: AppLayoutProps) {
           </nav>
         ) : null}
       </header>
-      <main className="app-shell">{children}</main>
+      <main className={variant === 'auth' ? 'app-shell app-shell-auth' : 'app-shell'}>{children}</main>
     </div>
   )
 }

@@ -5,7 +5,7 @@ test.describe('Entra External ID auth routes', () => {
     await page.goto('/')
 
     await expect(page).toHaveURL(/\/sign-in$/)
-    await expect(page.getByRole('heading', { name: 'Sign in to VitalNexus' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
     await expect(page.getByText('Sign in to continue to')).not.toBeVisible()
     await expect(page.getByLabel('Email address (optional)')).toBeVisible()
   })

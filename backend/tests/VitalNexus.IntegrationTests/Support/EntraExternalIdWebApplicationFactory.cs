@@ -28,6 +28,7 @@ public sealed class EntraExternalIdWebApplicationFactory : WebApplicationFactory
         {
             configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
+                ["ConnectionStrings:Accounts"] = string.Empty,
                 ["ConnectionStrings:PatientHealth"] =
                     "Server=localhost;Database=PatientHealth;Trusted_Connection=True;Encrypt=False",
             });

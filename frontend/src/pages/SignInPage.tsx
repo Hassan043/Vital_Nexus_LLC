@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AppLayout } from '../components/AppLayout'
+import { AuthCard } from '../components/AuthCard'
 import { cleanAuthRedirectFromBrowserUrl, formatReturnUrlForDisplay } from '../auth/returnUrl'
 import { useVitalNexusAuth } from '../auth/useVitalNexusAuth'
 
@@ -36,16 +37,16 @@ export function SignInPage() {
   }
 
   return (
-    <AppLayout>
-      <div className="flow-header">
-        <p className="eyebrow">Sign in</p>
-        <h1>Sign in to VitalNexus</h1>
-        <p className="lede">Use your clinic account. Password and MFA are handled by Microsoft Entra External ID.</p>
-      </div>
-
-      <section className="auth-panel">
+    <AppLayout variant="auth">
+      <AuthCard
+        eyebrow="Sign in"
+        title="Welcome back"
+        subtitle="Use your clinic account. Password and MFA are handled by Microsoft Entra External ID."
+      >
         {displayReturnPath && displayReturnPath !== '/' ? (
-          <p className="auth-status">Sign in to continue to <strong>{displayReturnPath}</strong>.</p>
+          <p className="auth-card-notice">
+            Sign in to continue to <strong>{displayReturnPath}</strong>.
+          </p>
         ) : null}
         <label className="field-label" htmlFor="signin-email">
           Email address (optional)
@@ -59,16 +60,19 @@ export function SignInPage() {
           onChange={(event) => setEmail(event.target.value)}
           placeholder="you@clinic.com"
         />
-        <p className="flow-note">If provided, your email is prefilled on the Microsoft sign-in page.</p>
-        <div className="auth-actions">
-          <button type="button" className="auth-button" disabled={isLoading} onClick={() => void handleSignIn()}>
+        <p className="auth-card-hint">If provided, your email is prefilled on the Microsoft sign-in page.</p>
+        <div className="auth-card-actions">
+          <button type="button" className="auth-button auth-button-block" disabled={isLoading} onClick={() => void handleSignIn()}>
             {isLoading ? 'Signing in…' : 'Sign in'}
           </button>
-          <Link to="/create-account" className="text-link">
-            Create an account
-          </Link>
+          <p className="auth-card-footer">
+            New to VitalNexus?{' '}
+            <Link to="/create-account" className="text-link">
+              Create an account
+            </Link>
+          </p>
         </div>
-      </section>
+      </AuthCard>
     </AppLayout>
   )
 }

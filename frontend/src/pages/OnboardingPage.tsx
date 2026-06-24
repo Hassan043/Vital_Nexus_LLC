@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
-import { getOnboardingDashboard, type OnboardingDashboard } from '../api/accountApi'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { getWorkspaceDashboard, isOnboardingComplete, type OnboardingDashboard } from '../api/accountApi'
 import { createBillingQuote, formatUsd, getBillingPlans, type BillingPlan } from '../api/billingApi'
 import { useApiClient } from '../api/useApiClient'
 import { useAccountProfile } from '../api/useAccountProfile'
 import { ApiError } from '../api/apiClient'
 import { isAdmin } from '../auth/roles'
+import { DataTable, StatusCell, TableSection, type DataTableColumn } from '../components/DataTable'
 
 const checklistSteps = [
   { key: 'baaSigned', label: 'Sign Business Associate Agreement (BAA)' },
@@ -14,8 +15,15 @@ const checklistSteps = [
   { key: 'isComplete', label: 'Provision subscription and Patients database' },
 ] as const
 
+type ChecklistRow = {
+  key: string
+  step: string
+  complete: boolean
+}
+
 export function OnboardingPage() {
   const api = useApiClient()
+  const navigate = useNavigate()
   const { profile, loading: profileLoading } = useAccountProfile()
   const [dashboard, setDashboard] = useState<OnboardingDashboard | null>(null)
   const [plans, setPlans] = useState<BillingPlan[]>([])
@@ -35,7 +43,7 @@ export function OnboardingPage() {
     setError('')
     try {
       const [dashboardResult, planResult] = await Promise.all([
-        getOnboardingDashboard(api),
+        getWorkspaceDashboard(api),
         getBillingPlans(api),
       ])
       setDashboard(dashboardResult)
@@ -62,15 +70,26 @@ export function OnboardingPage() {
   )
 
   if (profileLoading || loading) {
-    return <p className="auth-status">Loading onboarding…</p>
+    return <p className="table-message">Loading onboarding…</p>
   }
 
   if (!isAdmin(profile?.roles)) {
     return <Navigate to="/" replace />
   }
 
-  if (dashboard?.onboarding.isComplete) {
+  if (isOnboardingComplete(dashboard?.onboarding)) {
     return <Navigate to="/" replace />
+  }
+
+  if (!dashboard) {
+    return (
+      <div className="table-page">
+        <p className="table-message table-message-error">{error || 'Could not load onboarding status.'}</p>
+        <button type="button" className="table-button" onClick={() => void load()}>
+          Retry
+        </button>
+      </div>
+    )
   }
 
   async function handleSignBaa() {
@@ -136,8 +155,13 @@ export function OnboardingPage() {
         timeZoneId,
         planTierId: selectedPlanId,
       })
+      const dashboardResult = await getWorkspaceDashboard(api)
+      setDashboard(dashboardResult)
+      if (isOnboardingComplete(dashboardResult.onboarding)) {
+        navigate('/', { replace: true })
+        return
+      }
       setMessage('Onboarding complete. Your account is now active.')
-      await load()
     } catch (caught: unknown) {
       setError(caught instanceof ApiError ? caught.body || caught.message : 'Onboarding completion failed.')
     }
@@ -145,106 +169,216 @@ export function OnboardingPage() {
 
   const onboarding = dashboard?.onboarding
 
-  return (
-    <div className="onboarding-page">
-      <div className="flow-header">
-        <p className="eyebrow">Customer onboarding</p>
-        <h1>Complete your VitalNexus setup</h1>
-        <p className="lede">
-          One customer, one subscription, one Patients database, multiple clinics, multiple staff logins.
-          Authentication is handled by Microsoft Entra External ID.
-        </p>
-      </div>
+  const checklistRows: ChecklistRow[] = checklistSteps.map((step) => ({
+    key: step.key,
+    step: step.label,
+    complete: onboarding?.[step.key as keyof typeof onboarding] === true,
+  }))
 
-      <section className="auth-panel onboarding-checklist">
-        <h2>Guided setup checklist</h2>
-        <ul className="onboarding-steps">
-          {checklistSteps.map((step) => {
-            const done = onboarding?.[step.key as keyof typeof onboarding] === true
-            return (
-              <li key={step.key} className={done ? 'step-complete' : 'step-pending'}>
-                {done ? '✓' : '○'} {step.label}
-              </li>
-            )
-          })}
-        </ul>
-      </section>
+  const checklistColumns: DataTableColumn<ChecklistRow>[] = [
+    {
+      key: 'status',
+      header: 'Status',
+      align: 'center',
+      render: (row) => <StatusCell complete={row.complete} />,
+    },
+    { key: 'step', header: 'Step', render: (row) => row.step },
+  ]
+
+  const planColumns: DataTableColumn<BillingPlan>[] = [
+    {
+      key: 'select',
+      header: 'Select',
+      align: 'center',
+      render: (plan) => (
+        <input
+          type="radio"
+          name="plan"
+          checked={selectedPlanId === plan.id}
+          onChange={() => setSelectedPlanId(plan.id)}
+          aria-label={`Select ${plan.name}`}
+        />
+      ),
+    },
+    { key: 'name', header: 'Plan', render: (plan) => plan.name },
+    { key: 'price', header: 'Monthly price', render: (plan) => formatUsd(plan.monthlyPriceCents) },
+    { key: 'cap', header: 'Patient cap', render: (plan) => plan.patientCapMax },
+    { key: 'description', header: 'Description', render: (plan) => plan.description ?? '—' },
+  ]
+
+  return (
+    <div className="table-page">
+      <header className="page-header">
+        <h1>Customer onboarding</h1>
+        <p className="page-subtitle">
+          One customer, one subscription, one Patients database — multiple clinics and staff logins.
+        </p>
+      </header>
+
+      <TableSection title="Setup checklist">
+        <DataTable
+          columns={checklistColumns}
+          rows={checklistRows}
+          rowKey={(row) => row.key}
+          caption="Setup checklist"
+        />
+      </TableSection>
 
       {!onboarding?.baaSigned ? (
-        <section className="auth-panel">
-          <h2>Business Associate Agreement</h2>
-          <p className="flow-note">
-            Demo BAA: by checking the box below you agree to VitalNexus handling PHI according to your organization&apos;s BAA terms (version 2026.1).
-          </p>
-          <label className="checkbox-row">
-            <input type="checkbox" checked={baaAccepted} onChange={(event) => setBaaAccepted(event.target.checked)} />
-            I agree to the Business Associate Agreement
-          </label>
-          <button type="button" className="primary-button" onClick={() => void handleSignBaa()}>
-            Sign BAA and continue
-          </button>
-        </section>
+        <TableSection title="Business Associate Agreement">
+          <table className="data-table data-table-form">
+            <tbody>
+              <tr>
+                <th scope="row">Terms</th>
+                <td>
+                  Demo BAA version 2026.1 — VitalNexus handling PHI per your organization&apos;s BAA terms.
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Acceptance</th>
+                <td>
+                  <label className="table-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={baaAccepted}
+                      onChange={(event) => setBaaAccepted(event.target.checked)}
+                    />
+                    I agree to the Business Associate Agreement
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Action</th>
+                <td className="table-actions">
+                  <button type="button" className="table-button" onClick={() => void handleSignBaa()}>
+                    Sign BAA and continue
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </TableSection>
       ) : null}
 
       {onboarding?.baaSigned && !onboarding.planSelected ? (
-        <section className="auth-panel">
-          <h2>Select plan</h2>
-          <p className="flow-note">Pricing is loaded from the server. Client-supplied amounts are rejected.</p>
-          <div className="plan-grid">
-            {plans.map((plan) => (
-              <label key={plan.id} className={`plan-card ${selectedPlanId === plan.id ? 'plan-selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="plan"
-                  checked={selectedPlanId === plan.id}
-                  onChange={() => setSelectedPlanId(plan.id)}
-                />
-                <strong>{plan.name}</strong>
-                <span>{formatUsd(plan.monthlyPriceCents)}/month</span>
-                <span>Up to {plan.patientCapMax} patients</span>
-                {plan.description ? <span className="flow-note">{plan.description}</span> : null}
-              </label>
-            ))}
+        <TableSection title="Select plan" description="Pricing is loaded from the server.">
+          <DataTable
+            columns={planColumns}
+            rows={plans}
+            rowKey={(plan) => String(plan.id)}
+            caption="Subscription plans"
+          />
+          <div className="table-toolbar">
+            <button type="button" className="table-button" onClick={() => void handleSelectPlan()}>
+              Continue with {selectedPlan?.name ?? 'plan'}
+            </button>
           </div>
-          <button type="button" className="primary-button" onClick={() => void handleSelectPlan()}>
-            Continue with {selectedPlan?.name ?? 'plan'}
-          </button>
-        </section>
+        </TableSection>
       ) : null}
 
       {onboarding?.baaSigned && onboarding.planSelected && !onboarding.clinicProfileComplete ? (
-        <section className="auth-panel">
-          <h2>Clinic profile</h2>
-          <label className="field-label" htmlFor="customer-name">Customer name</label>
-          <input id="customer-name" className="text-input" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
-          <label className="field-label" htmlFor="clinic-name">Clinic name</label>
-          <input id="clinic-name" className="text-input" value={clinicName} onChange={(e) => setClinicName(e.target.value)} />
-          <label className="field-label" htmlFor="contact-email">Contact email</label>
-          <input id="contact-email" className="text-input" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
-          <label className="field-label" htmlFor="phone">Phone</label>
-          <input id="phone" className="text-input" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          <label className="field-label" htmlFor="timezone">Time zone</label>
-          <input id="timezone" className="text-input" value={timeZoneId} onChange={(e) => setTimeZoneId(e.target.value)} />
-          <button type="button" className="primary-button" onClick={() => void handleSaveClinicProfile()}>
-            Save clinic profile
-          </button>
-        </section>
+        <TableSection title="Clinic profile">
+          <table className="data-table data-table-form">
+            <tbody>
+              <tr>
+                <th scope="row">
+                  <label htmlFor="customer-name">Customer name</label>
+                </th>
+                <td>
+                  <input
+                    id="customer-name"
+                    className="table-input"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  <label htmlFor="clinic-name">Clinic name</label>
+                </th>
+                <td>
+                  <input
+                    id="clinic-name"
+                    className="table-input"
+                    value={clinicName}
+                    onChange={(e) => setClinicName(e.target.value)}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  <label htmlFor="contact-email">Contact email</label>
+                </th>
+                <td>
+                  <input
+                    id="contact-email"
+                    className="table-input"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  <label htmlFor="phone">Phone</label>
+                </th>
+                <td>
+                  <input id="phone" className="table-input" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  <label htmlFor="timezone">Time zone</label>
+                </th>
+                <td>
+                  <input
+                    id="timezone"
+                    className="table-input"
+                    value={timeZoneId}
+                    onChange={(e) => setTimeZoneId(e.target.value)}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Action</th>
+                <td className="table-actions">
+                  <button type="button" className="table-button" onClick={() => void handleSaveClinicProfile()}>
+                    Save clinic profile
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </TableSection>
       ) : null}
 
       {onboarding?.baaSigned && onboarding.planSelected && onboarding.clinicProfileComplete && !onboarding.isComplete ? (
-        <section className="auth-panel">
-          <h2>Activate account</h2>
-          <p className="flow-note">
-            This provisions your subscription, dedicated Patients database (with Placeholder table), and default clinic membership.
-          </p>
-          <button type="button" className="primary-button" onClick={() => void handleComplete()}>
-            Complete onboarding
-          </button>
-        </section>
+        <TableSection title="Activate account">
+          <table className="data-table data-table-form">
+            <tbody>
+              <tr>
+                <th scope="row">Provisioning</th>
+                <td>
+                  Activates subscription, dedicated Patients database (with Placeholder table), and default clinic
+                  membership.
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Action</th>
+                <td className="table-actions">
+                  <button type="button" className="table-button" onClick={() => void handleComplete()}>
+                    Complete onboarding
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </TableSection>
       ) : null}
 
-      {error ? <p className="field-error">{error}</p> : null}
-      {message ? <p className="auth-status">{message}</p> : null}
+      {error ? <p className="table-message table-message-error">{error}</p> : null}
+      {message ? <p className="table-message">{message}</p> : null}
     </div>
   )
 }

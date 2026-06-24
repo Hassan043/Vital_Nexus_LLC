@@ -21,6 +21,7 @@ internal static class AccountsUserProfileEnricher
             CustomerId = user.CustomerId,
             Email = user.Email,
             DisplayName = user.DisplayName,
+            AccountStatus = user.AccountStatus,
             CreatedAt = user.CreatedAt,
             Roles = roles,
             ClinicMemberships = memberships,

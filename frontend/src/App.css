@@ -1,11 +1,15 @@
 .app-shell {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 24px 24px 80px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 24px clamp(1rem, 3vw, 2.5rem) 80px;
+  text-align: left;
+  box-sizing: border-box;
 }
 
 .app-layout {
   min-height: 100vh;
+  width: 100%;
 }
 
 .site-header {
@@ -13,8 +17,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 1.5rem;
+  width: 100%;
+  padding: 1rem clamp(1rem, 3vw, 2.5rem);
   border-bottom: 1px solid var(--border);
+  box-sizing: border-box;
 }
 
 .brand-link {
@@ -221,6 +227,172 @@
   box-shadow: var(--shadow);
 }
 
+.app-shell-auth {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: clamp(2rem, 8vh, 4rem);
+  padding-bottom: 4rem;
+}
+
+.auth-page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+}
+
+.auth-card-eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.auth-card-header h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.65rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.auth-card-subtitle {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.auth-card-body {
+  margin-top: 1.5rem;
+}
+
+.auth-card-notice {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  font-size: 0.92rem;
+}
+
+.auth-card-hint {
+  margin: -0.5rem 0 1.25rem;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.auth-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-button-block {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.auth-card-footer {
+  margin: 0;
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.auth-card-wide {
+  max-width: 480px;
+}
+
+.auth-card-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.auth-card-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.55rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--social-bg);
+  font-size: 0.72rem;
+  color: var(--text);
+}
+
+.auth-card-step.is-active {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--text-h);
+}
+
+.auth-card-step.is-complete {
+  border-color: var(--accent-border);
+}
+
+.auth-card-step-number {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.auth-card-step-label {
+  text-align: center;
+  line-height: 1.2;
+}
+
+.auth-card-copy {
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.auth-card-list {
+  margin: 0 0 1.25rem;
+  padding-left: 1.2rem;
+  font-size: 0.92rem;
+}
+
+.auth-card-list li {
+  margin-bottom: 0.4rem;
+}
+
+.auth-card-list-numbered {
+  list-style: decimal;
+}
+
+.auth-card-checkbox {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.auth-card-actions-split {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.auth-card-actions-split .auth-button {
+  flex: 1 1 140px;
+  border-radius: 8px;
+}
+
 .auth-status {
   margin: 0 0 1rem;
 }
@@ -405,4 +577,280 @@ code {
   gap: 0.5rem;
   align-items: center;
   margin: 1rem 0;
+}
+
+/* Table-style workspace UI */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.table-page,
+.table-page-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.page-header {
+  margin-bottom: 0.25rem;
+}
+
+.page-header h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.95rem;
+  max-width: 72ch;
+}
+
+.table-section {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.table-section-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--social-bg);
+}
+
+.table-section-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.table-section-desc {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.data-table thead th {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+  background: var(--social-bg);
+}
+
+.data-table tbody tr:last-child th,
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table-kv th {
+  width: 220px;
+  font-weight: 600;
+  color: var(--text-h);
+  background: var(--social-bg);
+}
+
+.data-table-form th {
+  width: 180px;
+  font-weight: 600;
+  color: var(--text-h);
+  background: var(--social-bg);
+}
+
+.data-table-form .table-input {
+  width: 100%;
+  max-width: none;
+}
+
+.data-table-empty {
+  color: var(--text);
+  font-style: italic;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.table-input {
+  box-sizing: border-box;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+  color: var(--text-h);
+  background: var(--bg);
+}
+
+.table-button {
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  border-radius: 4px;
+  border: 1px solid var(--accent-border);
+  color: var(--text-h);
+  background: var(--accent-bg);
+  cursor: pointer;
+}
+
+.table-button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.table-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.table-actions {
+  white-space: nowrap;
+}
+
+.table-toolbar {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--social-bg);
+}
+
+.table-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.table-message {
+  margin: 0;
+  padding: 0.65rem 1rem;
+  font-size: 0.92rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--social-bg);
+}
+
+.table-message-error {
+  color: #c2410c;
+  border-color: rgba(194, 65, 12, 0.35);
+}
+
+.status-cell {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-complete {
+  color: #166534;
+  background: rgba(22, 101, 52, 0.12);
+}
+
+.status-pending {
+  color: var(--text);
+  background: var(--code-bg);
+}
+
+.status-cell-label {
+  font-weight: 400;
+}
+
+.workspace-hero {
+  margin-bottom: 0.25rem;
+}
+
+.workspace-hero h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.85rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--text-h);
+}
+
+.workspace-hero-subtitle {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.workspace-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.workspace-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--social-bg);
+}
+
+.workspace-stat-value {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.2;
+}
+
+.workspace-stat-label {
+  font-size: 0.8rem;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.table-message-success {
+  color: #166534;
+  border-color: rgba(22, 101, 52, 0.35);
+}
+
+.workspace-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.workspace-error p {
+  margin: 0;
+  flex: 1 1 240px;
 }

@@ -74,4 +74,21 @@ public sealed class ExternalIdentityClaimsReaderTests
         Assert.NotNull(identity);
         Assert.Equal("first@example.com", identity!.Email);
     }
+
+    [Fact]
+    public void TryRead_PrefersGivenAndFamilyNameOverUnknownDisplayName()
+    {
+        var principal = new ClaimsPrincipal(new ClaimsIdentity([
+            new Claim("oid", "00000000-0000-4000-8000-000000000099"),
+            new Claim("name", "unknown"),
+            new Claim("given_name", "Jane"),
+            new Claim("family_name", "Smith"),
+            new Claim("preferred_username", "jane@example.com"),
+        ], authenticationType: "Bearer"));
+
+        var identity = ExternalIdentityClaimsReader.TryRead(principal);
+
+        Assert.NotNull(identity);
+        Assert.Equal("Jane Smith", identity!.DisplayName);
+    }
 }
