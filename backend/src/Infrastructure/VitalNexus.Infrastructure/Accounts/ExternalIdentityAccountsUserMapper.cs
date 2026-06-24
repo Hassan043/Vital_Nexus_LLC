@@ -10,7 +10,7 @@ public sealed class ExternalIdentityAccountsUserMapper(
     IUserRoleRepository userRoleRepository,
     IUserInvitationRepository userInvitationRepository,
     IClinicMembershipRepository clinicMembershipRepository,
-    ICustomerOnboardingService customerOnboardingService) : IExternalIdentityAccountsUserMapper
+    IOnboardingAuditRepository onboardingAuditRepository) : IExternalIdentityAccountsUserMapper
 {
     public async Task<AccountsUser> MapAsync(
         TrustedExternalIdentity identity,
@@ -138,7 +138,7 @@ public sealed class ExternalIdentityAccountsUserMapper(
             CustomerId = customerId,
             Email = normalizedEmail,
             DisplayName = NormalizeDisplayName(identity.DisplayName),
-            AccountStatus = AccountStatuses.Active,
+            AccountStatus = AccountStatuses.PendingActivation,
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -149,10 +149,16 @@ public sealed class ExternalIdentityAccountsUserMapper(
             ApplicationRoles.Admin,
             cancellationToken);
 
-        await customerOnboardingService.CompleteOnboardingAsync(
-            customerId,
-            createdUser.Id,
-            customerName,
+        await onboardingAuditRepository.RecordAsync(
+            new OnboardingAuditEvent
+            {
+                Id = Guid.NewGuid(),
+                CustomerId = customerId,
+                ActorUserId = createdUser.Id,
+                EventType = OnboardingAuditEventTypes.CustomerCreated,
+                Detail = "Initial customer and admin user created via Entra External ID.",
+                OccurredAt = DateTime.UtcNow,
+            },
             cancellationToken);
 
         return createdUser;

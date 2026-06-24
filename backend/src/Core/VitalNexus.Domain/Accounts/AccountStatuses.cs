@@ -4,6 +4,8 @@ public static class AccountStatuses
 {
     public const string Active = "Active";
 
+    public const string PendingActivation = "PendingActivation";
+
     public const string Invited = "Invited";
 
     public const string Disabled = "Disabled";

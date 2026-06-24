@@ -44,6 +44,7 @@ public sealed class ExternalIdentityAccountsUserMapperTests
 
         Assert.Single(roles);
         Assert.Equal(ApplicationRoles.Admin, roles[0]);
+        Assert.Equal(AccountStatuses.PendingActivation, user.AccountStatus);
     }
 
     [Fact]
@@ -172,22 +173,8 @@ public sealed class ExternalIdentityAccountsUserMapperTests
         invitationRepository ??= new InMemoryUserInvitationRepository();
         membershipRepository ??= new InMemoryClinicMembershipRepository();
 
-        var clinicRepository = new InMemoryClinicRepository();
-        var clinicProfileRepository = new InMemoryClinicProfileRepository();
-        var subscriptionRepository = new InMemorySubscriptionRepository();
         var patientsDatabaseRepository = new InMemoryCustomerPatientsDatabaseRepository();
-        var onboardingService = new CustomerOnboardingService(
-            customerRepository,
-            repository,
-            roleRepository,
-            subscriptionRepository,
-            clinicRepository,
-            clinicProfileRepository,
-            membershipRepository,
-            patientsDatabaseRepository,
-            new SimulatedPatientsDatabaseProvisioningService(
-                patientsDatabaseRepository,
-                Microsoft.Extensions.Options.Options.Create(new CustomerPatientsDatabaseOptions())));
+        var onboardingAuditRepository = new InMemoryOnboardingAuditRepository();
 
         return new ExternalIdentityAccountsUserMapper(
             repository,
@@ -195,6 +182,6 @@ public sealed class ExternalIdentityAccountsUserMapperTests
             roleRepository,
             invitationRepository,
             membershipRepository,
-            onboardingService);
+            onboardingAuditRepository);
     }
 }
