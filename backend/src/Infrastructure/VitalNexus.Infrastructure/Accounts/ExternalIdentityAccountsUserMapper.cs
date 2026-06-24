@@ -80,15 +80,35 @@ public sealed class ExternalIdentityAccountsUserMapper(
             cancellationToken);
         await userInvitationRepository.MarkAcceptedAsync(invitation.Id, cancellationToken);
 
-        var memberships = await clinicMembershipRepository.GetMembershipsForUserAsync(
-            invitation.InvitedByUserId,
-            cancellationToken);
-        foreach (var membership in memberships.Where(m => m.IsActive))
+        if (invitation.ClinicIds.Count > 0)
         {
-            await clinicMembershipRepository.AddMembershipAsync(
-                createdUser.Id,
-                membership,
+            foreach (var clinicId in invitation.ClinicIds)
+            {
+                var memberships = await clinicMembershipRepository.GetMembershipsForUserAsync(
+                    invitation.InvitedByUserId,
+                    cancellationToken);
+                var membership = memberships.FirstOrDefault(entry => entry.ClinicId == clinicId && entry.IsActive);
+                if (membership is not null)
+                {
+                    await clinicMembershipRepository.AddMembershipAsync(
+                        createdUser.Id,
+                        membership,
+                        cancellationToken);
+                }
+            }
+        }
+        else
+        {
+            var memberships = await clinicMembershipRepository.GetMembershipsForUserAsync(
+                invitation.InvitedByUserId,
                 cancellationToken);
+            foreach (var membership in memberships.Where(m => m.IsActive))
+            {
+                await clinicMembershipRepository.AddMembershipAsync(
+                    createdUser.Id,
+                    membership,
+                    cancellationToken);
+            }
         }
 
         return createdUser;
