@@ -66,6 +66,8 @@ public sealed class ProtectedApiEndpointsIntegrationTests
             "Bearer",
             _factory.CreateAccessToken(includeRequiredScope: true));
 
+        await OnboardingTestHelper.CompleteDemoOnboardingAsync(client);
+
         var response = await client.GetAsync("/api/provider");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

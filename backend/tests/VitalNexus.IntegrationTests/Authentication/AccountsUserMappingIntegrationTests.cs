@@ -44,7 +44,7 @@ public sealed class AccountsUserMappingIntegrationTests
 
         var clinicMemberships = root.GetProperty("clinicMemberships");
         Assert.Equal(JsonValueKind.Array, clinicMemberships.ValueKind);
-        Assert.NotEmpty(clinicMemberships.EnumerateArray());
+        Assert.Empty(clinicMemberships.EnumerateArray());
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public sealed class AccountsUserMappingIntegrationTests
     }
 
     [Fact]
-    public async Task Provider_ReturnsCompleteOnboardingWhenUserHasActiveClinicMembership()
+    public async Task Provider_ReturnsPendingOnboardingUntilCustomerSetupIsComplete()
     {
         using var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
@@ -85,8 +85,15 @@ public sealed class AccountsUserMappingIntegrationTests
         using var providerDocument = JsonDocument.Parse(await providerResponse.Content.ReadAsStringAsync());
         var root = providerDocument.RootElement;
 
-        Assert.Equal("complete", root.GetProperty("onboardingStatus").GetString());
+        Assert.Equal("pending", root.GetProperty("onboardingStatus").GetString());
         Assert.Equal(JsonValueKind.Array, root.GetProperty("roles").ValueKind);
-        Assert.NotEmpty(root.GetProperty("clinicMemberships").EnumerateArray());
+        Assert.Empty(root.GetProperty("clinicMemberships").EnumerateArray());
+
+        await OnboardingTestHelper.CompleteDemoOnboardingAsync(client);
+
+        var completedResponse = await client.GetAsync("/api/provider");
+        using var completedDocument = JsonDocument.Parse(await completedResponse.Content.ReadAsStringAsync());
+        Assert.Equal("complete", completedDocument.RootElement.GetProperty("onboardingStatus").GetString());
+        Assert.NotEmpty(completedDocument.RootElement.GetProperty("clinicMemberships").EnumerateArray());
     }
 }

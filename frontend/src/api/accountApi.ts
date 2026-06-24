@@ -31,10 +31,14 @@ export type OnboardingDashboard = {
   onboarding: {
     customerCreated: boolean
     entraIdentityLinked: boolean
+    baaSigned: boolean
+    planSelected: boolean
+    clinicProfileComplete: boolean
     subscriptionCreated: boolean
     patientsDatabaseProvisioned: boolean
     defaultClinicCreated: boolean
     adminAssigned: boolean
+    accountActivated: boolean
     isComplete: boolean
   }
   subscription: {
@@ -43,6 +47,8 @@ export type OnboardingDashboard = {
     activatedAt: string | null
     planTier: string
     planTierDescription: string | null
+    monthlyPriceCents?: number
+    patientCapMax?: number
   } | null
   patientsDatabase: {
     databaseName: string

@@ -187,6 +187,7 @@ public sealed class TenantBoundaryIntegrationTests
     public async Task Me_WithMalformedClinicHeaderAndSingleMembership_UsesDefaultClinic()
     {
         using var client = CreateAuthenticatedClient("00000000-0000-4000-8000-000000000029");
+        await OnboardingTestHelper.CompleteDemoOnboardingAsync(client);
 
         var response = await client.GetAsync("/api/me");
 

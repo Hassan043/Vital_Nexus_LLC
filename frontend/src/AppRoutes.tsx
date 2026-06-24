@@ -4,6 +4,7 @@ import { RequireAuth } from './components/RequireAuth'
 import { RequireGuest } from './components/RequireGuest'
 import { CreateAccountPage } from './pages/CreateAccountPage'
 import { HomePage } from './pages/HomePage'
+import { OnboardingPage } from './pages/OnboardingPage'
 import { SignInPage } from './pages/SignInPage'
 
 export function AppRoutes() {
@@ -17,6 +18,7 @@ export function AppRoutes() {
 
         <Route element={<RequireAuth />}>
           <Route element={<AuthenticatedAppShell />}>
+            <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/" element={<HomePage />} />
           </Route>
         </Route>

@@ -1,13 +1,47 @@
+import { useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
+import { getOnboardingDashboard } from '../api/accountApi'
 import { useAccountProfile } from '../api/useAccountProfile'
+import { useApiClient } from '../api/useApiClient'
 import { getApiBaseUrl } from '../api/config'
 import { isAdmin } from '../auth/roles'
 import { AdminAccountPanel } from '../components/AdminAccountPanel'
 import { CustomerOnboardingDemo } from '../components/CustomerOnboardingDemo'
 
 export function HomePage() {
+  const api = useApiClient()
   const { profile, loading: apiLoading, error: apiError } = useAccountProfile()
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null)
   const roleLabel = profile?.roles?.join(', ') ?? 'none'
   const userIsAdmin = isAdmin(profile?.roles)
+
+  useEffect(() => {
+    if (!userIsAdmin) {
+      setOnboardingComplete(true)
+      return
+    }
+
+    let cancelled = false
+    getOnboardingDashboard(api)
+      .then((dashboard) => {
+        if (!cancelled) {
+          setOnboardingComplete(dashboard.onboarding.isComplete)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setOnboardingComplete(true)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [api, userIsAdmin])
+
+  if (userIsAdmin && onboardingComplete === false) {
+    return <Navigate to="/onboarding" replace />
+  }
 
   return (
     <>

@@ -8,11 +8,21 @@ export class ApiError extends Error {
     this.status = status
     this.body = body
   }
+
+  get displayMessage(): string {
+    try {
+      const parsed = JSON.parse(this.body) as { error?: string; title?: string }
+      return parsed.error ?? parsed.title ?? this.body
+    } catch {
+      return this.body || this.message
+    }
+  }
 }
 
 export type ApiClient = {
   get: <T>(path: string) => Promise<T>
   post: <T>(path: string, body: unknown) => Promise<T>
+  put: <T>(path: string, body: unknown) => Promise<T>
 }
 
 type CreateApiClientOptions = {
@@ -51,6 +61,12 @@ export function createApiClient({ baseUrl, getAccessToken }: CreateApiClientOpti
     post: <T>(path: string, body: unknown) =>
       request<T>(path, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }),
+    put: <T>(path: string, body: unknown) =>
+      request<T>(path, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       }),

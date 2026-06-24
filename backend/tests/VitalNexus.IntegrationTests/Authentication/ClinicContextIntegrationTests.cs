@@ -23,7 +23,7 @@ public sealed class ClinicContextIntegrationTests
     }
 
     [Fact]
-    public async Task Me_ReturnsActiveClinicAfterAutomaticCustomerOnboarding()
+    public async Task Me_ReturnsActiveClinicAfterCustomerOnboardingIsCompleted()
     {
         using var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
@@ -31,6 +31,8 @@ public sealed class ClinicContextIntegrationTests
             EntraExternalIdTestTokenBuilder.Valid()
                 .WithObjectId("00000000-0000-4000-8000-000000000001")
                 .Build());
+
+        await OnboardingTestHelper.CompleteDemoOnboardingAsync(client);
 
         var response = await client.GetAsync("/api/me");
 
@@ -42,6 +44,7 @@ public sealed class ClinicContextIntegrationTests
         Assert.False(string.IsNullOrWhiteSpace(activeClinic.GetProperty("patientsDatabaseName").GetString()));
     }
 
+    [Fact]
     public async Task Me_ReturnsActiveClinicWhenUserHasSingleMembershipAndRoutingExists()
     {
         using var client = _factory.CreateClient();
@@ -49,7 +52,10 @@ public sealed class ClinicContextIntegrationTests
             "Bearer",
             EntraExternalIdTestTokenBuilder.Valid()
                 .WithObjectId("00000000-0000-4000-8000-000000000088")
+                .WithEmail("single-clinic@example.com")
                 .Build());
+
+        await OnboardingTestHelper.CompleteDemoOnboardingAsync(client);
 
         var response = await client.GetAsync("/api/me");
 
