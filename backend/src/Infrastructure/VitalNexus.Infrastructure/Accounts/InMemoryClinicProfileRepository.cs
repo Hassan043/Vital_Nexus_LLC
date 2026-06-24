@@ -19,4 +19,10 @@ public sealed class InMemoryClinicProfileRepository : IClinicProfileRepository
         _profiles.TryGetValue(clinicId, out var profile);
         return Task.FromResult(profile);
     }
+
+    public Task<ClinicProfile> UpdateAsync(ClinicProfile profile, CancellationToken cancellationToken = default)
+    {
+        _profiles[profile.ClinicId] = profile;
+        return Task.FromResult(profile);
+    }
 }

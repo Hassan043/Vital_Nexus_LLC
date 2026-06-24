@@ -7,4 +7,6 @@ public interface IClinicProfileRepository
     Task<ClinicProfile> CreateAsync(ClinicProfile profile, CancellationToken cancellationToken = default);
 
     Task<ClinicProfile?> GetByClinicIdAsync(Guid clinicId, CancellationToken cancellationToken = default);
+
+    Task<ClinicProfile> UpdateAsync(ClinicProfile profile, CancellationToken cancellationToken = default);
 }

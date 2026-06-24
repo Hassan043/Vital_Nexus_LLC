@@ -23,4 +23,10 @@ public sealed class InMemoryCustomerRepository : ICustomerRepository
         _customers.TryGetValue(customerId, out var customer);
         return Task.FromResult(customer);
     }
+
+    public Task<Customer> UpdateAsync(Customer customer, CancellationToken cancellationToken = default)
+    {
+        _customers[customer.Id] = customer;
+        return Task.FromResult(customer);
+    }
 }
