@@ -367,3 +367,42 @@ code {
   background: var(--border);
   color: var(--text);
 }
+
+.onboarding-checklist ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.onboarding-checklist li.step-complete {
+  color: var(--text-h);
+}
+
+.plan-grid {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.plan-card {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.plan-card.plan-selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.checkbox-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 1rem 0;
+}

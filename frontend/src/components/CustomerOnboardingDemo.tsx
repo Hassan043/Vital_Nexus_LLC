@@ -16,10 +16,13 @@ type CustomerOnboardingDemoProps = {
 const onboardingSteps = [
   { key: 'entraIdentityLinked', label: 'Microsoft Entra External ID registration', detail: 'Authentication — who you are' },
   { key: 'customerCreated', label: 'Customer record created', detail: 'One customer = one subscription = one Patients database' },
+  { key: 'baaSigned', label: 'Business Associate Agreement signed', detail: 'Required before account activation' },
+  { key: 'planSelected', label: 'Subscription plan selected', detail: 'Server-authoritative pricing' },
   { key: 'adminAssigned', label: 'Admin user assigned (one per customer)', detail: 'Authorization — what you can do' },
   { key: 'subscriptionCreated', label: 'Subscription activated', detail: 'Demo plan tier assigned' },
   { key: 'patientsDatabaseProvisioned', label: 'Dedicated Patients database provisioned', detail: 'Includes Placeholder table for demo' },
   { key: 'defaultClinicCreated', label: 'Default clinic created', detail: 'Customer may add more clinics later' },
+  { key: 'accountActivated', label: 'Account activated', detail: 'Full customer workspace enabled' },
 ] as const
 
 export function CustomerOnboardingDemo({ roles }: CustomerOnboardingDemoProps) {
