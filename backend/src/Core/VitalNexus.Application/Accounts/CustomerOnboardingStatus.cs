@@ -6,6 +6,12 @@ public sealed class CustomerOnboardingStatus
 
     public bool EntraIdentityLinked { get; init; }
 
+    public bool BaaSigned { get; init; }
+
+    public bool PlanSelected { get; init; }
+
+    public bool ClinicProfileComplete { get; init; }
+
     public bool SubscriptionCreated { get; init; }
 
     public bool PatientsDatabaseProvisioned { get; init; }
@@ -14,11 +20,17 @@ public sealed class CustomerOnboardingStatus
 
     public bool AdminAssigned { get; init; }
 
+    public bool AccountActivated { get; init; }
+
     public bool IsComplete =>
         CustomerCreated
         && EntraIdentityLinked
+        && BaaSigned
+        && PlanSelected
+        && ClinicProfileComplete
         && SubscriptionCreated
         && PatientsDatabaseProvisioned
         && DefaultClinicCreated
-        && AdminAssigned;
+        && AdminAssigned
+        && AccountActivated;
 }
